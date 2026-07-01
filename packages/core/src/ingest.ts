@@ -8,6 +8,7 @@ export const MAX_INGEST_BYTES = 1_000_000;
 export const MAX_PDF_BYTES = 10_000_000;
 export const MAX_EXTRACTED_TEXT_CHARS = 120_000;
 export const DEFAULT_FETCH_TIMEOUT_MS = 10_000;
+export const MAX_REDIRECT_HOPS = 5;
 
 export interface IngestUrlOptions {
   fetcher?: FetchLike;
@@ -16,6 +17,7 @@ export interface IngestUrlOptions {
   resolveDns?: boolean;
   maxBytes?: number;
   timeoutMs?: number;
+  maxRedirects?: number;
 }
 
 export interface IngestPdfOptions {
@@ -133,6 +135,27 @@ async function fetchWithTimeout(fetcher: FetchLike, input: string | URL, init: R
   }
 }
 
+async function fetchPublicUrl(
+  fetcher: FetchLike,
+  initialUrl: URL,
+  init: RequestInit,
+  options: Required<Pick<IngestUrlOptions, 'allowPrivateHosts' | 'resolveDns'>> & { timeoutMs: number; maxRedirects: number },
+): Promise<{ response: Response; finalUrl: URL }> {
+  let current = initialUrl;
+  for (let hop = 0; hop <= options.maxRedirects; hop += 1) {
+    const response = await fetchWithTimeout(fetcher, current, { ...init, redirect: 'manual' }, options.timeoutMs);
+    if (response.status >= 300 && response.status < 400) {
+      const location = response.headers.get('location');
+      if (!location) throw new Error(`Redirect from ${current.toString()} did not include a location.`);
+      if (hop === options.maxRedirects) throw new Error(`URL redirected more than ${options.maxRedirects} time(s).`);
+      current = await assertPublicFetchUrl(new URL(location, current).toString(), options);
+      continue;
+    }
+    return { response, finalUrl: current };
+  }
+  throw new Error(`URL redirected more than ${options.maxRedirects} time(s).`);
+}
+
 async function readLimitedText(response: Response, maxBytes: number): Promise<string> {
   const contentLength = Number(response.headers.get('content-length') ?? 0);
   if (contentLength > maxBytes) {
@@ -170,10 +193,12 @@ export async function ingestUrl(url: string, fetcherOrOptions: FetchLike | Inges
   const fetcher = options.fetcher ?? fetch;
   const maxBytes = options.maxBytes ?? MAX_INGEST_BYTES;
   const timeoutMs = options.timeoutMs ?? DEFAULT_FETCH_TIMEOUT_MS;
-  const parsedUrl = await assertPublicFetchUrl(url, {
+  const publicFetchOptions = {
     allowPrivateHosts: options.allowPrivateHosts ?? false,
     resolveDns: options.resolveDns ?? fetcher === fetch,
-  });
+  };
+  const maxRedirects = options.maxRedirects ?? MAX_REDIRECT_HOPS;
+  const parsedUrl = await assertPublicFetchUrl(url, publicFetchOptions);
   const normalizedUrl = parsedUrl.toString();
   const apiKey = process.env.FIRECRAWL_API_KEY?.trim();
   if (apiKey && options.useFirecrawl === true) {
@@ -205,9 +230,9 @@ export async function ingestUrl(url: string, fetcherOrOptions: FetchLike | Inges
     }
   }
 
-  const res = await fetchWithTimeout(fetcher, normalizedUrl, {
+  const { response: res, finalUrl } = await fetchPublicUrl(fetcher, parsedUrl, {
     headers: { accept: 'text/html,text/plain,text/markdown,application/xhtml+xml,application/json;q=0.7,*/*;q=0.1' },
-  }, timeoutMs);
+  }, { ...publicFetchOptions, timeoutMs, maxRedirects });
   if (!res.ok) {
     throw new Error(`URL fetch failed: ${res.status} ${res.statusText}`);
   }
@@ -217,10 +242,10 @@ export async function ingestUrl(url: string, fetcherOrOptions: FetchLike | Inges
   }
   const html = await readLimitedText(res, maxBytes);
   return {
-    title: titleFromHtml(html, parsedUrl.hostname),
+    title: titleFromHtml(html, finalUrl.hostname),
     body: limitText(stripHtml(html)),
-    source: normalizedUrl,
-    metadata: { url: normalizedUrl, ingest: 'basic_fetch' },
+    source: finalUrl.toString(),
+    metadata: { url: finalUrl.toString(), requestedUrl: normalizedUrl, ingest: 'basic_fetch' },
   };
 }
 

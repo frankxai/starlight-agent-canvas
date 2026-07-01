@@ -51,13 +51,40 @@
     "desktopInspected": true,
     "mobileInspected": true,
     "reducedMotionInspected": true,
-    "server": "local production next start on 127.0.0.1:3101, stopped after capture",
+    "server": "local production next start on 127.0.0.1:3101 through sds, left running for Frank review",
     "screenshots": [
+      "docs/visual-qa/desktop-production-os.png",
+      "docs/visual-qa/mobile-production-os.png",
+      "docs/visual-qa/desktop-production-reduced-motion.png",
       "docs/visual-qa/desktop-first-viewport.png",
       "docs/visual-qa/mobile-first-viewport.png",
       "docs/visual-qa/mobile-graph-viewport.png",
       "docs/visual-qa/desktop-reduced-motion.png"
     ],
+    "productionMetrics": {
+      "desktop": {
+        "nodes": 7,
+        "canvas": {
+          "width": 760,
+          "height": 908
+        },
+        "minimapDisplay": "block"
+      },
+      "mobile": {
+        "nodes": 7,
+        "canvas": {
+          "width": 412,
+          "height": 620
+        },
+        "toolbarY": 635,
+        "firstNodeY": 172,
+        "minimapDisplay": "none"
+      },
+      "reducedMotion": {
+        "nodes": 7,
+        "minimapDisplay": "block"
+      }
+    },
     "metrics": {
       "desktop": {
         "nodes": 4,
@@ -78,6 +105,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Starter canvas is connected, mobile uses readable compact graph layout, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, mobile loads the graph before rails with a two-column compact layout, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

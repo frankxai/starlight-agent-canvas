@@ -6,6 +6,7 @@ import { exportCanvasAsMarkdown } from './exporters.js';
 import { makeId, nowIso } from './ids.js';
 import { runCanvasAction } from './actions.js';
 import { getAgentCanvasHome } from './home.js';
+import { withFileLock } from './file-lock.js';
 
 export interface CanvasSummary {
   id: string;
@@ -19,15 +20,18 @@ export interface CanvasSummary {
 export class FileCanvasStore {
   readonly home: string;
   private readonly canvasDir: string;
+  private readonly lockDir: string;
   private readonly writeLocks = new Map<string, Promise<void>>();
 
   constructor(home = getAgentCanvasHome()) {
     this.home = home;
     this.canvasDir = path.join(home, 'canvases');
+    this.lockDir = path.join(home, '.locks');
   }
 
   async ensure(): Promise<void> {
     await mkdir(this.canvasDir, { recursive: true });
+    await mkdir(this.lockDir, { recursive: true });
   }
 
   canvasPath(id: string): string {
@@ -39,6 +43,11 @@ export class FileCanvasStore {
       throw new Error('Unsafe canvas id.');
     }
     return target;
+  }
+
+  private lockPath(id: string): string {
+    const safeId = canvasIdSchema.parse(id);
+    return path.join(this.lockDir, `${safeId}.lock`);
   }
 
   private async withCanvasLock<T>(canvasId: string, work: (safeCanvasId: string) => Promise<T>): Promise<T> {
@@ -53,7 +62,8 @@ export class FileCanvasStore {
 
     await previous.catch(() => undefined);
     try {
-      return await work(safeCanvasId);
+      await this.ensure();
+      return await withFileLock(this.lockPath(safeCanvasId), () => work(safeCanvasId));
     } finally {
       release();
       if (this.writeLocks.get(safeCanvasId) === chain) {
@@ -84,8 +94,7 @@ export class FileCanvasStore {
   async createCanvas(input: CreateCanvasInput): Promise<CanvasRecord> {
     const parsed = createCanvasInputSchema.parse(input);
     const canvas = createCanvasRecord(parsed);
-    await this.saveCanvas(canvas);
-    return canvas;
+    return this.withCanvasLock(canvas.id, async () => this.saveCanvasFile(canvas));
   }
 
   async getCanvas(id: string): Promise<CanvasRecord> {
@@ -98,7 +107,7 @@ export class FileCanvasStore {
     return canvas;
   }
 
-  async saveCanvas(canvas: CanvasRecord): Promise<CanvasRecord> {
+  private async saveCanvasFile(canvas: CanvasRecord): Promise<CanvasRecord> {
     await this.ensure();
     const parsed = canvasRecordSchema.parse(canvas);
     const target = this.canvasPath(parsed.id);
@@ -108,9 +117,14 @@ export class FileCanvasStore {
     return parsed;
   }
 
+  async saveCanvas(canvas: CanvasRecord): Promise<CanvasRecord> {
+    const parsed = canvasRecordSchema.parse(canvas);
+    return this.withCanvasLock(parsed.id, async () => this.saveCanvasFile(parsed));
+  }
+
   async importCanvas(raw: unknown): Promise<CanvasRecord> {
     const parsed = canvasRecordSchema.parse(raw);
-    return this.withCanvasLock(parsed.id, async () => this.saveCanvas({ ...parsed, updatedAt: nowIso() }));
+    return this.withCanvasLock(parsed.id, async () => this.saveCanvasFile({ ...parsed, updatedAt: nowIso() }));
   }
 
   async addNode(canvasId: string, input: AddNodeInput): Promise<{ canvas: CanvasRecord; node: CanvasNode }> {
@@ -131,7 +145,7 @@ export class FileCanvasStore {
         createdAt: timestamp,
         updatedAt: timestamp,
       };
-      const next = await this.saveCanvas({
+      const next = await this.saveCanvasFile({
         ...canvas,
         updatedAt: timestamp,
         nodes: [...canvas.nodes, node],
@@ -156,7 +170,7 @@ export class FileCanvasStore {
         kind: parsed.kind,
         createdAt: timestamp,
       };
-      const next = await this.saveCanvas({
+      const next = await this.saveCanvasFile({
         ...canvas,
         updatedAt: timestamp,
         edges: [...canvas.edges, edge],
@@ -169,7 +183,7 @@ export class FileCanvasStore {
     return this.withCanvasLock(canvasId, async (safeCanvasId) => {
       const canvas = await this.getCanvas(safeCanvasId);
       const result = runCanvasAction(canvas, input);
-      await this.saveCanvas(result.canvas);
+      await this.saveCanvasFile(result.canvas);
       return result;
     });
   }

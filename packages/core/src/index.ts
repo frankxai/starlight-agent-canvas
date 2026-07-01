@@ -1,5 +1,6 @@
 export * from './actions.js';
 export * from './exporters.js';
+export * from './file-lock.js';
 export * from './home.js';
 export * from './ids.js';
 export * from './ingest.js';

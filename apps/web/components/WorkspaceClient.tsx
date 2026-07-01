@@ -130,7 +130,7 @@ function toFlow(canvas: CanvasRecord, compact = false): { nodes: Node<AgentNodeD
       id: node.id,
       type: 'agentNode',
       position: compact
-        ? { x: node.kind === 'prompt' || node.kind === 'output' ? 86 : 48, y: 72 + index * 166 }
+        ? { x: 48 + (index % 2) * 330, y: 96 + Math.floor(index / 2) * 220 }
         : node.position,
       data: {
         title: node.title,
@@ -384,7 +384,7 @@ function WorkspaceInner() {
         </header>
 
         <div className="grid flex-1 grid-cols-1 lg:min-h-0 lg:grid-cols-[320px_minmax(0,1fr)_360px]">
-          <aside className="border-b border-starlight-border bg-starlight-surface/72 p-4 lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
+          <aside className="order-2 border-b border-starlight-border bg-starlight-surface/72 p-4 lg:order-none lg:min-h-0 lg:overflow-y-auto lg:border-b-0 lg:border-r">
             <section className="space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <LayoutTemplate className="h-4 w-4 text-starlight-gold" aria-hidden="true" />
@@ -516,9 +516,9 @@ function WorkspaceInner() {
             </section>
           </aside>
 
-          <section className="relative h-[620px] min-h-[620px] overflow-hidden bg-starlight-bg sm:h-[680px] lg:h-auto lg:min-h-0">
+          <section className="relative order-1 h-[620px] min-h-[620px] overflow-hidden bg-starlight-bg sm:h-[680px] lg:order-none lg:h-auto lg:min-h-0">
             <div className="absolute inset-0 agent-grid opacity-70" aria-hidden="true" />
-            <div className="absolute left-4 top-4 z-10 flex flex-wrap items-center gap-2 rounded-lg border border-starlight-border bg-starlight-surface/88 p-2 shadow-command backdrop-blur">
+            <div className="absolute bottom-4 left-4 right-4 top-auto z-10 flex flex-wrap items-center gap-2 rounded-lg border border-starlight-border bg-starlight-surface/88 p-2 shadow-command backdrop-blur sm:bottom-auto sm:right-auto sm:top-4">
               <span className="px-2 text-xs text-starlight-muted">{canvas?.title ?? 'Loading canvas'}</span>
               <button type="button" onClick={connectSelected} disabled={!canMutate || selectedIds.length < 2} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
                 <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
@@ -539,8 +539,8 @@ function WorkspaceInner() {
               nodeTypes={nodeTypes}
               onSelectionChange={onSelectionChange}
               fitView
-              fitViewOptions={{ padding: compactCanvas ? 0.12 : 0.2, maxZoom: 1.1 }}
-              minZoom={compactCanvas ? 0.72 : 0.55}
+              fitViewOptions={{ padding: compactCanvas ? 0.18 : 0.2, maxZoom: 1.1 }}
+              minZoom={compactCanvas ? 0.5 : 0.55}
               maxZoom={2}
               nodesConnectable={false}
               onlyRenderVisibleElements
@@ -559,7 +559,7 @@ function WorkspaceInner() {
             </ReactFlow>
           </section>
 
-          <aside className="border-t border-starlight-border bg-starlight-surface/78 p-4 lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">
+          <aside className="order-3 border-t border-starlight-border bg-starlight-surface/78 p-4 lg:order-none lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">
             <section className="rounded-lg border border-starlight-border bg-starlight-panel/70 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Sparkles className="h-4 w-4 text-starlight-accent" aria-hidden="true" />

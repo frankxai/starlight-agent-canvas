@@ -35,6 +35,27 @@ describe('FileCanvasStore', () => {
     expect(markdown).toContain('MCP note');
   });
 
+  it('serializes writes across store instances', async () => {
+    const home = await mkdtemp(path.join(os.tmpdir(), 'agent-canvas-'));
+    const first = new FileCanvasStore(home);
+    const second = new FileCanvasStore(home);
+    const canvas = await first.createCanvas({ title: 'Shared process canvas', template: 'blank' });
+
+    await Promise.all(Array.from({ length: 10 }, (_, index) => {
+      const store = index % 2 === 0 ? first : second;
+      return store.addNode(canvas.id, {
+        kind: 'note',
+        title: `Concurrent note ${index}`,
+        body: `Write ${index} should survive cross-store concurrency.`,
+        metadata: { index },
+      });
+    }));
+
+    const saved = await first.getCanvas(canvas.id);
+    expect(saved.nodes).toHaveLength(11);
+    expect(saved.nodes.map((node) => node.title)).toContain('Concurrent note 9');
+  });
+
   it('rejects unsafe canvas ids before filesystem access', async () => {
     const home = await mkdtemp(path.join(os.tmpdir(), 'agent-canvas-'));
     const store = new FileCanvasStore(home);

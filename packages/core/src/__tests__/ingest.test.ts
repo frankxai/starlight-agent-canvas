@@ -34,6 +34,20 @@ describe('ingestion', () => {
     })).rejects.toThrow(/larger/);
   });
 
+  it('revalidates redirects before fetching redirected content', async () => {
+    const fakeFetch = async (input: string | URL) => {
+      if (String(input) === 'https://example.com/') {
+        return new Response('', {
+          status: 302,
+          headers: { location: 'http://127.0.0.1:3000/private' },
+        });
+      }
+      return new Response('should not fetch private content');
+    };
+
+    await expect(ingestUrl('https://example.com', fakeFetch)).rejects.toThrow(/Private/);
+  });
+
   it('parses YouTube ids and accepts manual transcripts', async () => {
     expect(extractYoutubeVideoId('https://www.youtube.com/watch?v=abcdefghijk')).toBe('abcdefghijk');
     const source = await ingestYoutube(

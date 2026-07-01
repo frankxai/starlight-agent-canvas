@@ -16,8 +16,11 @@
     "test": "pnpm --filter @starlight-agent-canvas/core test && pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/mcp test",
     "verify": "pnpm typecheck && pnpm test && pnpm build",
     "start": "pnpm build && pnpm --filter @starlight-agent-canvas/web start",
+    "preview:prod": "pnpm build && pnpm --filter @starlight-agent-canvas/web start -p 3101",
     "test:e2e": "pnpm --filter @starlight-agent-canvas/web test:e2e",
+    "seed:starlight": "pnpm --filter @starlight-agent-canvas/core build && node scripts/seed-starlight-canvas.mjs",
     "mcp:build": "pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/mcp build",
+    "mcp:smoke": "pnpm mcp:build && node packages/mcp/scripts/smoke.mjs",
     "mcp:start": "pnpm --filter @starlight-agent-canvas/mcp start"
   },
   "devDependencies": {

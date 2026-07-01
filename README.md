@@ -29,10 +29,25 @@ Optional local data path:
 $env:AGENT_CANVAS_HOME="C:\Users\frank\.starlight\agent-canvas"
 ```
 
+Seed the Starlight operating canvas:
+
+```powershell
+pnpm seed:starlight
+```
+
+Run a production local preview:
+
+```powershell
+pnpm preview:prod
+```
+
+The production preview uses `http://127.0.0.1:3101`.
+
 ## MCP
 
 ```powershell
 pnpm mcp:build
+pnpm mcp:smoke
 pnpm mcp:start
 ```
 
@@ -58,10 +73,24 @@ Example MCP client entry:
 
 ```powershell
 pnpm verify
+pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm mcp:smoke` proves stdio read/write/export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+
+## Technology
+
+- Next.js App Router, React, TypeScript, Tailwind.
+- `@xyflow/react` typed workflow canvas.
+- Zod schemas and a local file-backed store in `packages/core`.
+- `@modelcontextprotocol/sdk` stdio server in `packages/mcp`.
+- Vercel AI SDK dependency for future provider adapters; v0.1 actions remain deterministic and keyless.
+- Vitest, Playwright, security scan, CI, and visual QA evidence.
+
+See `docs/technology-stack.md`, `docs/mcp-setup.md`, and `docs/production-readiness.md`.
+
+Client examples live in `examples/mcp`.
 
 ## Repo Layout
 

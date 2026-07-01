@@ -1,0 +1,7 @@
+[mcp_servers.starlight-agent-canvas]
+command = 'C:\Program Files\nodejs\node.exe'
+args = ["C:/Users/frank/starlight/repos/starlight-agent-canvas/packages/mcp/dist/cli.js"]
+startup_timeout_sec = 60
+
+[mcp_servers.starlight-agent-canvas.env]
+AGENT_CANVAS_HOME = "C:/Users/frank/.starlight/agent-canvas"
