@@ -8,11 +8,13 @@ This is not a Poppy or Nodeflow clone. It is a local-first agent context layer: 
 
 - Create local canvases and portable JSON/Markdown exports.
 - Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
+- Use the canvas itself as the intake surface: paste into the top composer, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
 - Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
 - Ingest YouTube links with title lookup, best-effort public captions, and manual transcript fallback.
 - Run local actions: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions.
-- Drag nodes, persist positions, connect nodes directly, inspect source bodies, and export the result.
+- Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect source bodies, and export the result.
+- Auto-open newly created sources and action answers in the inspector so the captured context is immediately usable.
 - Expose safe stdio MCP tools so coding agents can ingest sources, update nodes, run actions, and export canvas state.
 - Keep runtime data outside the repo by default.
 

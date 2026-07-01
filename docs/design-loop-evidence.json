@@ -60,6 +60,10 @@
       "docs/visual-qa/desktop-intake-answer-state.png",
       "docs/visual-qa/mobile-intake-canvas.png",
       "docs/visual-qa/desktop-intake-reduced-motion.png",
+      "docs/visual-qa/desktop-live-canvas-composer.png",
+      "docs/visual-qa/desktop-live-pasted-youtube.png",
+      "docs/visual-qa/desktop-live-editable-inspector.png",
+      "docs/visual-qa/mobile-live-canvas-composer.png",
       "docs/visual-qa/desktop-first-viewport.png",
       "docs/visual-qa/mobile-first-viewport.png",
       "docs/visual-qa/mobile-graph-viewport.png",
@@ -91,6 +95,12 @@
     },
     "intakeQa": {
       "universalIntake": true,
+      "firstViewportComposer": true,
+      "pasteAnywhere": true,
+      "dropToCanvasPosition": true,
+      "doubleClickNoteCreation": true,
+      "editableInspector": true,
+      "autoSelectNewSourcesAndOutputs": true,
       "youtubeManualTranscriptMapped": true,
       "askCanvasOutputCreated": true,
       "mobileToolbarReduced": true
@@ -115,6 +125,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, mobile loads the graph before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport composer controls, paste-anywhere, double-click notes, editable inspector, source/action auto-selection, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

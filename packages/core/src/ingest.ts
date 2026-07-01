@@ -383,7 +383,12 @@ export async function ingestYoutube(url: string, manualTranscript = '', fetcher:
 
   let title = `YouTube ${videoId}`;
   try {
-    const oembed = await fetcher(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+    const oembed = await fetchWithTimeout(
+      fetcher,
+      `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`,
+      {},
+      DEFAULT_FETCH_TIMEOUT_MS,
+    );
     if (oembed.ok) {
       const data = await oembed.json() as { title?: string; author_name?: string };
       title = data.title || title;

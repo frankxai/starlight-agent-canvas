@@ -20,12 +20,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       return NextResponse.json({ error: `PDF must be ${MAX_PDF_BYTES} bytes or smaller.` }, { status: 413 });
     }
     const source = await ingestPdf(await file.arrayBuffer(), file.name);
+    const rawX = form.get('positionX');
+    const rawY = form.get('positionY');
+    const x = typeof rawX === 'string' ? Number(rawX) : NaN;
+    const y = typeof rawY === 'string' ? Number(rawY) : NaN;
+    const position = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : undefined;
     const result = await getStore().ingestSource(id, {
       kind: 'source_pdf',
       title: source.title,
       body: source.body,
       source: source.source,
       metadata: source.metadata,
+      position,
     });
     return NextResponse.json(result);
   } catch (error) {

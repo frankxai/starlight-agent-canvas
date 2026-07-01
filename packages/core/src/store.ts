@@ -1,5 +1,6 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { canvasIdSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, ingestSourceInputSchema, updateNodeInputSchema, type AddNodeInput, type CanvasArtifact, type CanvasEdge, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type IngestSourceInput, type RunActionInput, type UpdateNodeInput } from './schemas.js';
 import { createCanvasRecord } from './templates.js';
 import { exportCanvasAsMarkdown } from './exporters.js';
@@ -15,6 +16,22 @@ export interface CanvasSummary {
   updatedAt: string;
   nodeCount: number;
   runCount: number;
+}
+
+async function renameWithRetry(from: string, to: string): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 6; attempt += 1) {
+    try {
+      await rename(from, to);
+      return;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (code !== 'EPERM' && code !== 'EBUSY' && code !== 'EACCES') throw error;
+      lastError = error;
+      await sleep(25 * (attempt + 1));
+    }
+  }
+  throw lastError;
 }
 
 export class FileCanvasStore {
@@ -113,7 +130,7 @@ export class FileCanvasStore {
     const target = this.canvasPath(parsed.id);
     const temp = `${target}.${process.pid}.${Date.now()}.tmp`;
     await writeFile(temp, JSON.stringify(parsed, null, 2), 'utf8');
-    await rename(temp, target);
+    await renameWithRetry(temp, target);
     return parsed;
   }
 

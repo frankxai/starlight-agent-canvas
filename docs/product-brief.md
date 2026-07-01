@@ -12,7 +12,7 @@ Starlight Agent Canvas is a local-first research/workflow canvas for agent-assis
 
 ## First Read
 
-The first viewport must communicate: this is a working agent canvas with sources, actions, run logs, and MCP-safe state.
+The first viewport must communicate: this is a working agent canvas where the canvas itself accepts sources, notes, actions, run logs, and MCP-safe state.
 
 ## v0.1 Promise
 
@@ -22,7 +22,10 @@ Turn mixed source material into reusable agent context and implementation artifa
 
 - Paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
 - Convert each source into a durable artifact plus typed node with provenance metadata.
+- Create notes from the canvas composer or by double-clicking blank canvas space.
+- Edit node titles and bodies in the inspector, then reuse the edited canvas as agent context.
 - Ask source-grounded questions over selected nodes or the whole canvas.
+- Auto-select newly created source and action output nodes so answers and ingested context are immediately inspectable.
 - Persist graph interaction: node drag positions, direct node connections, run outputs, and exports.
 - Let MCP clients perform the same source ingest, node update, action, search, and export workflow.
 
