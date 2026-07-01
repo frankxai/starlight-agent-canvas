@@ -64,7 +64,7 @@ const canvas = {
       'mcp_tool',
       'MCP Boundary',
       [
-        'Exposed tools: list_canvases, get_canvas, create_canvas, add_node, connect_nodes, run_node_action, search_artifacts, export_canvas.',
+        'Exposed tools: list_canvases, get_canvas, create_canvas, add_node, update_node, ingest_text_source, ingest_url, ingest_youtube, connect_nodes, run_node_action, search_artifacts, export_canvas.',
         'No destructive tools. No posting. No social scraping. No payments. No external account mutation.',
         'Runtime state is under AGENT_CANVAS_HOME. Frank local default: C:/Users/frank/.starlight/agent-canvas.',
       ].join('\n'),
@@ -77,9 +77,9 @@ const canvas = {
       'Agent Workflows',
       [
         'Primary workflows to prove v0.1:',
-        '1. Competitor teardown for Poppy, Nodeflow, AI Flow Chat, and Superly alternatives.',
-        '2. Starlight repo estate product planning canvas.',
-        '3. MCP agent/tool design brief.',
+        '1. Drop Poppy/Nodeflow/AI Flow Chat/Superly source URLs and video transcripts, ask over them, then export the teardown.',
+        '2. Map Starlight repo-estate notes, docs, and planning sources into a product canvas.',
+        '3. Use MCP from Codex/Claude/Gemini to ingest sources, update nodes, run actions, and export an agent/tool design brief.',
         'Each workflow should finish in under 10 minutes and export JSON/Markdown for reuse by Codex, Claude, Gemini, and Starlight systems.',
       ].join('\n'),
       { x: 800, y: 80 },
@@ -115,7 +115,8 @@ const canvas = {
       'Implementation Brief Output',
       [
         'Recommendation: keep v0.1 focused on local ownership, typed context, safe agent actions, and excellent inspectability.',
-        'Next best investments: richer URL ingestion evidence, optional provider-backed action adapters, hosted preview with auth/storage, and a tldraw sketch mode once the typed workflow core is stable.',
+        'Now shipping: universal intake, source artifacts, URL/PDF/text ingestion, YouTube captions/manual transcripts, direct graph connections, persisted node positions, source-grounded ask, and MCP source tools.',
+        'Next best investments: chunk-level citations, richer media/OCR, optional provider-backed action adapters, hosted preview with auth/storage, and a tldraw sketch mode once the typed workflow core is stable.',
       ].join('\n\n'),
       { x: 1160, y: 190 },
       { generatedBy: 'seed-starlight-canvas.mjs' },

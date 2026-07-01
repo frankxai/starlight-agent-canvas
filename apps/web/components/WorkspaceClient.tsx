@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type DragEvent } from 'react';
 import {
   Background,
   Controls,
@@ -9,8 +9,11 @@ import {
   Position,
   ReactFlow,
   ReactFlowProvider,
+  applyNodeChanges,
+  type Connection,
   type Edge,
   type Node,
+  type NodeChange,
   type NodeProps,
   type OnSelectionChangeParams,
 } from '@xyflow/react';
@@ -19,8 +22,10 @@ import {
   Bot,
   Boxes,
   Braces,
+  ClipboardPaste,
   Download,
   FileText,
+  FileUp,
   GitBranch,
   LayoutTemplate,
   Link,
@@ -31,6 +36,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  UploadCloud,
   Youtube,
 } from 'lucide-react';
 import type { CanvasActionType, CanvasEdge, CanvasNode, CanvasNodeKind, CanvasRecord } from '@starlight-agent-canvas/core';
@@ -84,6 +90,7 @@ const ACTIONS: Array<{ id: CanvasActionType; label: string }> = [
   { id: 'compare_sources', label: 'Compare' },
   { id: 'decision_matrix', label: 'Matrix' },
   { id: 'implementation_brief', label: 'Build Brief' },
+  { id: 'answer_question', label: 'Ask' },
 ];
 
 async function api<T>(url: string, init?: RequestInit): Promise<T> {
@@ -97,7 +104,11 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
 
 function AgentNode({ data, selected }: NodeProps<Node<AgentNodeData>>) {
   const style = KIND_STYLE[data.kind];
-  const source = typeof data.metadata.url === 'string' ? data.metadata.url : undefined;
+  const source = typeof data.metadata.url === 'string'
+    ? data.metadata.url
+    : typeof data.metadata.source === 'string'
+      ? data.metadata.source
+      : undefined;
   return (
     <div
       className={`w-[260px] rounded-lg border bg-starlight-surface/95 shadow-command backdrop-blur transition ${
@@ -155,6 +166,40 @@ function formatKind(kind: string) {
   return kind.replace(/_/g, ' ');
 }
 
+const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
+
+function extractUrls(value: string): string[] {
+  return Array.from(new Set((value.match(URL_PATTERN) ?? [])
+    .map((item) => item.replace(/[),.;]+$/, ''))
+    .filter(Boolean)));
+}
+
+function removeUrls(value: string, urls: string[]): string {
+  return urls.reduce((text, url) => text.replace(url, ' '), value).replace(/\s+/g, ' ').trim();
+}
+
+function isYoutubeLink(value: string): boolean {
+  try {
+    const host = new URL(value).hostname.toLowerCase();
+    return host.includes('youtube.com') || host.includes('youtu.be');
+  } catch {
+    return false;
+  }
+}
+
+function hostTitle(value: string): string {
+  try {
+    return new URL(value).hostname.replace(/^www\./, '');
+  } catch {
+    return 'Source URL';
+  }
+}
+
+function textTitle(value: string): string {
+  const first = value.split(/\r?\n/).map((line) => line.trim()).find(Boolean) ?? 'Pasted source';
+  return first.length > 72 ? `${first.slice(0, 69)}...` : first;
+}
+
 function useCompactCanvas() {
   const [compact, setCompact] = useState(false);
 
@@ -180,22 +225,32 @@ export default function WorkspaceClient() {
 function WorkspaceInner() {
   const [apiState, setApiState] = useState<ApiState>({ canvases: [], templates: [], home: '' });
   const [canvas, setCanvas] = useState<CanvasRecord | null>(null);
+  const [flowNodes, setFlowNodes] = useState<Node<AgentNodeData>[]>([]);
+  const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('Booting local canvas...');
+  const [dragActive, setDragActive] = useState(false);
   const [noteTitle, setNoteTitle] = useState('Research note');
   const [noteBody, setNoteBody] = useState('What matters, why it matters, and what to do next.');
   const [noteKind, setNoteKind] = useState<CanvasNodeKind>('note');
   const [url, setUrl] = useState('https://get.nodeflowai.com/');
-  const [youtubeUrl, setYoutubeUrl] = useState('https://www.youtube.com/watch?v=');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [transcript, setTranscript] = useState('');
+  const [intakeText, setIntakeText] = useState('Drop or paste a YouTube URL, product page, transcript, repo note, or source text here.');
+  const [askPrompt, setAskPrompt] = useState('What capabilities, gaps, and next build moves does this canvas show?');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Array<{ title: string; kind: string; excerpt: string }>>([]);
   const compactCanvas = useCompactCanvas();
 
   const selectedNode = useMemo(() => canvas?.nodes.find((node) => node.id === selectedIds[0]) ?? null, [canvas, selectedIds]);
-  const flow = useMemo(() => (canvas ? toFlow(canvas, compactCanvas) : { nodes: [], edges: [] }), [canvas, compactCanvas]);
+  const baseFlow = useMemo(() => (canvas ? toFlow(canvas, compactCanvas) : { nodes: [], edges: [] }), [canvas, compactCanvas]);
   const canMutate = Boolean(canvas) && !busy;
+
+  useEffect(() => {
+    setFlowNodes(baseFlow.nodes);
+    setFlowEdges(baseFlow.edges);
+  }, [baseFlow]);
 
   const loadCanvas = useCallback(async (id: string) => {
     const data = await api<{ canvas: CanvasRecord }>(`/api/canvases/${id}`);
@@ -293,7 +348,7 @@ function WorkspaceInner() {
       () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ kind: 'source_url', title: new URL(url).hostname, body: '', metadata: { url } }),
+        body: JSON.stringify({ kind: 'source_url', title: hostTitle(url), body: '', metadata: { url } }),
       }),
       'Ingested URL source.',
     );
@@ -305,33 +360,131 @@ function WorkspaceInner() {
       () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ kind: 'source_youtube', title: 'YouTube source', body: transcript, metadata: { url: youtubeUrl } }),
+        body: JSON.stringify({ kind: 'source_youtube', title: hostTitle(youtubeUrl), body: transcript, metadata: { url: youtubeUrl } }),
       }),
-      'Added YouTube transcript source.',
+      'Ingested video source.',
     );
   }, [canvas, mutateCanvas, transcript, youtubeUrl]);
 
-  const addPdf = useCallback(async (file: File | null) => {
-    if (!canvas || !file) return;
-    const form = new FormData();
-    form.append('file', file);
-    await mutateCanvas(
-      () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/pdf`, { method: 'POST', body: form }),
-      'Ingested PDF source.',
-    );
-  }, [canvas, mutateCanvas]);
+  const ingestFiles = useCallback(async (files: File[]) => {
+    if (!canvas || !files.length) return;
+    setBusy(true);
+    try {
+      let last: CanvasMutationResponse | null = null;
+      let count = 0;
+      for (const file of files) {
+        if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+          const form = new FormData();
+          form.append('file', file);
+          last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/pdf`, { method: 'POST', body: form });
+          count += 1;
+          continue;
+        }
 
-  const runAction = useCallback(async (action: CanvasActionType) => {
+        if (
+          file.type.startsWith('text/') ||
+          /\.(txt|md|markdown|json|csv|log)$/i.test(file.name)
+        ) {
+          const text = await file.text();
+          last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/text`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              title: file.name,
+              body: text,
+              source: file.name,
+              artifactKind: file.name.toLowerCase().endsWith('.json') ? 'json' : 'markdown',
+              metadata: { filename: file.name, fileType: file.type || 'text/plain' },
+            }),
+          });
+          count += 1;
+          continue;
+        }
+
+        last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/text`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            title: file.name,
+            body: `Local file reference: ${file.name}\nType: ${file.type || 'unknown'}\nSize: ${file.size} bytes\n\nBinary media extraction is not enabled in v0.1. Add a transcript, description, or extracted text for analysis.`,
+            source: file.name,
+            metadata: { filename: file.name, fileType: file.type || 'unknown', fileSize: file.size, ingest: 'file_reference' },
+          }),
+        });
+        count += 1;
+      }
+      if (last?.canvas) setCanvas(last.canvas);
+      await refreshList();
+      setStatus(`Ingested ${count} file source(s).`);
+    } catch (error) {
+      setStatus((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }, [canvas, refreshList]);
+
+  const intakeAnything = useCallback(async (value: string) => {
+    if (!canvas || !value.trim()) return;
+    const urls = extractUrls(value);
+    const remaining = removeUrls(value, urls);
+    setBusy(true);
+    try {
+      let last: CanvasMutationResponse | null = null;
+      let count = 0;
+      for (const sourceUrl of urls) {
+        const video = isYoutubeLink(sourceUrl);
+        last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            kind: video ? 'source_youtube' : 'source_url',
+            title: video ? 'YouTube source' : hostTitle(sourceUrl),
+            body: video && urls.length === 1 ? remaining : '',
+            metadata: { url: sourceUrl },
+          }),
+        });
+        count += 1;
+      }
+
+      const shouldKeepText = !urls.length || (remaining.length > 24 && !(urls.length === 1 && isYoutubeLink(urls[0])));
+      if (shouldKeepText) {
+        last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/text`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            title: textTitle(remaining || value),
+            body: remaining || value,
+            metadata: { intake: urls.length ? 'text_with_links' : 'manual_text' },
+          }),
+        });
+        count += 1;
+      }
+
+      if (last?.canvas) setCanvas(last.canvas);
+      await refreshList();
+      setStatus(`Mapped ${count} source item(s).`);
+    } catch (error) {
+      setStatus((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }, [canvas, refreshList]);
+
+  const runAction = useCallback(async (action: CanvasActionType, prompt = '') => {
     if (!canvas) return;
     await mutateCanvas(
       () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/actions`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action, inputNodeIds: selectedIds }),
+        body: JSON.stringify({ action, inputNodeIds: selectedIds, prompt }),
       }),
       `Ran ${action.replace(/_/g, ' ')}.`,
     );
   }, [canvas, mutateCanvas, selectedIds]);
+
+  const askCanvas = useCallback(async () => {
+    await runAction('answer_question', askPrompt);
+  }, [askPrompt, runAction]);
 
   const connectSelected = useCallback(async () => {
     if (!canvas || selectedIds.length < 2) return;
@@ -345,6 +498,19 @@ function WorkspaceInner() {
     );
   }, [canvas, mutateCanvas, selectedIds]);
 
+  const connectFlow = useCallback(async (connection: Connection) => {
+    if (!canvas || !connection.source || !connection.target) return;
+    setSelectedIds([connection.source, connection.target]);
+    await mutateCanvas(
+      () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/edges`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ source: connection.source, target: connection.target, kind: 'references' }),
+      }),
+      'Connected canvas nodes.',
+    );
+  }, [canvas, mutateCanvas]);
+
   const runSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
     const data = await api<{ results: Array<{ title: string; kind: string; excerpt: string }> }>(`/api/search?q=${encodeURIComponent(searchQuery)}`);
@@ -354,6 +520,48 @@ function WorkspaceInner() {
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
     setSelectedIds(params.nodes.map((node) => node.id));
+  }, []);
+
+  const onNodesChange = useCallback((changes: NodeChange<Node<AgentNodeData>>[]) => {
+    setFlowNodes((nodes) => applyNodeChanges(changes, nodes));
+  }, []);
+
+  const persistNodePosition = useCallback(async (_event: unknown, node: Node<AgentNodeData>) => {
+    if (!canvas) return;
+    try {
+      const result = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes/${node.id}`, {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ position: node.position }),
+      });
+      if (result.canvas) setCanvas(result.canvas);
+      await refreshList();
+      setStatus('Saved node position.');
+    } catch (error) {
+      setStatus((error as Error).message);
+    }
+  }, [canvas, refreshList]);
+
+  const onDrop = useCallback(async (event: DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    setDragActive(false);
+    const files = Array.from(event.dataTransfer.files ?? []);
+    if (files.length) {
+      await ingestFiles(files);
+      return;
+    }
+    const uri = event.dataTransfer.getData('text/uri-list');
+    const text = event.dataTransfer.getData('text/plain');
+    await intakeAnything(uri || text);
+  }, [ingestFiles, intakeAnything]);
+
+  const onDragOver = useCallback((event: DragEvent<HTMLElement>) => {
+    event.preventDefault();
+    setDragActive(true);
+  }, []);
+
+  const onDragLeave = useCallback(() => {
+    setDragActive(false);
   }, []);
 
   return (
@@ -426,6 +634,43 @@ function WorkspaceInner() {
                     <span className="mt-1 block text-xs text-starlight-muted">{summary.nodeCount} nodes / {summary.runCount} runs</span>
                   </button>
                 ))}
+              </div>
+            </section>
+
+            <section className="mt-6 space-y-3 rounded-lg border border-starlight-accent/25 bg-starlight-panel/78 p-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <ClipboardPaste className="h-4 w-4 text-starlight-accent" aria-hidden="true" />
+                Universal Intake
+              </div>
+              <textarea
+                data-testid="intake-text"
+                value={intakeText}
+                onChange={(event) => setIntakeText(event.target.value)}
+                className="min-h-28 w-full rounded-md border border-starlight-border bg-starlight-surface px-3 py-2 text-sm leading-6"
+                placeholder="Paste links, transcript text, repo notes, or claims"
+              />
+              <div className="grid grid-cols-[1fr_auto] gap-2">
+                <button
+                  data-testid="intake-ingest"
+                  type="button"
+                  disabled={!canMutate || !intakeText.trim()}
+                  onClick={() => intakeAnything(intakeText)}
+                  className="flex items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 py-2 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <UploadCloud className="h-4 w-4" aria-hidden="true" />
+                  Map Source
+                </button>
+                <label className="flex cursor-pointer items-center justify-center rounded-md border border-starlight-border px-3 py-2 text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink">
+                  <FileUp className="h-4 w-4" aria-hidden="true" />
+                  <input
+                    type="file"
+                    multiple
+                    accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
+                    disabled={!canMutate}
+                    onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
+                    className="sr-only"
+                  />
+                </label>
               </div>
             </section>
 
@@ -504,45 +749,61 @@ function WorkspaceInner() {
             <section className="mt-6 space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <FileText className="h-4 w-4 text-starlight-ink" aria-hidden="true" />
-                PDF
+                Files
               </div>
               <input
                 type="file"
-                accept="application/pdf"
+                multiple
+                accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
                 disabled={!canMutate}
-                onChange={(event) => addPdf(event.currentTarget.files?.[0] ?? null)}
+                onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
                 className="w-full rounded-md border border-starlight-border bg-starlight-panel px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-starlight-ink file:px-2 file:py-1 file:text-xs file:text-starlight-bg disabled:cursor-not-allowed disabled:opacity-45"
               />
             </section>
           </aside>
 
-          <section className="relative order-1 h-[620px] min-h-[620px] overflow-hidden bg-starlight-bg sm:h-[680px] lg:order-none lg:h-auto lg:min-h-0">
+          <section
+            className={`relative order-1 h-[620px] min-h-[620px] overflow-hidden bg-starlight-bg sm:h-[680px] lg:order-none lg:h-auto lg:min-h-0 ${dragActive ? 'ring-2 ring-inset ring-starlight-accent/70' : ''}`}
+            data-testid="canvas-surface"
+            onDrop={onDrop}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+          >
             <div className="absolute inset-0 agent-grid opacity-70" aria-hidden="true" />
-            <div className="absolute bottom-4 left-4 right-4 top-auto z-10 flex flex-wrap items-center gap-2 rounded-lg border border-starlight-border bg-starlight-surface/88 p-2 shadow-command backdrop-blur sm:bottom-auto sm:right-auto sm:top-4">
-              <span className="px-2 text-xs text-starlight-muted">{canvas?.title ?? 'Loading canvas'}</span>
+            {dragActive ? (
+              <div className="pointer-events-none absolute inset-x-5 top-24 z-20 rounded-lg border border-starlight-accent/60 bg-starlight-accent/15 px-4 py-3 text-sm font-semibold text-starlight-ink shadow-command backdrop-blur">
+                Drop to map onto this canvas
+              </div>
+            ) : null}
+            <div className="absolute bottom-3 left-3 top-auto z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-2 rounded-lg border border-starlight-border bg-starlight-surface/88 p-1.5 shadow-command backdrop-blur sm:bottom-auto sm:left-4 sm:top-4 sm:max-w-[calc(100%-2rem)] sm:p-2">
+              <span className="hidden px-2 text-xs text-starlight-muted sm:inline">{canvas?.title ?? 'Loading canvas'}</span>
+              <span className="hidden rounded-md border border-starlight-accent/30 px-2 py-1 text-xs text-starlight-accent sm:inline-flex">Drop / paste sources</span>
               <button type="button" onClick={connectSelected} disabled={!canMutate || selectedIds.length < 2} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
                 <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
-                Connect
+                <span className="hidden sm:inline">Connect</span>
               </button>
-              <a href={canvas ? `/api/canvases/${canvas.id}/export?format=json` : '#'} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
+              <a aria-label="Export JSON" href={canvas ? `/api/canvases/${canvas.id}/export?format=json` : '#'} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 JSON
               </a>
-              <a href={canvas ? `/api/canvases/${canvas.id}/export?format=markdown` : '#'} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
+              <a aria-label="Export Markdown" href={canvas ? `/api/canvases/${canvas.id}/export?format=markdown` : '#'} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 MD
               </a>
             </div>
             <ReactFlow
-              nodes={flow.nodes}
-              edges={flow.edges}
+              nodes={flowNodes}
+              edges={flowEdges}
               nodeTypes={nodeTypes}
+              onNodesChange={onNodesChange}
               onSelectionChange={onSelectionChange}
+              onNodeDragStop={persistNodePosition}
+              onConnect={connectFlow}
               fitView
               fitViewOptions={{ padding: compactCanvas ? 0.18 : 0.2, maxZoom: 1.1 }}
               minZoom={compactCanvas ? 0.5 : 0.55}
               maxZoom={2}
-              nodesConnectable={false}
+              nodesConnectable
               onlyRenderVisibleElements
               proOptions={{ hideAttribution: true }}
             >
@@ -568,6 +829,23 @@ function WorkspaceInner() {
               <p className="mt-2 text-xs leading-5 text-starlight-muted">
                 Runs are local and deterministic in v0.1. Select nodes to scope an action, or leave empty to use the canvas.
               </p>
+              <textarea
+                data-testid="ask-prompt"
+                value={askPrompt}
+                onChange={(event) => setAskPrompt(event.target.value)}
+                className="mt-3 min-h-20 w-full rounded-md border border-starlight-border bg-starlight-surface px-3 py-2 text-sm leading-6"
+                placeholder="Ask across selected nodes or the whole canvas"
+              />
+              <button
+                data-testid="ask-canvas"
+                type="button"
+                disabled={!canMutate || !askPrompt.trim()}
+                onClick={askCanvas}
+                className="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-starlight-accent px-3 py-2 text-sm font-semibold text-[#05060A] transition hover:bg-[#8CBAFF] disabled:cursor-not-allowed disabled:opacity-45"
+              >
+                <Sparkles className="h-4 w-4" aria-hidden="true" />
+                Ask Canvas
+              </button>
               <div className="mt-3 grid grid-cols-2 gap-2">
                 {ACTIONS.map((action) => (
                   <button

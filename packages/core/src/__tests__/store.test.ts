@@ -27,6 +27,19 @@ describe('FileCanvasStore', () => {
     const afterConcurrentWrites = await store.getCanvas(canvas.id);
     expect(afterConcurrentWrites.nodes).toHaveLength(3);
 
+    const ingested = await store.ingestSource(canvas.id, {
+      kind: 'source_youtube',
+      title: 'Demo video',
+      body: 'Transcript text about MCP canvas workflows.',
+      source: 'https://www.youtube.com/watch?v=abcdefghijk',
+      metadata: { videoId: 'abcdefghijk' },
+    });
+    expect(ingested.artifact.kind).toBe('youtube');
+    expect(ingested.node.metadata.artifactId).toBe(ingested.artifact.id);
+
+    const moved = await store.updateNode(canvas.id, ingested.node.id, { position: { x: 640, y: 360 } });
+    expect(moved.node.position).toEqual({ x: 640, y: 360 });
+
     const search = await store.searchArtifacts('local-first');
     expect(search[0]?.canvasId).toBe(canvas.id);
 

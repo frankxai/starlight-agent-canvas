@@ -7,9 +7,13 @@ This is not a Poppy or Nodeflow clone. It is a local-first agent context layer: 
 ## What v0.1 Does
 
 - Create local canvases and portable JSON/Markdown exports.
-- Add notes, URLs, PDFs, YouTube transcript notes, prompts, MCP tool nodes, agent-run notes, and outputs.
-- Run local actions: summarize, extract claims, compare sources, make a decision matrix, and generate an implementation brief.
-- Expose safe stdio MCP tools so coding agents can read and write canvas state.
+- Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
+- Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata.
+- Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
+- Ingest YouTube links with title lookup, best-effort public captions, and manual transcript fallback.
+- Run local actions: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions.
+- Drag nodes, persist positions, connect nodes directly, inspect source bodies, and export the result.
+- Expose safe stdio MCP tools so coding agents can ingest sources, update nodes, run actions, and export canvas state.
 - Keep runtime data outside the repo by default.
 
 ## Quick Start
@@ -77,13 +81,14 @@ pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm mcp:smoke` proves stdio read/write/export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm mcp:smoke` proves stdio source ingest, node update, action, and export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 
 - Next.js App Router, React, TypeScript, Tailwind.
 - `@xyflow/react` typed workflow canvas.
-- Zod schemas and a local file-backed store in `packages/core`.
+- Zod schemas, source artifacts, and a local file-backed store in `packages/core`.
+- Source adapters for URL fetch, optional Firecrawl, PDF extraction, YouTube oEmbed/captions, and manual text.
 - `@modelcontextprotocol/sdk` stdio server in `packages/mcp`.
 - Vercel AI SDK dependency for future provider adapters; v0.1 actions remain deterministic and keyless.
 - Vitest, Playwright, security scan, CI, and visual QA evidence.
@@ -104,4 +109,4 @@ Client examples live in `examples/mcp`.
 
 No v0.1 tool posts externally, scrapes social platforms, spends money, modifies external accounts, or deletes canvases. Runtime state lives in local files and can be inspected directly.
 
-URL/PDF ingestion is bounded: private and localhost URLs are rejected, remote fetches have timeout/size limits, PDFs are capped, and Firecrawl is used only when both `FIRECRAWL_API_KEY` exists and a request explicitly opts in.
+URL/PDF/video ingestion is bounded: private and localhost URLs are rejected for arbitrary URL fetches, remote fetches have timeout/size limits, PDFs are capped, YouTube transcript fetching is read-only/best-effort, and Firecrawl is used only when both `FIRECRAWL_API_KEY` exists and a request explicitly opts in.

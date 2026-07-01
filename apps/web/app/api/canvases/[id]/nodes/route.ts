@@ -1,8 +1,22 @@
 import { NextResponse } from 'next/server';
-import { ingestUrl, ingestYoutube } from '@starlight-agent-canvas/core';
+import { ingestUrl, ingestYoutube, type CanvasNodeKind, type IngestedSource } from '@starlight-agent-canvas/core';
 import { getStore } from '@/lib/store';
 
 export const runtime = 'nodejs';
+
+function fallbackSource(kind: Extract<CanvasNodeKind, 'source_url' | 'source_youtube'>, url: string, error: unknown): IngestedSource {
+  const parsed = new URL(url);
+  return {
+    title: kind === 'source_youtube' ? `YouTube ${parsed.hostname}` : parsed.hostname,
+    body: `Readable text was not fetched from ${url}. The link is still mapped as a source reference. Add notes, paste transcript text, or rerun ingestion later.\n\nFetch note: ${(error as Error).message}`,
+    source: url,
+    metadata: {
+      url,
+      ingest: kind === 'source_youtube' ? 'youtube_reference_fallback' : 'url_reference_fallback',
+      error: (error as Error).message,
+    },
+  };
+}
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
@@ -11,11 +25,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const metadata = body.metadata ?? {};
 
     if (body.kind === 'source_url' && metadata.url) {
-      const source = await ingestUrl(String(metadata.url), { useFirecrawl: metadata.useFirecrawl === true });
-      const result = await getStore().addNode(id, {
+      const url = String(metadata.url);
+      const source = await ingestUrl(url, { useFirecrawl: metadata.useFirecrawl === true }).catch((error) => fallbackSource('source_url', url, error));
+      const result = await getStore().ingestSource(id, {
         kind: 'source_url',
         title: body.title || source.title,
         body: source.body,
+        source: source.source,
         metadata: source.metadata,
         position: body.position,
       });
@@ -23,11 +39,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
 
     if (body.kind === 'source_youtube' && metadata.url) {
-      const source = await ingestYoutube(String(metadata.url), String(body.body || ''));
-      const result = await getStore().addNode(id, {
+      const url = String(metadata.url);
+      const source = await ingestYoutube(url, String(body.body || '')).catch((error) => fallbackSource('source_youtube', url, error));
+      const result = await getStore().ingestSource(id, {
         kind: 'source_youtube',
         title: body.title || source.title,
         body: source.body,
+        source: source.source,
         metadata: source.metadata,
         position: body.position,
       });

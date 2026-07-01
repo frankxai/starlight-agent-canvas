@@ -14,6 +14,10 @@ const expectedTools = [
   'get_canvas',
   'create_canvas',
   'add_node',
+  'update_node',
+  'ingest_text_source',
+  'ingest_url',
+  'ingest_youtube',
   'connect_nodes',
   'run_node_action',
   'search_artifacts',
@@ -54,13 +58,25 @@ try {
     throw new Error('create_canvas did not return a canvas id.');
   }
 
-  await client.callTool({
-    name: 'add_node',
+  const ingested = await client.callTool({
+    name: 'ingest_text_source',
     arguments: {
       canvasId,
-      kind: 'note',
       title: 'Smoke note',
       body: 'The MCP stdio path can create a canvas, add a node, run an action, and export markdown.',
+    },
+  });
+  const nodeId = ingested.structuredContent?.node?.id;
+  if (typeof nodeId !== 'string') {
+    throw new Error('ingest_text_source did not return a node id.');
+  }
+
+  await client.callTool({
+    name: 'update_node',
+    arguments: {
+      canvasId,
+      nodeId,
+      position: { x: 320, y: 220 },
     },
   });
 
@@ -68,8 +84,9 @@ try {
     name: 'run_node_action',
     arguments: {
       canvasId,
-      action: 'implementation_brief',
+      action: 'answer_question',
       inputNodeIds: [],
+      prompt: 'What does the smoke test prove?',
     },
   });
 

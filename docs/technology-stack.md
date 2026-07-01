@@ -9,8 +9,9 @@ Last reviewed: 2026-07-01.
 - Canvas: `@xyflow/react` for typed workflow nodes and edges.
 - UI system: Tailwind CSS, lucide-react, Starlight Premium Web OS tokens.
 - AI surface: Vercel AI SDK dependency is present for provider adapters; v0.1 actions are deterministic and keyless.
-- Core package: Zod schemas, typed records, local file store, action runner, ingestion adapters, JSON/Markdown export.
-- MCP package: `@modelcontextprotocol/sdk` stdio server.
+- Core package: Zod schemas, typed records, source artifacts, local file store, action runner, ingestion adapters, JSON/Markdown export.
+- Source intake: SSRF-hardened URL fetch, optional Firecrawl, PDF extraction, YouTube oEmbed and best-effort public captions, manual text/transcript ingestion.
+- MCP package: `@modelcontextprotocol/sdk` stdio server with source ingest/update/action/export tools.
 - QA: Vitest, Playwright desktop/mobile, security scan, visual QA screenshots.
 - Storage: local JSON files under `AGENT_CANVAS_HOME`, defaulting to `C:\Users\frank\.starlight\agent-canvas`.
 - Write safety: per-canvas in-process queues plus atomic file locks under `AGENT_CANVAS_HOME\.locks`.
@@ -21,7 +22,7 @@ Last reviewed: 2026-07-01.
 
 Next.js keeps the first release easy to run locally and later deploy to Vercel. The core package is independent from React and Next so Codex, Claude, Gemini, or a future CLI can share the same schemas, store, actions, and exports.
 
-MCP stdio keeps the agent integration low-trust and local. Clients can read and write canvases without giving the server external credentials or destructive powers.
+MCP stdio keeps the agent integration low-trust and local. Clients can read and write canvases, ingest source material, update node positions/bodies, and run deterministic actions without giving the server external credentials or destructive powers.
 
 ## Deferred Options
 
@@ -30,7 +31,7 @@ MCP stdio keeps the agent integration low-trust and local. Clients can read and 
 - Yjs/collaboration: v0.2+ after single-user local workflows are proven.
 - Hosted storage/auth: Vercel preview or production path once the repo has a remote and product data boundaries are explicit.
 - Provider-backed AI actions: optional adapters for OpenAI, Anthropic, Gemini, or Vercel AI Gateway after deterministic local actions define the contract.
-- OCR and richer media ingestion: add once PDF/URL/YouTube transcript paths have better evidence tracking.
+- OCR and richer media ingestion: add once PDF/URL/YouTube transcript paths have chunk-level evidence tracking.
 
 ## Enterprise Readiness Principles
 

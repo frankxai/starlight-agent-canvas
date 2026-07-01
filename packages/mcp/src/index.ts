@@ -23,6 +23,13 @@ const SAFE_LOCAL_WRITE = {
   openWorldHint: false,
 };
 
+const SAFE_NETWORK_SOURCE_INTAKE = {
+  readOnlyHint: false,
+  destructiveHint: false,
+  idempotentHint: false,
+  openWorldHint: true,
+};
+
 async function readRepoDoc(relativePath: string): Promise<string> {
   return readFile(path.join(repoRoot, relativePath), 'utf8');
 }
@@ -84,8 +91,9 @@ function registerOperatorPrompts(server: McpServer) {
           text: [
             'Use the starlight-agent-canvas MCP server as a local, typed operating canvas.',
             'Start by calling list_canvases and get_canvas for canvas-starlight-agent-canvas-os when present.',
-            'Add sources, prompts, agent runs, and outputs as typed nodes. Connect evidence with references, derives_from, compares, runs, or exports edges.',
-            'Run local actions for summaries, claims, comparisons, decision matrices, and implementation briefs. Export JSON or Markdown for handoff.',
+            'Use ingest_url, ingest_youtube, or ingest_text_source for sources so artifacts, provenance, and typed nodes stay connected.',
+            'Add prompts, MCP tools, agent runs, and outputs as typed nodes. Connect evidence with references, derives_from, compares, runs, or exports edges.',
+            'Run local actions for summaries, claims, comparisons, decision matrices, implementation briefs, and source-grounded answers. Export JSON or Markdown for handoff.',
             'Do not use this server for secrets, external posting, destructive operations, payments, or remote account mutation.',
           ].join('\n'),
         },
@@ -161,6 +169,73 @@ export function createAgentCanvasMcpServer() {
   );
 
   server.registerTool(
+    'update_node',
+    {
+      title: 'Update Node',
+      description: 'Update a local canvas node title, body, metadata, or position.',
+      inputSchema: {
+        canvasId: canvasIdSchema,
+        nodeId: z.string().min(1),
+        title: z.string().min(1).optional(),
+        body: z.string().optional(),
+        position: z.object({ x: z.number(), y: z.number() }).optional(),
+        metadata: z.record(z.unknown()).optional(),
+      },
+      annotations: SAFE_LOCAL_WRITE,
+    },
+    async (args) => handlers.update_node(args),
+  );
+
+  server.registerTool(
+    'ingest_text_source',
+    {
+      title: 'Ingest Text Source',
+      description: 'Create a durable local source artifact and node from pasted text, transcript text, or notes.',
+      inputSchema: {
+        canvasId: canvasIdSchema,
+        title: z.string().min(1),
+        body: z.string().min(1),
+        source: z.string().optional(),
+        metadata: z.record(z.unknown()).optional(),
+      },
+      annotations: SAFE_LOCAL_WRITE,
+    },
+    async (args) => handlers.ingest_text_source({ ...args, metadata: args.metadata ?? {} }),
+  );
+
+  server.registerTool(
+    'ingest_url',
+    {
+      title: 'Ingest URL',
+      description: 'Fetch a public URL into a durable local source artifact and typed canvas node.',
+      inputSchema: {
+        canvasId: canvasIdSchema,
+        url: z.string().url(),
+        title: z.string().min(1).optional(),
+        useFirecrawl: z.boolean().optional(),
+      },
+      annotations: SAFE_NETWORK_SOURCE_INTAKE,
+    },
+    async (args) => handlers.ingest_url(args),
+  );
+
+  server.registerTool(
+    'ingest_youtube',
+    {
+      title: 'Ingest YouTube',
+      description: 'Ingest a YouTube URL as video metadata plus captions when available or a supplied manual transcript.',
+      inputSchema: {
+        canvasId: canvasIdSchema,
+        url: z.string().url(),
+        title: z.string().min(1).optional(),
+        manualTranscript: z.string().optional(),
+      },
+      annotations: SAFE_NETWORK_SOURCE_INTAKE,
+    },
+    async (args) => handlers.ingest_youtube(args),
+  );
+
+  server.registerTool(
     'connect_nodes',
     {
       title: 'Connect Nodes',
@@ -183,12 +258,13 @@ export function createAgentCanvasMcpServer() {
       description: 'Run a safe local canvas action and create an output node.',
       inputSchema: {
         canvasId: canvasIdSchema,
-        action: z.enum(['summarize', 'extract_claims', 'compare_sources', 'decision_matrix', 'implementation_brief']),
+        action: z.enum(['summarize', 'extract_claims', 'compare_sources', 'decision_matrix', 'implementation_brief', 'answer_question']),
         inputNodeIds: z.array(z.string()).optional(),
+        prompt: z.string().optional(),
       },
       annotations: SAFE_LOCAL_WRITE,
     },
-    async (args) => handlers.run_node_action({ ...args, inputNodeIds: args.inputNodeIds ?? [] }),
+    async (args) => handlers.run_node_action({ ...args, inputNodeIds: args.inputNodeIds ?? [], prompt: args.prompt ?? '' }),
   );
 
   server.registerTool(

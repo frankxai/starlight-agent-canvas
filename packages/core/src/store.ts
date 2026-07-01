@@ -1,6 +1,6 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { canvasIdSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, type AddNodeInput, type CanvasEdge, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type RunActionInput } from './schemas.js';
+import { canvasIdSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, ingestSourceInputSchema, updateNodeInputSchema, type AddNodeInput, type CanvasArtifact, type CanvasEdge, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type IngestSourceInput, type RunActionInput, type UpdateNodeInput } from './schemas.js';
 import { createCanvasRecord } from './templates.js';
 import { exportCanvasAsMarkdown } from './exporters.js';
 import { makeId, nowIso } from './ids.js';
@@ -149,6 +149,84 @@ export class FileCanvasStore {
         ...canvas,
         updatedAt: timestamp,
         nodes: [...canvas.nodes, node],
+      });
+      return { canvas: next, node };
+    });
+  }
+
+  async ingestSource(canvasId: string, input: IngestSourceInput): Promise<{ canvas: CanvasRecord; node: CanvasNode; artifact: CanvasArtifact }> {
+    return this.withCanvasLock(canvasId, async (safeCanvasId) => {
+      const parsed = ingestSourceInputSchema.parse(input);
+      const canvas = await this.getCanvas(safeCanvasId);
+      const timestamp = nowIso();
+      const artifactKind = parsed.artifactKind
+        ?? (parsed.kind === 'source_url'
+          ? 'url'
+          : parsed.kind === 'source_pdf'
+            ? 'pdf'
+            : parsed.kind === 'source_youtube'
+              ? 'youtube'
+              : 'manual');
+      const artifact: CanvasArtifact = {
+        id: makeId('artifact', parsed.title),
+        kind: artifactKind,
+        title: parsed.title,
+        body: parsed.body,
+        source: parsed.source,
+        createdAt: timestamp,
+        metadata: parsed.metadata,
+      };
+      const node: CanvasNode = {
+        id: makeId('node', parsed.title),
+        kind: parsed.kind,
+        title: parsed.title,
+        body: parsed.body,
+        position: parsed.position ?? {
+          x: 120 + (canvas.nodes.length % 4) * 260,
+          y: 160 + Math.floor(canvas.nodes.length / 4) * 180,
+        },
+        metadata: {
+          ...parsed.metadata,
+          artifactId: artifact.id,
+          source: parsed.source,
+        },
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+      const next = await this.saveCanvasFile({
+        ...canvas,
+        updatedAt: timestamp,
+        artifacts: [...canvas.artifacts, artifact],
+        nodes: [...canvas.nodes, node],
+      });
+      return { canvas: next, node, artifact };
+    });
+  }
+
+  async updateNode(canvasId: string, nodeId: string, input: UpdateNodeInput): Promise<{ canvas: CanvasRecord; node: CanvasNode }> {
+    return this.withCanvasLock(canvasId, async (safeCanvasId) => {
+      const parsed = updateNodeInputSchema.parse(input);
+      const canvas = await this.getCanvas(safeCanvasId);
+      const index = canvas.nodes.findIndex((node) => node.id === nodeId);
+      if (index < 0) {
+        throw new Error(`Node not found: ${nodeId}`);
+      }
+      const timestamp = nowIso();
+      const current = canvas.nodes[index];
+      const node: CanvasNode = {
+        ...current,
+        title: parsed.title ?? current.title,
+        body: parsed.body ?? current.body,
+        position: parsed.position ?? current.position,
+        metadata: parsed.metadata ? { ...current.metadata, ...parsed.metadata } : current.metadata,
+        updatedAt: timestamp,
+      };
+      const nodes = [...canvas.nodes];
+      nodes[index] = node;
+      const next = await this.saveCanvasFile({
+        ...canvas,
+        updatedAt: timestamp,
+        nodes,
       });
       return { canvas: next, node };
     });

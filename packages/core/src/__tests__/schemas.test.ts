@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canvasRecordSchema, CANVAS_SCHEMA_VERSION } from '../schemas.js';
+import { canvasRecordSchema, CANVAS_SCHEMA_VERSION, ingestSourceInputSchema, runActionInputSchema } from '../schemas.js';
 
 describe('canvas schema', () => {
   it('accepts a minimal valid canvas', () => {
@@ -13,5 +13,19 @@ describe('canvas schema', () => {
     });
     expect(parsed.nodes).toEqual([]);
     expect(parsed.edges).toEqual([]);
+  });
+
+  it('normalizes source ingest and action prompts', () => {
+    const source = ingestSourceInputSchema.parse({
+      title: 'Transcript',
+      body: 'Useful source text.',
+    });
+    expect(source.kind).toBe('note');
+
+    const action = runActionInputSchema.parse({
+      action: 'answer_question',
+    });
+    expect(action.inputNodeIds).toEqual([]);
+    expect(action.prompt).toBe('');
   });
 });

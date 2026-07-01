@@ -50,6 +50,16 @@ function titleFromHtml(html: string, fallback: string): string {
   return title || fallback;
 }
 
+function decodeEntities(value: string): string {
+  return value
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'");
+}
+
 function limitText(value: string, maxChars = MAX_EXTRACTED_TEXT_CHARS): string {
   return value.length > maxChars ? `${value.slice(0, maxChars)}\n\n[Truncated at ${maxChars} characters.]` : value;
 }
@@ -265,6 +275,108 @@ export function extractYoutubeVideoId(url: string): string | null {
   return null;
 }
 
+function extractBalancedJsonAfter(html: string, marker: string): unknown | null {
+  const markerIndex = html.indexOf(marker);
+  if (markerIndex < 0) return null;
+  const start = html.indexOf('{', markerIndex + marker.length);
+  if (start < 0) return null;
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (let index = start; index < html.length; index += 1) {
+    const char = html[index];
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+      continue;
+    }
+    if (char === '{') depth += 1;
+    if (char === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        try {
+          return JSON.parse(html.slice(start, index + 1));
+        } catch {
+          return null;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function captionTrackName(track: { name?: { simpleText?: string; runs?: Array<{ text?: string }> } }): string {
+  return track.name?.simpleText || track.name?.runs?.map((run) => run.text ?? '').join('') || '';
+}
+
+function captionTextFromJson3(raw: string): string {
+  const data = JSON.parse(raw) as { events?: Array<{ segs?: Array<{ utf8?: string }> }> };
+  return normalizeTranscript(data.events
+    ?.map((event) => event.segs?.map((seg) => seg.utf8 ?? '').join('') ?? '')
+    .join(' ') ?? '');
+}
+
+function normalizeTranscript(value: string): string {
+  return decodeEntities(value)
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,.!?;:])/g, '$1')
+    .trim();
+}
+
+async function fetchYoutubeTranscript(videoId: string, fetcher: FetchLike): Promise<{ text: string; language?: string; source: string } | null> {
+  try {
+    const watch = await fetchWithTimeout(fetcher, `https://www.youtube.com/watch?v=${videoId}`, {
+      headers: { accept: 'text/html,application/xhtml+xml' },
+    }, DEFAULT_FETCH_TIMEOUT_MS);
+    if (!watch.ok) return null;
+    const html = await readLimitedText(watch, 2_000_000);
+    const player = extractBalancedJsonAfter(html, 'ytInitialPlayerResponse') as {
+      captions?: {
+        playerCaptionsTracklistRenderer?: {
+          captionTracks?: Array<{
+            baseUrl?: string;
+            kind?: string;
+            languageCode?: string;
+            name?: { simpleText?: string; runs?: Array<{ text?: string }> };
+          }>;
+        };
+      };
+    } | null;
+    const tracks = player?.captions?.playerCaptionsTracklistRenderer?.captionTracks ?? [];
+    const track = tracks.find((item) => item.languageCode?.startsWith('en') && item.kind !== 'asr')
+      ?? tracks.find((item) => item.languageCode?.startsWith('en'))
+      ?? tracks[0];
+    if (!track?.baseUrl) return null;
+
+    const captionUrl = track.baseUrl.includes('fmt=')
+      ? track.baseUrl
+      : `${track.baseUrl}${track.baseUrl.includes('?') ? '&' : '?'}fmt=json3`;
+    const caption = await fetchWithTimeout(fetcher, captionUrl, {
+      headers: { accept: 'application/json,text/xml,text/plain,*/*;q=0.2' },
+    }, DEFAULT_FETCH_TIMEOUT_MS);
+    if (!caption.ok) return null;
+    const raw = await readLimitedText(caption, MAX_INGEST_BYTES);
+    let text = '';
+    try {
+      text = captionTextFromJson3(raw);
+    } catch {
+      text = normalizeTranscript(stripHtml(raw));
+    }
+    return text ? { text: limitText(text), language: track.languageCode || captionTrackName(track), source: 'youtube_captions' } : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function ingestYoutube(url: string, manualTranscript = '', fetcher: FetchLike = fetch): Promise<IngestedSource> {
   const videoId = extractYoutubeVideoId(url);
   if (!videoId) throw new Error('Could not parse YouTube video id.');
@@ -280,9 +392,10 @@ export async function ingestYoutube(url: string, manualTranscript = '', fetcher:
     // Title lookup is best effort.
   }
 
+  const caption = manualTranscript.trim() ? null : await fetchYoutubeTranscript(videoId, fetcher);
   const body = manualTranscript.trim()
     ? manualTranscript.trim()
-    : `Transcript not fetched automatically for ${url}. Paste a transcript or notes here, then run canvas actions.`;
+    : caption?.text ?? `Transcript was not available for ${url}. Paste a transcript, video notes, or timestamped claims here, then run canvas actions.`;
 
   return {
     title,
@@ -291,7 +404,8 @@ export async function ingestYoutube(url: string, manualTranscript = '', fetcher:
     metadata: {
       url,
       videoId,
-      ingest: manualTranscript.trim() ? 'manual_transcript' : 'youtube_metadata_only',
+      ingest: manualTranscript.trim() ? 'manual_transcript' : caption?.source ?? 'youtube_metadata_only',
+      language: caption?.language,
     },
   };
 }

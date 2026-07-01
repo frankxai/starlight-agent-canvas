@@ -14,9 +14,8 @@ describe('MCP tool handlers', () => {
     const canvas = created.structuredContent?.canvas as { id: string };
     expect(canvas.id).toBeTruthy();
 
-    const added = await handlers.add_node({
+    const added = await handlers.ingest_text_source({
       canvasId: canvas.id,
-      kind: 'note',
       title: 'Local node',
       body: 'MCP-native local workflow.',
       metadata: {},
@@ -26,10 +25,18 @@ describe('MCP tool handlers', () => {
 
     const run = await handlers.run_node_action({
       canvasId: canvas.id,
-      action: 'summarize',
+      action: 'answer_question',
       inputNodeIds: [node.id],
+      prompt: 'What does this prove?',
     });
     expect(run.content[0].text).toContain('Created');
+
+    const updated = await handlers.update_node({
+      canvasId: canvas.id,
+      nodeId: node.id,
+      position: { x: 320, y: 200 },
+    });
+    expect(JSON.stringify(updated.structuredContent)).toContain('"x":320');
 
     const search = await handlers.search_artifacts({ query: 'MCP-native' });
     expect(JSON.stringify(search.structuredContent)).toContain('Local node');

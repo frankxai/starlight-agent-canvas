@@ -12,6 +12,15 @@ function splitSentences(text: string): string[] {
     .filter(Boolean);
 }
 
+function keywords(value: string): string[] {
+  const stop = new Set(['about', 'after', 'again', 'also', 'because', 'could', 'from', 'have', 'into', 'just', 'like', 'more', 'need', 'should', 'that', 'their', 'there', 'this', 'what', 'when', 'where', 'which', 'with', 'would', 'your']);
+  return Array.from(new Set(normalizeWhitespace(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9\s_-]/g, ' ')
+    .split(/\s+/)
+    .filter((word) => word.length > 3 && !stop.has(word))));
+}
+
 function selectedNodes(canvas: CanvasRecord, inputNodeIds: string[]): CanvasNode[] {
   if (!inputNodeIds.length) {
     return canvas.nodes.filter((node) => node.kind !== 'output');
@@ -108,7 +117,51 @@ function implementationBrief(nodes: CanvasNode[]): string {
   ].join('\n');
 }
 
-export function buildActionOutput(action: RunActionInput['action'], nodes: CanvasNode[]): string {
+function answerQuestion(nodes: CanvasNode[], prompt: string): string {
+  const question = prompt.trim() || 'What is the most important answer from this canvas?';
+  const terms = keywords(question);
+  const evidence = nodes
+    .flatMap((node) => splitSentences(`${node.title}. ${node.body}`).slice(0, 24).map((sentence) => {
+      const lower = sentence.toLowerCase();
+      const score = terms.reduce((total, term) => total + (lower.includes(term) ? 1 : 0), 0)
+        + (node.kind.startsWith('source_') ? 0.4 : 0)
+        + (node.kind === 'output' ? 0.2 : 0);
+      return { node, sentence, score };
+    }))
+    .sort((a, b) => b.score - a.score || a.sentence.length - b.sentence.length)
+    .slice(0, 8);
+
+  const useful = evidence.filter((item) => item.score > 0).slice(0, 6);
+  const fallback = evidence.slice(0, 4);
+  const chosen = useful.length ? useful : fallback;
+  if (!chosen.length) {
+    return [
+      '## Source-grounded Answer',
+      '',
+      `Question: ${question}`,
+      '',
+      'No source text is available yet. Drop a URL, YouTube link, PDF, transcript, or note onto the canvas first.',
+    ].join('\n');
+  }
+
+  const sourceLines = chosen.map((item) => `- ${item.sentence} (${item.node.title})`);
+  return [
+    '## Source-grounded Answer',
+    '',
+    `Question: ${question}`,
+    '',
+    '### Best answer',
+    chosen[0].sentence,
+    '',
+    '### Evidence',
+    ...sourceLines,
+    '',
+    '### Next move',
+    'Run extract claims or decision matrix on the same selected nodes when you need a more structured pass.',
+  ].join('\n');
+}
+
+export function buildActionOutput(action: RunActionInput['action'], nodes: CanvasNode[], prompt = ''): string {
   switch (actionTypeSchema.parse(action)) {
     case 'summarize':
       return summarize(nodes);
@@ -120,6 +173,8 @@ export function buildActionOutput(action: RunActionInput['action'], nodes: Canva
       return decisionMatrix(nodes);
     case 'implementation_brief':
       return implementationBrief(nodes);
+    case 'answer_question':
+      return answerQuestion(nodes, prompt);
   }
 }
 
@@ -127,7 +182,7 @@ export function runCanvasAction(canvas: CanvasRecord, rawInput: RunActionInput):
   const input = runActionInputSchema.parse(rawInput);
   const createdAt = nowIso();
   const nodes = selectedNodes(canvas, input.inputNodeIds);
-  const output = buildActionOutput(input.action, nodes);
+  const output = buildActionOutput(input.action, nodes, input.prompt);
   const outputNode: CanvasNode = {
     id: makeId('node', `${input.action}-output`),
     kind: 'output',
@@ -140,6 +195,7 @@ export function runCanvasAction(canvas: CanvasRecord, rawInput: RunActionInput):
     metadata: {
       action: input.action,
       inputNodeIds: input.inputNodeIds,
+      prompt: input.prompt || undefined,
     },
     createdAt,
     updatedAt: createdAt,
@@ -152,7 +208,9 @@ export function runCanvasAction(canvas: CanvasRecord, rawInput: RunActionInput):
     summary: `Created ${outputNode.title} from ${nodes.length} node(s).`,
     status: 'completed',
     createdAt,
-    metadata: {},
+    metadata: {
+      prompt: input.prompt || undefined,
+    },
   };
   const inputEdges: CanvasEdge[] = nodes.slice(0, 12).map((node) => ({
     id: makeId('edge', `${node.id}-${outputNode.id}`),

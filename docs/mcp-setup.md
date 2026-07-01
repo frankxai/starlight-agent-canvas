@@ -10,7 +10,7 @@ pnpm mcp:build
 pnpm mcp:smoke
 ```
 
-The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, adds a node, runs an action, and exports Markdown.
+The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests a text source, updates node position, runs an action, and exports Markdown.
 
 ## Codex
 
@@ -64,6 +64,10 @@ Use the same stdio shape when the host supports MCP servers:
 - `get_canvas`
 - `create_canvas`
 - `add_node`
+- `update_node`
+- `ingest_text_source`
+- `ingest_url`
+- `ingest_youtube`
 - `connect_nodes`
 - `run_node_action`
 - `search_artifacts`
@@ -83,4 +87,4 @@ Prompt:
 
 ## Boundary
 
-The server is local-only and non-destructive in v0.1. It does not delete canvases, post externally, scrape social platforms, spend money, alter external accounts, or require provider keys.
+The server is local-only and non-destructive in v0.1. It does not delete canvases, post externally, scrape social platforms, spend money, alter external accounts, or require provider keys. `ingest_url` and `ingest_youtube` are read-only network source intake tools that create local artifacts and nodes.

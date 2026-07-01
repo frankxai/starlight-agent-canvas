@@ -58,4 +58,34 @@ describe('ingestion', () => {
     expect(source.title).toBe('Video title');
     expect(source.body).toBe('Manual transcript');
   });
+
+  it('fetches public YouTube captions when available', async () => {
+    const source = await ingestYoutube(
+      'https://www.youtube.com/watch?v=abcdefghijk',
+      '',
+      async (input: string | URL) => {
+        const url = String(input);
+        if (url.includes('/oembed')) {
+          return new Response(JSON.stringify({ title: 'Captioned video' }), { headers: { 'content-type': 'application/json' } });
+        }
+        if (url.includes('/watch')) {
+          return new Response(`
+            <script>
+              var ytInitialPlayerResponse = {"captions":{"playerCaptionsTracklistRenderer":{"captionTracks":[{"baseUrl":"https://captions.example/json3","languageCode":"en","name":{"simpleText":"English"}}]}}};
+            </script>
+          `, { headers: { 'content-type': 'text/html' } });
+        }
+        return new Response(JSON.stringify({
+          events: [
+            { segs: [{ utf8: 'Canvas ' }, { utf8: 'transcript ' }] },
+            { segs: [{ utf8: 'captions work.' }] },
+          ],
+        }), { headers: { 'content-type': 'application/json' } });
+      },
+    );
+
+    expect(source.title).toBe('Captioned video');
+    expect(source.body).toContain('Canvas transcript captions work.');
+    expect(source.metadata.ingest).toBe('youtube_captions');
+  });
 });

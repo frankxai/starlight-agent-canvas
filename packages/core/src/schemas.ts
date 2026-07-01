@@ -32,6 +32,7 @@ export const actionTypeSchema = z.enum([
   'compare_sources',
   'decision_matrix',
   'implementation_brief',
+  'answer_question',
 ]);
 
 export const positionSchema = z.object({
@@ -112,6 +113,23 @@ export const addNodeInputSchema = z.object({
   metadata: z.record(z.unknown()).default({}),
 });
 
+export const ingestSourceInputSchema = z.object({
+  kind: z.enum(['note', 'source_url', 'source_pdf', 'source_youtube']).default('note'),
+  title: z.string().min(1),
+  body: z.string().default(''),
+  source: z.string().optional(),
+  position: positionSchema.optional(),
+  metadata: z.record(z.unknown()).default({}),
+  artifactKind: z.enum(['url', 'pdf', 'youtube', 'markdown', 'json', 'manual']).optional(),
+});
+
+export const updateNodeInputSchema = z.object({
+  title: z.string().min(1).optional(),
+  body: z.string().optional(),
+  position: positionSchema.optional(),
+  metadata: z.record(z.unknown()).optional(),
+});
+
 export const connectNodesInputSchema = z.object({
   source: z.string().min(1),
   target: z.string().min(1),
@@ -121,6 +139,7 @@ export const connectNodesInputSchema = z.object({
 export const runActionInputSchema = z.object({
   action: actionTypeSchema,
   inputNodeIds: z.array(z.string()).default([]),
+  prompt: z.string().default(''),
 });
 
 export type CanvasNodeKind = z.infer<typeof nodeKindSchema>;
@@ -134,5 +153,7 @@ export type ActionRun = z.infer<typeof actionRunSchema>;
 export type CanvasRecord = z.infer<typeof canvasRecordSchema>;
 export type CreateCanvasInput = z.infer<typeof createCanvasInputSchema>;
 export type AddNodeInput = z.infer<typeof addNodeInputSchema>;
+export type IngestSourceInput = z.infer<typeof ingestSourceInputSchema>;
+export type UpdateNodeInput = z.infer<typeof updateNodeInputSchema>;
 export type ConnectNodesInput = z.infer<typeof connectNodesInputSchema>;
-export type RunActionInput = z.infer<typeof runActionInputSchema>;
+export type RunActionInput = z.input<typeof runActionInputSchema>;

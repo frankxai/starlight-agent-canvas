@@ -16,7 +16,15 @@ The first viewport must communicate: this is a working agent canvas with sources
 
 ## v0.1 Promise
 
-Turn mixed source notes into reusable agent context and implementation artifacts without requiring a hosted account or API key.
+Turn mixed source material into reusable agent context and implementation artifacts without requiring a hosted account or API key.
+
+## v0.1 Capability Standard
+
+- Paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
+- Convert each source into a durable artifact plus typed node with provenance metadata.
+- Ask source-grounded questions over selected nodes or the whole canvas.
+- Persist graph interaction: node drag positions, direct node connections, run outputs, and exports.
+- Let MCP clients perform the same source ingest, node update, action, search, and export workflow.
 
 ## Non-Goals
 

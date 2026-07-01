@@ -56,6 +56,10 @@
       "docs/visual-qa/desktop-production-os.png",
       "docs/visual-qa/mobile-production-os.png",
       "docs/visual-qa/desktop-production-reduced-motion.png",
+      "docs/visual-qa/desktop-intake-canvas.png",
+      "docs/visual-qa/desktop-intake-answer-state.png",
+      "docs/visual-qa/mobile-intake-canvas.png",
+      "docs/visual-qa/desktop-intake-reduced-motion.png",
       "docs/visual-qa/desktop-first-viewport.png",
       "docs/visual-qa/mobile-first-viewport.png",
       "docs/visual-qa/mobile-graph-viewport.png",
@@ -85,6 +89,12 @@
         "minimapDisplay": "block"
       }
     },
+    "intakeQa": {
+      "universalIntake": true,
+      "youtubeManualTranscriptMapped": true,
+      "askCanvasOutputCreated": true,
+      "mobileToolbarReduced": true
+    },
     "metrics": {
       "desktop": {
         "nodes": 4,
@@ -105,6 +115,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, mobile loads the graph before rails with a two-column compact layout, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, mobile loads the graph before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

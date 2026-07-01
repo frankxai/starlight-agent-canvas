@@ -14,9 +14,9 @@ An active research graph where every source, action, and agent output becomes in
 
 ## Layout
 
-- Left rail: canvases, templates, source imports.
-- Center: React Flow typed graph.
-- Right rail: selected node inspector, action drawer, run log.
+- Left rail: canvases, templates, universal source intake, direct source controls.
+- Center: React Flow typed graph with drop intake, drag persistence, and direct node connections.
+- Right rail: source-grounded ask box, action drawer, selected node inspector, local search, run log.
 - Top bar: product identity, local data path, export route, MCP status.
 
 ## Motion

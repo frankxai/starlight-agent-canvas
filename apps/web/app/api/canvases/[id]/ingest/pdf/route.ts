@@ -20,10 +20,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       return NextResponse.json({ error: `PDF must be ${MAX_PDF_BYTES} bytes or smaller.` }, { status: 413 });
     }
     const source = await ingestPdf(await file.arrayBuffer(), file.name);
-    const result = await getStore().addNode(id, {
+    const result = await getStore().ingestSource(id, {
       kind: 'source_pdf',
       title: source.title,
       body: source.body,
+      source: source.source,
       metadata: source.metadata,
     });
     return NextResponse.json(result);

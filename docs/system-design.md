@@ -28,6 +28,8 @@ Each canvas stores:
 - action runs
 - source artifacts
 
+Source ingestion writes both an artifact record and a typed node. The node is what users manipulate on the graph; the artifact is the durable source/provenance record used by search, export, and future chunk/citation work.
+
 ## Node Kinds
 
 `note`, `source_url`, `source_pdf`, `source_youtube`, `prompt`, `mcp_tool`, `agent_run`, `output`
@@ -38,12 +40,12 @@ Each canvas stores:
 
 ## Action Runner
 
-v0.1 ships deterministic local actions. Provider-backed AI is a future adapter, not a hard dependency.
+v0.1 ships deterministic local actions: summarize, extract claims, compare sources, decision matrix, implementation brief, and source-grounded question answering. Provider-backed AI is a future adapter, not a hard dependency.
 
 ## MCP Boundary
 
-The MCP server exposes safe local tools only. It never posts, pays, scrapes social platforms, or deletes data.
+The MCP server exposes safe local tools only. It can list/get/create canvases, add/update/ingest nodes, connect nodes, run actions, search artifacts, and export. It never posts, pays, scrapes social platforms, or deletes data.
 
 ## Network Boundary
 
-The Next.js API is localhost-only unless `AGENT_CANVAS_ALLOW_REMOTE=1` is set. URL ingestion rejects localhost/private networks and unsupported schemes, applies timeout and byte limits, and uses Firecrawl only when explicitly requested. PDF ingestion validates type and size before parse.
+The Next.js API is localhost-only unless `AGENT_CANVAS_ALLOW_REMOTE=1` is set. URL ingestion rejects localhost/private networks and unsupported schemes, applies timeout and byte limits, and uses Firecrawl only when explicitly requested. PDF ingestion validates type and size before parse. YouTube ingestion is transcript-first: manual transcript, best-effort public captions, then metadata/reference fallback.
