@@ -1,0 +1,41 @@
+{
+  "schemaVersion": "starlight.agentCanvas.v1",
+  "id": "demo-agent-canvas",
+  "title": "Demo: MCP Agent Canvas",
+  "description": "Portable demo canvas showing source, action, and output nodes.",
+  "createdAt": "2026-07-01T00:00:00.000Z",
+  "updatedAt": "2026-07-01T00:00:00.000Z",
+  "nodes": [
+    {
+      "id": "source-nodeflow",
+      "kind": "source_url",
+      "title": "Nodeflow benchmark",
+      "body": "Visual source-connected research workflow benchmark.",
+      "position": { "x": 80, "y": 120 },
+      "metadata": { "url": "https://get.nodeflowai.com/" },
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "id": "output-brief",
+      "kind": "output",
+      "title": "Implementation brief",
+      "body": "Build the open-source MCP-native context layer, not a closed creator board clone.",
+      "position": { "x": 460, "y": 120 },
+      "metadata": { "action": "implementation_brief" },
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-source-brief",
+      "source": "source-nodeflow",
+      "target": "output-brief",
+      "kind": "derives_from",
+      "createdAt": "2026-07-01T00:00:00.000Z"
+    }
+  ],
+  "runs": [],
+  "artifacts": []
+}

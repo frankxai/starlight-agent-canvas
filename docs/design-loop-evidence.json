@@ -1,0 +1,83 @@
+{
+  "task": "Starlight Agent Canvas v0.1 workspace",
+  "surface": "local-first web app",
+  "audience": "Codex, Claude, Gemini, Starlight operators, and creator/builders",
+  "firstRead": "A working MCP-native research canvas with source nodes, actions, run logs, and local state.",
+  "standardsLoaded": [
+    "DESIGN_TASTE.md",
+    "WEB_EXPERIENCE_STANDARD.md",
+    "MOTION_TASTE_RUBRIC.md",
+    "VISUAL_QA_GATE.md",
+    "_intelligence Premium Web OS",
+    "design-agent-standards/DESIGN.md",
+    "design-agent-standards/AGENTIC_DESIGN_LOOP.md"
+  ],
+  "tokens": {
+    "bg": "#05060A",
+    "surface": "#0A0C14",
+    "panel": "#111522",
+    "border": "#1A1F2E",
+    "ink": "#F1F3F9",
+    "muted": "#8A90A8",
+    "accent": "#6EA8FE",
+    "accent2": "#A78BFA",
+    "gold": "#F5C36A",
+    "mint": "#79E6C5",
+    "danger": "#F97066"
+  },
+  "references": [
+    "FrankX React Flow graph surfaces",
+    "AIS MCP server structure",
+    "ACOS workflow gates and trajectory memory",
+    "Starlight Premium Web OS"
+  ],
+  "failureModesAvoided": [
+    "marketing-only landing page",
+    "fake metrics",
+    "closed SaaS clone positioning",
+    "destructive MCP tools",
+    "decorative motion"
+  ],
+  "visualQaScore": {
+    "firstReadHierarchy": 5,
+    "brandFitDistinctiveness": 4,
+    "craftTypographySpacing": 4,
+    "accessibilityResponsiveReducedMotion": 4,
+    "accuracyProvenanceArtifacts": 5,
+    "usefulness": 5,
+    "total": 27
+  },
+  "verification": {
+    "desktopInspected": true,
+    "mobileInspected": true,
+    "reducedMotionInspected": true,
+    "server": "local production next start on 127.0.0.1:3101, stopped after capture",
+    "screenshots": [
+      "docs/visual-qa/desktop-first-viewport.png",
+      "docs/visual-qa/mobile-first-viewport.png",
+      "docs/visual-qa/mobile-graph-viewport.png",
+      "docs/visual-qa/desktop-reduced-motion.png"
+    ],
+    "metrics": {
+      "desktop": {
+        "nodes": 4,
+        "edges": 3,
+        "nodeWidth": 201,
+        "minimapDisplay": "block",
+        "minimapBackground": "rgba(10, 12, 20, 0.92)"
+      },
+      "mobile": {
+        "nodes": 4,
+        "edges": 3,
+        "nodeWidth": 221,
+        "minimapDisplay": "none",
+        "graphHeight": 620
+      },
+      "reducedMotion": {
+        "nodes": 4,
+        "edges": 3
+      }
+    },
+    "notes": "Production screenshots inspected. Starter canvas is connected, mobile uses readable compact graph layout, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+  }
+}

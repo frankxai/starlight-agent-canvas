@@ -1,0 +1,28 @@
+{
+  "name": "starlight-agent-canvas",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OSS-first, MCP-native research and workflow canvas for agents, creators, and Starlight systems.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@11.7.0",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/web dev",
+    "build": "pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/mcp build && pnpm --filter @starlight-agent-canvas/web build",
+    "typecheck": "pnpm --filter @starlight-agent-canvas/core build && pnpm -r typecheck",
+    "test": "pnpm --filter @starlight-agent-canvas/core test && pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/mcp test",
+    "verify": "pnpm typecheck && pnpm test && pnpm build",
+    "start": "pnpm build && pnpm --filter @starlight-agent-canvas/web start",
+    "test:e2e": "pnpm --filter @starlight-agent-canvas/web test:e2e",
+    "mcp:build": "pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/mcp build",
+    "mcp:start": "pnpm --filter @starlight-agent-canvas/mcp start"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.9"
+  }
+}
