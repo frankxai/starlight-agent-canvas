@@ -57,10 +57,11 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
     await expect(page.getByTestId('empty-canvas-actions')).toBeHidden();
   } else {
     await expect(page.getByTestId('empty-canvas-actions')).toBeVisible();
+    await expect(page.getByTestId('empty-canvas-actions')).toContainText('Paste, drop, or upload context here');
     await expect(page.getByTestId('empty-intake-text')).toBeVisible();
   }
   await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
-  await expect(page.getByTestId('live-intake-heading')).toContainText('Add Anything');
+  await expect(page.getByTestId('live-intake-heading')).toContainText('Paste / Drop Anything');
   await expect(page.getByTestId('live-intake-helper')).toContainText('Codex-readable context');
   await expect(page.getByTestId('input-contract-strip')).toContainText('YouTube');
   await expect(page.getByTestId('input-contract-strip')).toContainText('Any video');
@@ -226,9 +227,8 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('quick-note').click();
   await expect(page.getByTestId('inspector-title')).toBeVisible();
   await expect(page.getByTestId('inspector-title')).toHaveValue('My canvas note: collect the product gaps and turn them into a brief.');
-  if (testInfo.project.name === 'desktop') {
-    await expect(page.getByTestId('canvas-drop-affordance')).toBeVisible();
-  }
+  await expect(page.getByTestId('canvas-drop-affordance')).toBeVisible();
+  await expect(page.getByTestId('canvas-drop-affordance')).toContainText('Paste or drop onto the graph');
   await expect(page.getByTestId('save-node')).toBeEnabled();
   await page.getByTestId('inspector-title').fill('Edited canvas note');
   await page.getByTestId('inspector-body').fill('Edited note body with product gaps, source needs, and next actions.');
@@ -429,6 +429,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   const selectedCodexText = await selectedCodexResponse.text();
   expect(selectedCodexText).toContain('selected node');
   expect(selectedCodexText).toContain('Nodeflow connects YouTube');
+  expect(selectedCodexText).toContain('## Intake Trace Manifest');
   expect(selectedCodexText).not.toContain('Edited canvas note');
 
   const fullExportHref = exportHref!.replace(/&nodeIds=[^&]+/, '');
@@ -474,7 +475,10 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   const contextResponse = await page.request.get(fullExportHref.replace('format=json', 'format=context'));
   await expect(contextResponse).toBeOK();
   expect(contextResponse.headers()['content-type']).toContain('text/markdown');
-  expect(await contextResponse.text()).toContain('Agent Context Packet');
+  const contextText = await contextResponse.text();
+  expect(contextText).toContain('Agent Context Packet');
+  expect(contextText).toContain('## Intake Trace Manifest');
+  expect(contextText).toContain('Codex-ready video notes');
 
   const codexResponse = await page.request.get(fullExportHref.replace('format=json', 'format=codex'));
   await expect(codexResponse).toBeOK();
@@ -483,6 +487,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   expect(codexText).toContain('Codex Handoff');
   expect(codexText).toContain('get_canvas');
   expect(codexText).toContain('Agent Context Packet');
+  expect(codexText).toContain('## Intake Trace Manifest');
 
   const importTitle = `imported ${testInfo.project.name} ${Date.now()}`;
   exportedCanvas.id = `canvas-${importTitle.replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase()}`;

@@ -8,6 +8,7 @@ export type CanvasExportScopeSummary = {
   artifactIds: string[];
   artifactCount: number;
   chunkCount: number;
+  traceCount: number;
   edgeCount: number;
   runCount: number;
   sourceCount: number;
@@ -56,14 +57,27 @@ export function scopeCanvasToNodes(canvas: CanvasRecord, nodeIds: string[] = [])
     runs: canvas.runs.filter((run) => selectedRunIds.has(run.id)),
     artifacts: canvas.artifacts.filter((artifact) => artifactIds.has(artifact.id)),
     intakeTraces: canvas.intakeTraces
-      .map((trace) => ({
-        ...trace,
-        nodeIds: trace.nodeIds.filter((id) => selectedSet.has(id)),
-        artifactIds: trace.artifactIds.filter((id) => artifactIds.has(id)),
-        outputNodeId: trace.outputNodeId && selectedSet.has(trace.outputNodeId) ? trace.outputNodeId : undefined,
-        runId: trace.runId && selectedRunIds.has(trace.runId) ? trace.runId : undefined,
-        items: trace.items.filter((item) => item.nodeId ? selectedSet.has(item.nodeId) : false),
-      }))
+      .map((trace) => {
+        const items = trace.items.filter((item) => item.nodeId ? selectedSet.has(item.nodeId) : false);
+        const nodeIds = trace.nodeIds.filter((id) => selectedSet.has(id));
+        const outputNodeId = trace.outputNodeId && selectedSet.has(trace.outputNodeId) ? trace.outputNodeId : undefined;
+        const outputTitle = outputNodeId ? nodesById.get(outputNodeId)?.title : undefined;
+        return {
+          ...trace,
+          inputSummary: items.length
+            ? items.map((item) => item.title).join(', ')
+            : outputTitle ?? trace.sourceLabel,
+          inputChars: [...nodeIds, outputNodeId].filter(Boolean).reduce((total, id) => total + (nodesById.get(id!)?.body.length ?? 0), 0),
+          detectedKinds: Array.from(new Set(items.map((item) => item.kind))),
+          urls: items.map((item) => item.source).filter((source): source is string => Boolean(source)),
+          nodeIds,
+          artifactIds: trace.artifactIds.filter((id) => artifactIds.has(id)),
+          outputNodeId,
+          runId: trace.runId && selectedRunIds.has(trace.runId) ? trace.runId : undefined,
+          items,
+          metadata: {},
+        };
+      })
       .filter((trace) => trace.nodeIds.length || Boolean(trace.outputNodeId) || Boolean(trace.runId)),
   };
 }
@@ -89,6 +103,7 @@ export function describeCanvasExportScope(canvas: CanvasRecord, nodeIds: string[
     artifactIds: artifacts.map((artifact) => artifact.id),
     artifactCount: artifacts.length,
     chunkCount: artifacts.reduce((total, artifact) => total + chunksForArtifact(artifact).length, 0),
+    traceCount: scoped.intakeTraces.length,
     edgeCount: scoped.edges.length,
     runCount: scoped.runs.length,
     sourceCount: scoped.nodes.filter((node) => node.kind.startsWith('source_')).length,
@@ -125,6 +140,27 @@ function sourceOf(node: CanvasRecord['nodes'][number]): string {
 function truncate(value: string, maxChars: number): string {
   if (value.length <= maxChars) return value;
   return `${value.slice(0, maxChars).trimEnd()}\n\n[Truncated at ${maxChars} characters for agent context export.]`;
+}
+
+function formatList(values: string[]): string {
+  const unique = Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+  return unique.length ? unique.join(', ') : 'n/a';
+}
+
+function nodeTitle(canvas: CanvasRecord, nodeId: string | undefined): string {
+  if (!nodeId) return '';
+  const node = canvas.nodes.find((candidate) => candidate.id === nodeId);
+  return node ? node.title : '';
+}
+
+function artifactTitle(canvas: CanvasRecord, artifactId: string | undefined): string {
+  if (!artifactId) return '';
+  const artifact = canvas.artifacts.find((candidate) => candidate.id === artifactId);
+  return artifact ? artifact.title : '';
+}
+
+function traceReadiness(value: unknown): string {
+  return typeof value === 'string' && value.trim() ? value : 'n/a';
 }
 
 export function exportCanvasAsMarkdown(canvas: CanvasRecord): string {
@@ -226,6 +262,44 @@ export function exportCanvasAsAgentContext(canvas: CanvasRecord): string {
       for (const chunk of chunksForArtifact(artifact)) {
         lines.push(`| \`${tableCell(chunk.id)}\` | \`${tableCell(artifact.id)}\` | ${node ? `\`${tableCell(node.id)}\`` : 'n/a'} | ${tableCell(artifact.source) || 'n/a'} | ${chunk.startOffset}-${chunk.endOffset} |`);
       }
+    }
+  }
+
+  if (canvas.intakeTraces.length) {
+    lines.push('', '## Intake Trace Manifest', '');
+    lines.push('Use this section to understand what the human or MCP client pasted, dropped, uploaded, or mapped before choosing the next action.');
+    lines.push('');
+
+    for (const trace of canvas.intakeTraces.slice(0, 10)) {
+      const outputTitle = nodeTitle(canvas, trace.outputNodeId);
+      lines.push(`### ${trace.sourceLabel}`);
+      lines.push('');
+      lines.push(`- Trace ID: \`${trace.id}\``);
+      lines.push(`- Status: \`${trace.status}\``);
+      lines.push(`- Created: ${trace.createdAt}`);
+      lines.push(`- Input: ${trace.inputSummary || 'n/a'}`);
+      lines.push(`- Detected: ${formatList(trace.detectedKinds)}`);
+      lines.push(`- URLs: ${formatList(trace.urls)}`);
+      lines.push(`- Node IDs: ${trace.nodeIds.length ? trace.nodeIds.map((id) => `\`${id}\``).join(', ') : 'n/a'}`);
+      lines.push(`- Artifact IDs: ${trace.artifactIds.length ? trace.artifactIds.map((id) => `\`${id}\``).join(', ') : 'n/a'}`);
+      if (trace.action || trace.runId || trace.outputNodeId) {
+        lines.push(`- Action: ${trace.action ? `\`${trace.action}\`` : 'n/a'}${trace.runId ? ` via \`${trace.runId}\`` : ''}${trace.outputNodeId ? ` -> \`${trace.outputNodeId}\`${outputTitle ? ` (${outputTitle})` : ''}` : ''}`);
+      }
+      if (trace.items.length) {
+        lines.push('');
+        lines.push('| Kind | Node | Artifact | Readiness | Source | Title |');
+        lines.push('| --- | --- | --- | --- | --- | --- |');
+        for (const item of trace.items) {
+          const node = item.nodeId ? `\`${tableCell(item.nodeId)}\`${nodeTitle(canvas, item.nodeId) ? ` ${tableCell(nodeTitle(canvas, item.nodeId))}` : ''}` : 'n/a';
+          const artifact = item.artifactId ? `\`${tableCell(item.artifactId)}\`${artifactTitle(canvas, item.artifactId) ? ` ${tableCell(artifactTitle(canvas, item.artifactId))}` : ''}` : 'n/a';
+          lines.push(`| \`${tableCell(item.kind)}\` | ${node} | ${artifact} | ${tableCell(traceReadiness(item.readinessLabel))} | ${tableCell(item.source) || 'n/a'} | ${tableCell(item.title)} |`);
+        }
+      }
+      lines.push('');
+    }
+
+    if (canvas.intakeTraces.length > 10) {
+      lines.push(`_Showing 10 latest intake traces out of ${canvas.intakeTraces.length}._`, '');
     }
   }
 

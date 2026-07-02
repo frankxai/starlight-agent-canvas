@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildSourceChunks } from '../chunks.js';
-import { describeCanvasExportScope, scopeCanvasToNodes } from '../exporters.js';
+import { describeCanvasExportScope, exportCanvasAsAgentContext, exportCanvasAsCodexHandoff, scopeCanvasToNodes } from '../exporters.js';
 import type { CanvasRecord } from '../schemas.js';
 import { createCanvasRecord } from '../templates.js';
 
@@ -68,6 +68,42 @@ function scopedFixture(): CanvasRecord {
         metadata: {},
       },
     ],
+    intakeTraces: [
+      {
+        id: 'intake-video-and-note',
+        source: 'web_composer',
+        sourceLabel: 'Composer intake',
+        status: 'mapped',
+        inputSummary: 'Video source plus a separate human note that should stay outside selected source exports.',
+        inputChars: 137,
+        detectedKinds: ['youtube', 'note'],
+        urls: [artifact.source, 'private-note://human-planning'],
+        nodeIds: ['node-source-video', 'node-human-note'],
+        artifactIds: [artifact.id],
+        items: [
+          {
+            kind: 'youtube',
+            title: 'Video source',
+            nodeId: 'node-source-video',
+            artifactId: artifact.id,
+            artifactKind: 'youtube',
+            readinessStatus: 'ready',
+            readinessLabel: 'Codex-ready transcript',
+            source: artifact.source,
+          },
+          {
+            kind: 'note',
+            title: 'Human note private planning',
+            nodeId: 'node-human-note',
+            readinessStatus: 'ready',
+            readinessLabel: 'Human note',
+            source: 'private-note://human-planning',
+          },
+        ],
+        createdAt: now,
+        metadata: { prompt: 'This prompt mentions unrelated private planning.' },
+      },
+    ],
   };
 }
 
@@ -82,6 +118,7 @@ describe('canvas export scope summary', () => {
     expect(summary.artifactIds).toEqual(scoped.artifacts.map((artifact) => artifact.id));
     expect(summary.artifactCount).toBe(1);
     expect(summary.chunkCount).toBe(scoped.artifacts[0].chunks.length);
+    expect(summary.traceCount).toBe(1);
     expect(summary.edgeCount).toBe(0);
     expect(summary.runCount).toBe(1);
     expect(summary.sourceCount).toBe(1);
@@ -102,11 +139,41 @@ describe('canvas export scope summary', () => {
     expect(whole.mode).toBe('canvas');
     expect(whole.nodeIds).toHaveLength(3);
     expect(whole.edgeCount).toBe(2);
+    expect(whole.traceCount).toBe(1);
     expect(whole.excludedNodeCount).toBe(0);
     expect(whole.rules.join(' ')).toContain('Whole canvas exports all nodes');
   });
 
   it('rejects missing selected node ids', () => {
     expect(() => describeCanvasExportScope(scopedFixture(), ['missing-node'])).toThrow('Cannot export missing node id');
+  });
+
+  it('exports intake traces into agent and Codex handoff packets', () => {
+    const context = exportCanvasAsAgentContext(scopedFixture());
+    expect(context).toContain('## Intake Trace Manifest');
+    expect(context).toContain('Composer intake');
+    expect(context).toContain('Codex-ready transcript');
+    expect(context).toContain('Human note private planning');
+
+    const codex = exportCanvasAsCodexHandoff(scopedFixture());
+    expect(codex).toContain('# Codex Handoff: Scoped export');
+    expect(codex).toContain('## Intake Trace Manifest');
+    expect(codex).toContain('get_canvas');
+  });
+
+  it('sanitizes intake traces for selected exports', () => {
+    const selected = scopeCanvasToNodes(scopedFixture(), ['node-source-video']);
+    expect(selected.intakeTraces).toHaveLength(1);
+    expect(selected.intakeTraces[0].inputSummary).toBe('Video source');
+    expect(selected.intakeTraces[0].detectedKinds).toEqual(['youtube']);
+    expect(selected.intakeTraces[0].urls).toEqual(['https://youtube.com/watch?v=abcdefghijk']);
+    expect(selected.intakeTraces[0].metadata).toEqual({});
+
+    const selectedContext = exportCanvasAsAgentContext(selected);
+    expect(selectedContext).toContain('## Intake Trace Manifest');
+    expect(selectedContext).toContain('Codex-ready transcript');
+    expect(selectedContext).not.toContain('Human note private planning');
+    expect(selectedContext).not.toContain('private-note://human-planning');
+    expect(selectedContext).not.toContain('unrelated private planning');
   });
 });

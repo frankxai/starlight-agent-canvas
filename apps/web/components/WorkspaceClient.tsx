@@ -2283,15 +2283,15 @@ function WorkspaceInner() {
             ) : null}
             {canvas?.nodes.length ? (
               <div
-                className="pointer-events-none absolute right-4 top-[188px] z-10 hidden max-w-[260px] rounded-lg border border-starlight-border bg-starlight-surface/82 p-3 shadow-command backdrop-blur lg:block"
+                className="pointer-events-none absolute left-3 right-3 top-[300px] z-10 rounded-lg border border-starlight-border bg-starlight-surface/82 p-3 shadow-command backdrop-blur sm:left-auto sm:right-4 sm:top-[188px] sm:max-w-[280px]"
                 data-testid="canvas-drop-affordance"
               >
                 <div className="flex items-center gap-2 text-xs font-semibold text-starlight-ink">
                   <MousePointerClick className="h-4 w-4 text-starlight-mint" aria-hidden="true" />
-                  Drop or paste onto the graph
+                  Paste or drop onto the graph
                 </div>
                 <p className="mt-1 text-[11px] leading-4 text-starlight-muted">
-                  Video links, image files, URLs, PDFs, markdown, transcripts, and notes become typed context nodes at the drop point.
+                  Video links, images, URLs, PDFs, transcripts, and notes become movable source nodes with traceable Codex context.
                 </p>
               </div>
             ) : null}
@@ -2300,7 +2300,7 @@ function WorkspaceInner() {
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <div className="inline-flex items-center gap-1.5 rounded-md border border-starlight-mint/35 bg-starlight-mint/10 px-2.5 py-1 text-xs font-semibold text-starlight-ink" data-testid="live-intake-heading">
                     <UploadCloud className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
-                    Add Anything
+                    Paste / Drop Anything
                   </div>
                   <div className="grid grid-cols-3 gap-1 rounded-md border border-starlight-border bg-starlight-bg/80 p-1" data-testid="composer-mode">
                     {COMPOSER_MODES.map((mode) => (
@@ -2329,7 +2329,7 @@ function WorkspaceInner() {
                 </div>
               </div>
               <p className="mt-2 text-xs leading-5 text-starlight-muted" data-testid="live-intake-helper">
-                Paste a YouTube link, any video URL, file, or notes. Agent Canvas turns it into Codex-readable context.
+                Paste a YouTube link, any video URL, screenshot, PDF, file, transcript, or notes. Agent Canvas maps it into typed nodes, chunks, readiness, and Codex-readable context.
               </p>
               <div className="mt-2 grid gap-2 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
                 <div className="flex flex-wrap gap-1.5" data-testid="canvas-quick-start">
@@ -2872,9 +2872,9 @@ function WorkspaceInner() {
               {!canvas?.nodes.length ? (
                 <div className="absolute left-1/2 top-[54%] z-10 hidden w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-starlight-accent/25 bg-starlight-surface/88 p-5 text-center shadow-command backdrop-blur md:block" data-testid="empty-canvas-actions">
                   <UploadCloud className="mx-auto h-7 w-7 text-starlight-accent" aria-hidden="true" />
-                  <h2 className="mt-3 text-base font-semibold text-starlight-ink">Drop context here</h2>
+                  <h2 className="mt-3 text-base font-semibold text-starlight-ink">Paste, drop, or upload context here</h2>
                   <p className="mt-2 text-sm leading-6 text-starlight-muted">
-                    Paste or drop a YouTube link, image, URL, transcript, PDF, markdown, or raw notes. The canvas will turn it into source nodes, chunks, citations, and agent-ready context.
+                    YouTube, video links, images, URLs, PDFs, transcripts, markdown, and raw notes become source nodes, chunks, citations, and agent-ready context.
                   </p>
                   <textarea
                     data-testid="empty-intake-text"

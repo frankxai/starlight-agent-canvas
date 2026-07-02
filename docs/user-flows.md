@@ -15,7 +15,7 @@ flowchart LR
   action --> export["Export JSON or Markdown"]
 ```
 
-Expected result: the user can use either the top composer or the center empty-canvas capture box as the first input surface. The live operator loop shows Capture, Map, Inspect, Ask, and Handoff state from real canvas data. The user sees what will be created before mapping, the composer shows a latest intake receipt after mapping, the Action Drawer persists an intake trace with readiness and scoped Inspect/Context/Codex controls, the new typed source node is selected, the viewport frames the new source/action cluster, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
+Expected result: the user can use the top composer on every viewport, or the center empty-canvas capture box on desktop, as the first input surface. The live operator loop shows Capture, Map, Inspect, Ask, and Handoff state from real canvas data. The user sees what will be created before mapping, the composer shows a latest intake receipt after mapping, the Action Drawer persists an intake trace with readiness and scoped Inspect/Context/Codex controls, the new typed source node is selected, the viewport frames the new source/action cluster, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
 
 ## Flow 1A: Self-Serve Quick Starter
 
@@ -38,7 +38,7 @@ Expected result: the user can use either the top composer or the center empty-ca
 17. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
 18. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
 19. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
-20. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
+20. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. The exported packet includes an `Intake Trace Manifest`; with selected nodes, the manifest is recomputed to the selected evidence and unrelated trace text/metadata stays out.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts, and source-specific notes remain bound to the media they explain.
 
@@ -139,7 +139,7 @@ sequenceDiagram
   Human->>Canvas: Inspect and edit output
 ```
 
-Expected result: human and agent work on the same local state with explicit, reviewable mutations. When the agent receives a messy pasted source blob, `ingest_anything` mirrors the web canvas intake, maps YouTube, video, image, URL, and note context without making the user pick a lower-level tool, keeps nearby media transcripts/notes/OCR attached to the right source, persists the same intake trace visible in the UI, and returns source-readiness facts so Codex knows whether to run actions or ask for missing context.
+Expected result: human and agent work on the same local state with explicit, reviewable mutations. When the agent receives a messy pasted source blob, `ingest_anything` mirrors the web canvas intake, maps YouTube, video, image, URL, and note context without making the user pick a lower-level tool, keeps nearby media transcripts/notes/OCR attached to the right source, persists the same intake trace visible in the UI, exports that trace in Context/Codex packets, and returns source-readiness facts so Codex knows whether to run actions or ask for missing context.
 
 ## Flow 5A: Guided Workflow Template
 

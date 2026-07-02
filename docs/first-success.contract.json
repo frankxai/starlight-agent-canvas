@@ -31,7 +31,7 @@
       "label": "Capture",
       "humanAction": "Paste or drop a YouTube/video link, image, URL, PDF, file, transcript, or note.",
       "detail": "Paste, drop, upload, or type source context into the first viewport.",
-      "appSurface": "Add Anything composer, canvas toolbar, empty-canvas capture box, and drop surface",
+      "appSurface": "Paste / Drop Anything composer, canvas toolbar, empty-canvas capture box, and drop surface",
       "proof": ["apps/web/tests/workspace.spec.ts"]
     },
     {
