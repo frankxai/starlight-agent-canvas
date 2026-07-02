@@ -118,6 +118,19 @@ type ClipboardFallback = {
   message: string;
 };
 
+type IntakeReceipt = {
+  sourceLabel: string;
+  nodeIds: string[];
+  artifactKinds: string[];
+  outputNodeId?: string;
+  action?: CanvasActionType;
+  items: Array<{
+    id: string;
+    title: string;
+    kind: CanvasNodeKind;
+  }>;
+};
+
 type AgentNodeData = {
   title: string;
   kind: CanvasNodeKind;
@@ -421,6 +434,35 @@ function metadataCitations(metadata: Record<string, unknown>): SourceCitation[] 
 function metadataString(metadata: Record<string, unknown> | undefined, key: string): string | undefined {
   const value = metadata?.[key];
   return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+function artifactsForNodes(canvas: CanvasRecord | null | undefined, nodes: CanvasNode[]): CanvasArtifact[] {
+  if (!canvas) return [];
+  const artifactIds = new Set(nodes.map((node) => metadataString(node.metadata, 'artifactId')).filter((id): id is string => Boolean(id)));
+  return canvas.artifacts.filter((artifact) => artifactIds.has(artifact.id));
+}
+
+function createIntakeReceipt(
+  sourceLabel: string,
+  nodes: CanvasNode[],
+  artifacts: CanvasArtifact[],
+  outputNode?: CanvasNode,
+  action?: CanvasActionType,
+): IntakeReceipt | null {
+  if (!nodes.length && !outputNode) return null;
+  const sourceNodes = nodes.filter((node) => node.id !== outputNode?.id);
+  return {
+    sourceLabel,
+    nodeIds: sourceNodes.map((node) => node.id),
+    artifactKinds: Array.from(new Set(artifacts.map((artifact) => artifact.kind))).sort(),
+    outputNodeId: outputNode?.id,
+    action,
+    items: sourceNodes.slice(0, 5).map((node) => ({
+      id: node.id,
+      title: node.title,
+      kind: node.kind,
+    })),
+  };
 }
 
 function metadataNumber(metadata: Record<string, unknown> | undefined, key: string): number | undefined {
@@ -740,6 +782,7 @@ function WorkspaceInner() {
   const [focusedChunkId, setFocusedChunkId] = useState<string | null>(null);
   const [pendingImport, setPendingImport] = useState<ImportPreview | null>(null);
   const [clipboardFallback, setClipboardFallback] = useState<ClipboardFallback | null>(null);
+  const [intakeReceipt, setIntakeReceipt] = useState<IntakeReceipt | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const compactCanvas = useCompactCanvas();
 
@@ -757,6 +800,10 @@ function WorkspaceInner() {
   const selectedExportQuery = useMemo(() => (
     selectedIds.length ? `&nodeIds=${encodeURIComponent(selectedIds.join(','))}` : ''
   ), [selectedIds]);
+  const intakeReceiptExportIds = useMemo(() => {
+    if (!intakeReceipt) return [];
+    return [...intakeReceipt.nodeIds, intakeReceipt.outputNodeId].filter((id): id is string => Boolean(id));
+  }, [intakeReceipt]);
   const selectedCitations = useMemo(() => selectedNode ? metadataCitations(selectedNode.metadata) : [], [selectedNode]);
   const selectedArtifact = useMemo(() => {
     const artifactId = metadataString(selectedNode?.metadata, 'artifactId');
@@ -1053,6 +1100,10 @@ function WorkspaceInner() {
   }, [selectedNode?.id, selectedNode?.title, selectedNode?.body]);
 
   useEffect(() => {
+    setIntakeReceipt(null);
+  }, [canvas?.id]);
+
+  useEffect(() => {
     if (!focusedChunkId) return;
     if (!selectedArtifact?.chunks.some((chunk) => chunk.id === focusedChunkId)) {
       setFocusedChunkId(null);
@@ -1242,6 +1293,7 @@ function WorkspaceInner() {
     latest: CanvasMutationResponse | null,
     actionMode: IntakeActionMode,
     mappedStatus: string,
+    sourceLabel = 'Canvas intake',
   ) => {
     const mappedCanvas = latest?.canvas;
     const createdNodeIdSet = new Set(createdNodeIds);
@@ -1267,11 +1319,13 @@ function WorkspaceInner() {
       if (result.canvas) setCanvas(result.canvas);
       focusNode(result.outputNode);
       frameNodes(result.outputNode ? [...createdIds, result.outputNode.id] : createdIds, 0.28);
+      setIntakeReceipt(createIntakeReceipt(sourceLabel, createdNodes, artifactsForNodes(result.canvas ?? mappedCanvas ?? canvas, createdNodes), result.outputNode, actionInput.action));
       await refreshList();
       setStatus(`${mappedStatus} Ran ${actionInput.action.replace(/_/g, ' ')} on ${createdIds.length} new item(s).`);
       return;
     }
 
+    setIntakeReceipt(createIntakeReceipt(sourceLabel, createdNodes, artifactsForNodes(mappedCanvas ?? canvas, createdNodes)));
     await refreshList();
     setStatus(mappedStatus);
   }, [canvas, focusNode, frameNodes, refreshList]);
@@ -1347,7 +1401,7 @@ function WorkspaceInner() {
         if (last?.node?.id) createdNodeIds.push(last.node.id);
         count += 1;
       }
-      await finishIntake(createdNodeIds, last, actionMode, `Ingested ${count} file source(s).`);
+      await finishIntake(createdNodeIds, last, actionMode, `Ingested ${count} file source(s).`, position ? 'Dropped files' : 'Uploaded files');
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
@@ -1373,16 +1427,21 @@ function WorkspaceInner() {
       });
       const createdIds = result.nodes?.map((node) => node.id) ?? (result.node?.id ? [result.node.id] : []);
       const lastCreated = result.nodes?.[result.nodes.length - 1] ?? result.node;
+      const createdNodes = result.nodes ?? (result.node ? [result.node] : []);
+      const mappedArtifacts = result.artifacts ?? artifactsForNodes(result.canvas ?? canvas, createdNodes);
+      const sourceLabel = position ? 'Dropped onto canvas' : 'Composer intake';
       if (result.canvas) setCanvas(result.canvas);
       if (result.outputNode) {
         focusNode(result.outputNode);
         frameNodes([...createdIds, result.outputNode.id], 0.28);
+        setIntakeReceipt(createIntakeReceipt(sourceLabel, createdNodes, mappedArtifacts, result.outputNode, actionInput.action));
         await refreshList();
         setStatus(`${summary ? `Mapped ${createdIds.length} item(s): ${summary}.` : `Mapped ${createdIds.length} source item(s).`} Ran ${String(actionInput.action).replace(/_/g, ' ')} on ${createdIds.length} new item(s).`);
         return;
       }
       focusNode(lastCreated, createdIds);
       frameNodes(createdIds);
+      setIntakeReceipt(createIntakeReceipt(sourceLabel, createdNodes, mappedArtifacts));
       await refreshList();
       setStatus(summary ? `Mapped ${createdIds.length} item(s): ${summary}.` : `Mapped ${createdIds.length} source item(s).`);
     } catch (error) {
@@ -1515,6 +1574,35 @@ function WorkspaceInner() {
       setBusy(false);
     }
   }, [canvas, selectedExportQuery, selectedIds.length]);
+
+  const focusIntakeReceipt = useCallback(() => {
+    if (!canvas || !intakeReceipt || !intakeReceiptExportIds.length) return;
+    const targetId = intakeReceipt.outputNodeId ?? intakeReceipt.nodeIds[intakeReceipt.nodeIds.length - 1];
+    const target = canvas.nodes.find((node) => node.id === targetId) ?? canvas.nodes.find((node) => intakeReceiptExportIds.includes(node.id));
+    if (!target) return;
+    focusNode(target, intakeReceiptExportIds);
+    setStatus(`Focused latest ${intakeReceipt.sourceLabel.toLowerCase()} context receipt.`);
+  }, [canvas, focusNode, intakeReceipt, intakeReceiptExportIds]);
+
+  const copyIntakeReceiptExport = useCallback(async (format: 'context' | 'codex') => {
+    if (!canvas || !intakeReceipt || !intakeReceiptExportIds.length) return;
+    setBusy(true);
+    try {
+      const params = new URLSearchParams({
+        format,
+        nodeIds: intakeReceiptExportIds.join(','),
+      });
+      const response = await fetch(`/api/canvases/${canvas.id}/export?${params.toString()}`);
+      if (!response.ok) throw new Error(await response.text());
+      const text = await response.text();
+      await navigator.clipboard.writeText(text);
+      setStatus(`Copied latest intake ${format === 'codex' ? 'Codex handoff' : 'context packet'} for ${intakeReceiptExportIds.length} node(s).`);
+    } catch (error) {
+      setStatus((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }, [canvas, intakeReceipt, intakeReceiptExportIds]);
 
   const copySelectedContext = useCallback(async () => {
     if (!selectedNode) return;
@@ -2121,7 +2209,7 @@ function WorkspaceInner() {
                 </p>
               </div>
             ) : null}
-            <div className="absolute left-3 right-3 top-3 z-20 max-h-[calc(100%-5.25rem)] overflow-y-auto rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:max-h-none md:w-[min(760px,calc(100%-2rem))] md:overflow-visible" data-testid="live-composer">
+            <div className="absolute left-3 right-3 top-3 z-40 max-h-[calc(100%-5.25rem)] overflow-y-auto rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:max-h-none md:w-[min(760px,calc(100%-2rem))] md:overflow-visible" data-testid="live-composer">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <div className="inline-flex items-center gap-1.5 rounded-md border border-starlight-mint/35 bg-starlight-mint/10 px-2.5 py-1 text-xs font-semibold text-starlight-ink" data-testid="live-intake-heading">
@@ -2323,6 +2411,96 @@ function WorkspaceInner() {
                     <span className="rounded border border-starlight-gold/30 px-1.5 py-0.5 text-[10px] uppercase text-starlight-gold">{clipboardFallback.mode}</span>
                   </div>
                   <p className="mt-1 text-starlight-muted">{clipboardFallback.message}</p>
+                </div>
+              ) : null}
+              {intakeReceipt ? (
+                <div
+                  className="mt-2 rounded-md border border-starlight-mint/35 bg-starlight-surface/95 p-2 shadow-command backdrop-blur md:absolute md:left-2 md:right-2 md:top-full md:z-20 md:p-2.5"
+                  data-testid="context-mapping-receipt"
+                  role="status"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-starlight-mint" aria-hidden="true" />
+                        <span>Mapped context receipt</span>
+                        <span className="hidden rounded border border-starlight-mint/35 bg-starlight-bg/70 px-1.5 py-0.5 text-[9px] uppercase text-starlight-mint sm:inline-flex">
+                          {intakeReceipt.sourceLabel}
+                        </span>
+                      </div>
+                      <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-starlight-muted">
+                        <span data-testid="context-receipt-node-count">{intakeReceipt.nodeIds.length} source node(s)</span>
+                        {intakeReceipt.artifactKinds.length ? (
+                          <span data-testid="context-receipt-artifacts">{intakeReceipt.artifactKinds.map(formatKind).join(', ')} artifacts</span>
+                        ) : null}
+                        {intakeReceipt.action ? (
+                          <span data-testid="context-receipt-action">{formatKind(intakeReceipt.action)} output</span>
+                        ) : null}
+                        <span className="inline-flex items-center gap-1 font-semibold text-starlight-ink" data-testid="context-receipt-codex-ready">
+                          <Bot className="h-3 w-3 text-starlight-gold" aria-hidden="true" />
+                          Codex-ready
+                        </span>
+                      </div>
+                    </div>
+                    <div className="ml-auto flex shrink-0 items-center gap-1">
+                      <button
+                        type="button"
+                        data-testid="context-receipt-inspect"
+                        onClick={focusIntakeReceipt}
+                        className="inline-flex min-h-7 w-8 items-center justify-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg/80 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-mint sm:w-auto sm:px-2"
+                      >
+                        <Crosshair className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span className="sr-only sm:not-sr-only">Inspect</span>
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="context-receipt-copy-context"
+                        disabled={busy}
+                        onClick={() => void copyIntakeReceiptExport('context')}
+                        className="inline-flex min-h-7 w-8 items-center justify-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg/80 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto sm:px-2"
+                      >
+                        <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span className="sr-only sm:not-sr-only">Context</span>
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="context-receipt-copy-codex"
+                        disabled={busy}
+                        onClick={() => void copyIntakeReceiptExport('codex')}
+                        className="inline-flex min-h-7 w-8 items-center justify-center gap-1.5 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto sm:px-2"
+                      >
+                        <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span className="sr-only sm:not-sr-only">Codex</span>
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-2 hidden flex-wrap gap-1.5 sm:flex" data-testid="context-receipt-items">
+                    {intakeReceipt.items.map((item) => (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          const target = canvas?.nodes.find((node) => node.id === item.id);
+                          if (target) focusNode(target, intakeReceiptExportIds);
+                        }}
+                        className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg/75 px-2 py-1 text-[10px] text-starlight-muted transition hover:border-starlight-mint hover:text-starlight-ink"
+                      >
+                        <span className="shrink-0 font-semibold text-starlight-mint">{formatKind(item.kind)}</span>
+                        <span className="truncate">{item.title}</span>
+                      </button>
+                    ))}
+                    {intakeReceipt.nodeIds.length > intakeReceipt.items.length ? (
+                      <span className="rounded-md border border-starlight-border bg-starlight-bg/75 px-2 py-1 text-[10px] text-starlight-muted">
+                        +{intakeReceipt.nodeIds.length - intakeReceipt.items.length} more
+                      </span>
+                    ) : null}
+                    {intakeReceipt.outputNodeId ? (
+                      <span className="inline-flex items-center gap-1 rounded-md border border-starlight-gold/35 bg-starlight-gold/10 px-2 py-1 text-[10px] font-semibold text-starlight-ink">
+                        <Sparkles className="h-3 w-3 text-starlight-gold" aria-hidden="true" />
+                        output linked
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               ) : null}
               <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-starlight-muted" data-testid="intake-preview">

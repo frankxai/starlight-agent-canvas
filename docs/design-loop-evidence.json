@@ -457,6 +457,16 @@
       "path_or_url": "docs/visual-qa/desktop-setup-input-contracts.png",
       "kind": "desktop setup MCP input contracts matrix screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-latest-intake-receipt.png",
+      "kind": "desktop latest intake receipt screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-latest-intake-receipt.png",
+      "kind": "mobile latest intake receipt screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -569,6 +579,11 @@
       "name": "first-viewport-operator-loop",
       "status": "pass",
       "notes": "The first-viewport composer now exposes Capture, Map, Inspect, Ask, and Handoff as live state/action chips backed by current canvas nodes, sources, outputs, selected scope, and Codex export readiness; desktop, mobile, and reduced-motion screenshots were inspected."
+    },
+    {
+      "name": "latest-intake-receipt",
+      "status": "pass",
+      "notes": "Paste, drop, and upload mapping now leaves a visible receipt with created node kinds, artifact kinds, optional action output, Codex-ready state, Inspect, Context, and Codex handoff actions scoped to the latest intake; desktop and mobile screenshots were inspected."
     },
     {
       "id": "first-success-contract",
@@ -690,7 +705,9 @@
       "docs/visual-qa/mobile-supported-input-first-viewport.png",
       "docs/visual-qa/desktop-supported-input-contract-strip.png",
       "docs/visual-qa/mobile-supported-input-contract-strip.png",
-      "docs/visual-qa/desktop-setup-input-contracts.png"
+      "docs/visual-qa/desktop-setup-input-contracts.png",
+      "docs/visual-qa/desktop-latest-intake-receipt.png",
+      "docs/visual-qa/mobile-latest-intake-receipt.png"
     ],
     "productionMetrics": {
       "desktop": {
@@ -767,7 +784,8 @@
       "clipboardPermissionFallback": true,
       "codexExportPreview": true,
       "firstViewportOperatorLoop": true,
-      "supportedInputContract": true
+      "supportedInputContract": true,
+      "latestIntakeReceipt": true
     },
     "metrics": {
       "desktop": {

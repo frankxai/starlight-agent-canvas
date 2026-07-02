@@ -59,6 +59,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 - Create local canvases with portable JSON import/export, Markdown handoff exports, agent context packets, and Codex-ready continuation prompts.
 - Drop or paste URLs, YouTube links, image URLs/screenshots, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, click `Paste & Map` to turn the clipboard into nodes immediately, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
+- Confirm every paste/drop/upload mapping with the latest intake receipt: created node kinds, artifact kinds, optional action output, and exact `Context` / `Codex` copy actions for the newly mapped material.
 - Follow a live operator loop in the first viewport: `Capture`, `Map`, `Inspect`, `Ask`, and `Handoff` update from actual canvas state and expose direct actions.
 - Create a fresh blank canvas from the first viewport, and click an empty primary intake action to focus the composer instead of hitting a dead disabled state.
 - Launch guided workflow templates with source slots, ordered stages, prompt nodes, expected output targets, and Codex/MCP handoff nodes; use the live Workflow Map to jump between stages.

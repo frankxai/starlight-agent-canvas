@@ -15,7 +15,7 @@ An active research graph where every source, action, and agent output becomes in
 ## Layout
 
 - Left rail: always-visible "Add To Canvas" intake with detected-source preview chips, templates, canvases, and direct source controls.
-- Center: React Flow typed graph with first-viewport `Add Anything` composer, live `Capture -> Map -> Inspect -> Ask -> Handoff` operator loop, fresh blank-canvas action, clipboard paste with manual fallback, detected-source preview chips, responsive empty-input primary actions, interactive empty-state actions, paste-anywhere intake, drop-to-position mapping, toolbar note creation, double-click note creation, drag persistence, direct node connections, context copy, explicit import preview/cancel/confirm, and import/export controls.
+- Center: React Flow typed graph with first-viewport `Add Anything` composer, live `Capture -> Map -> Inspect -> Ask -> Handoff` operator loop, fresh blank-canvas action, clipboard paste with manual fallback, detected-source preview chips, latest intake receipt with scoped context/Codex copy, responsive empty-input primary actions, interactive empty-state actions, paste-anywhere intake, drop-to-position mapping, toolbar note creation, double-click note creation, drag persistence, direct node connections, context copy, explicit import preview/cancel/confirm, and import/export controls.
 - Right rail: selected-context tray, Codex export preview, live Workflow Map, handoff readiness lane, source-grounded ask box, action drawer, editable selected node inspector with context receipt, clickable citation-to-source cards, selected-source commands immediately after the action drawer, setup/MCP status, first-success contract, Agent toolbelt for `get_latest_canvas -> ingest_anything -> run_node_action -> export_canvas`, adoption report commands, local search, run log with clickable citation chips.
 - Top bar: product identity, local data path, export route, MCP status.
 
@@ -34,6 +34,7 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 - Empty `Map`/`Ask` clicks focus the correct composer and update status, not silently fail.
 - The live operator loop shows current stage state from real canvas data and exposes direct actions for capture, mapping, inspection, asking, and Codex handoff.
 - User can see inferred `Video source`, `Image source`, `Web source`, `Source notes`, `Text source`, or file affordances before mapping.
+- After mapping, user can see a latest intake receipt with created node kind(s), artifact kind(s), optional action output, `Codex-ready` state, and exact-context `Context` / `Codex` copy actions.
 - Template cards show ordered stages and expected outcome before creating a workflow canvas.
 - Workflow Map stage buttons refocus matching template nodes.
 - Empty canvas state has direct `Map`, `Note`, and `Upload` actions.

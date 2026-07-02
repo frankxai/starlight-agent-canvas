@@ -170,6 +170,16 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();
   await page.getByTestId('intake-ingest').click();
   await expect(page.getByTestId('status')).toContainText('Mapped 1 item(s): Video link.');
+  await expect(page.getByTestId('context-mapping-receipt')).toContainText('Mapped context receipt');
+  await expect(page.getByTestId('context-mapping-receipt')).toContainText('Composer intake');
+  await expect(page.getByTestId('context-receipt-node-count')).toContainText('1 source node');
+  await expect(page.getByTestId('context-receipt-artifacts')).toContainText('video artifacts');
+  await expect(page.getByTestId('context-receipt-codex-ready')).toContainText('Codex-ready');
+  await expect(page.getByTestId('context-receipt-items')).toContainText('source video');
+  await expect(page.getByTestId('context-receipt-items')).toContainText('Video example.com');
+  await expect(page.getByTestId('context-receipt-inspect')).toBeEnabled();
+  await expect(page.getByTestId('context-receipt-copy-context')).toBeEnabled();
+  await expect(page.getByTestId('context-receipt-copy-codex')).toBeEnabled();
   await expect(page.getByTestId('operator-loop-map')).toContainText('1 source');
   await expect(page.getByTestId('operator-loop-inspect')).toContainText('Video example.com');
   {
@@ -216,6 +226,9 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('inspector-title')).toHaveValue('summarize output');
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Nodeflow connects YouTube/);
   await expect(page.getByTestId('status')).toContainText('Ran summarize on 1 new item');
+  await expect(page.getByTestId('context-receipt-action')).toContainText('summarize output');
+  await expect(page.getByTestId('context-receipt-items')).toContainText('Nodeflow connects YouTube');
+  await expect(page.getByTestId('context-receipt-items')).toContainText('output linked');
   await expect(page.getByTestId('intake-ingest')).toBeEnabled();
   await expect(page.getByTestId('quick-note')).toBeEnabled();
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();

@@ -24,6 +24,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - First run opens a user-owned blank canvas with templates nearby, not a pre-filled demo as the primary experience.
 - User can paste or drop URLs, YouTube links, image URLs/screenshots, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
 - The composer previews what it detected before mapping: YouTube source, non-YouTube video reference, image source, web source, source notes, text, PDF, or file.
+- After paste, drop, or upload mapping, the composer shows a latest intake receipt with created node kinds, artifact kinds, optional action output, and receipt-scoped `Context` / `Codex` copy actions.
 - Non-YouTube video links are captured as first-class `source_video` nodes with `video` artifacts, attached notes/transcripts, chunks, and `media: video_reference` provenance; full provider-specific transcription is deferred.
 - Image links and uploaded screenshots are captured as first-class `source_image` nodes with `image` artifacts, local preview metadata, optional visual notes/OCR text, chunks, and `media: image_reference` or `media: image_upload` provenance; first-class OCR/vision extraction is deferred.
 - The first-viewport composer exposes quick starters for `Video`, `Image`, `Web`, `Note`, and `Ask`, plus a visible `Drop -> Map -> Ask -> Handoff` loop.
@@ -37,6 +38,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Selected source nodes expose immediate source-scoped actions: summary, claims, cited ask, and selected context copy.
 - User can see the active selected context before running actions.
 - User can see the supported-input contract in the first viewport: YouTube, any video link, image, web, PDF, text, and note, with each one mapped to the node/artifact type Codex will later receive.
+- User can confirm immediately after mapping which new nodes/artifacts are now Codex-readable without hunting through the graph.
 - User can see handoff readiness before leaving the browser: evidence captured, synthesis/output present, selected scope, and whether Codex is MCP-wired or should use a handoff prompt.
 - User can export selected evidence as JSON, Markdown, agent context, or Codex handoff without exporting unrelated canvas material.
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
@@ -119,6 +121,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can click a citation from an answer or run log and land back on the cited source/chunk.
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
+- A user can identify what `Map` created after clicking it, inspect the latest mapped cluster, and copy a context/Codex handoff scoped to that intake.
 - A user can start from `Video`, `Image`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
 - A user can see which workflow stage is complete and trigger the next one from the first viewport.
 - A user can launch a workflow template and understand the ordered stages from the Workflow Map without reading docs.
