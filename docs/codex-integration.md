@@ -51,9 +51,10 @@ Optional terminal bridge:
 pnpm canvas -- list
 pnpm canvas -- demo
 pnpm canvas -- export latest --format context --out .agent-canvas/latest-context.md
+pnpm canvas -- export latest --format codex --out .agent-canvas/latest-codex.md
 ```
 
-Use this when Codex should continue from a checked-in or attached context packet before the MCP host has been restarted.
+Use `context` when Codex should receive a self-contained evidence packet. Use `codex` when you want a ready-to-paste continuation prompt that names the canvas id, tells Codex to call MCP `get_canvas`, and embeds the context packet as fallback.
 
 ## Agent Operating Contract
 
@@ -65,7 +66,7 @@ Codex should treat the canvas as a typed local context layer:
 - Run actions to create output nodes that the human can inspect.
 - Cite node ids and chunk ids when using source-grounded answers or context packets.
 - Prefer `update_node` for human-readable cleanup over creating duplicate nodes.
-- Export `context` when Codex needs a self-contained agent packet, `markdown` for human handoff, and `json` for portable rehydration.
+- Export `codex` when Codex needs a ready continuation prompt, `context` when any agent needs a self-contained packet, `markdown` for human handoff, and `json` for portable rehydration.
 - Import portable JSON when a user gives Codex a saved canvas snapshot that should become active local context again.
 - Never assume destructive tools exist; v0.1 intentionally has no delete or external-posting tools.
 
@@ -74,11 +75,11 @@ Codex should treat the canvas as a typed local context layer:
 ```text
 Use the starlight-agent-canvas MCP server as shared local context.
 List canvases, inspect the active Starlight canvas, add new evidence as nodes,
-run the smallest useful action, and export Markdown when the workflow needs a handoff.
+run the smallest useful action, and export `codex` when the workflow needs a Codex continuation prompt.
 Keep mutations explicit and summarize every node/action you changed.
 ```
 
-For implementation continuation, prefer `export_canvas` with `format: "context"` over Markdown. The context packet includes the operating contract, node index, source chunk manifest, evidence corpus, recent runs, and continuation prompt.
+For implementation continuation, prefer `export_canvas` with `format: "codex"` over Markdown. The Codex handoff includes the exact MCP resume instruction plus the full context packet. Use `format: "context"` when the next consumer is another MCP-compatible agent or an issue/PR artifact.
 
 ## Common Codex Moves
 
@@ -95,9 +96,9 @@ For implementation continuation, prefer `export_canvas` with `format: "context"`
 - `connect_nodes`: make evidence relationships explicit.
 - `run_node_action`: summarize, compare, build matrix, build brief, or answer a question.
 - `search_artifacts`: find local source material across canvases, including artifact and chunk ids when available.
-- `export_canvas`: produce JSON, Markdown, or an agent context packet for handoff.
+- `export_canvas`: produce JSON, Markdown, an agent context packet, or a ready-to-paste Codex handoff.
 
-If MCP is temporarily unavailable, `pnpm canvas -- export latest --format context` produces the same class of local context packet from the shared store.
+If MCP is temporarily unavailable, `pnpm canvas -- export latest --format codex` produces the same ready-to-paste Codex prompt from the shared store. `--format context` remains the general agent packet.
 If setup health is uncertain, `pnpm doctor:json` gives Codex a structured checklist without requiring it to parse terminal prose.
 
 For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Use this for agent-generated canvases so human review starts from a coherent visual map.
@@ -112,7 +113,7 @@ For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Us
 6. Human exports or asks Codex to continue implementation from the output.
 7. Later, either side can import the JSON export to resume the same graph as durable context.
 
-When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`. That packet includes a source chunk manifest; cite those chunk ids when making claims.
+When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`. When the human clicks `Codex`, the app copies the `format: "codex"` handoff prompt, which tells Codex to resume with `get_canvas` against the current canvas id and embeds the context packet as fallback. Cite node ids and chunk ids from either export when making claims.
 
 When the human clicks `Copy source` in a selected node receipt, Codex should treat that as a narrower source-only packet. Use it when the task is about one YouTube video, PDF, page, or note instead of the whole canvas.
 
@@ -129,7 +130,7 @@ Import examples/demo-canvas.json as local canvas state.
 Read the imported canvas.
 Run answer_question on source-youtube-nodeflow:
 "What should we build next to make this canvas feel closer to Poppy AI or Nodeflow while staying MCP-native?"
-Export the canvas with format "context".
+Export the canvas with format "codex".
 Return the node ids, artifact ids, and chunk ids you used.
 ```
 
@@ -143,7 +144,7 @@ Find the most recently updated canvas.
 Read the canvas before writing.
 Identify the source nodes and artifacts that look most relevant.
 Run one useful action over the selected evidence.
-Export format "context" and summarize the node ids, artifact ids, chunk ids, and changes you made.
+Export format "codex" and summarize the node ids, artifact ids, chunk ids, and changes you made.
 ```
 
 ## Safety Notes

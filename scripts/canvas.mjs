@@ -9,7 +9,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.dirname(scriptDir);
 const args = process.argv.slice(2);
 if (args[0] === '--') args.shift();
-const formats = new Set(['json', 'markdown', 'context']);
+const formats = new Set(['json', 'markdown', 'context', 'codex']);
 
 function usage() {
   console.log([
@@ -20,13 +20,13 @@ function usage() {
     '  pnpm canvas -- demo [--json] [--home <path>]',
     '  pnpm canvas -- import <canvas.json> [--json] [--home <path>]',
     '  pnpm canvas -- show <canvasId|latest> [--home <path>]',
-    '  pnpm canvas -- export <canvasId|latest> [--format json|markdown|context] [--out <file>] [--home <path>]',
+    '  pnpm canvas -- export <canvasId|latest> [--format json|markdown|context|codex] [--out <file>] [--home <path>]',
     '  pnpm canvas -- search <query...> [--json] [--home <path>]',
     '',
     'Notes:',
     '  - Runtime data lives in AGENT_CANVAS_HOME unless --home is provided.',
     '  - Imports are non-destructive; same-id imports are saved as copies.',
-    '  - export defaults to format=context for agent handoff.',
+    '  - export defaults to format=context for agent handoff; use format=codex for a ready-to-paste Codex prompt.',
   ].join('\n'));
 }
 

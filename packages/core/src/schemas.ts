@@ -36,6 +36,8 @@ export const actionTypeSchema = z.enum([
   'answer_question',
 ]);
 
+export const exportFormatSchema = z.enum(['json', 'markdown', 'context', 'codex']);
+
 export const positionSchema = z.object({
   x: z.number(),
   y: z.number(),
@@ -167,6 +169,7 @@ export const runActionInputSchema = z.object({
 export type CanvasNodeKind = z.infer<typeof nodeKindSchema>;
 export type CanvasEdgeKind = z.infer<typeof edgeKindSchema>;
 export type CanvasActionType = z.infer<typeof actionTypeSchema>;
+export type CanvasExportFormat = z.infer<typeof exportFormatSchema>;
 export type CanvasId = z.infer<typeof canvasIdSchema>;
 export type CanvasNode = z.infer<typeof canvasNodeSchema>;
 export type CanvasEdge = z.infer<typeof canvasEdgeSchema>;

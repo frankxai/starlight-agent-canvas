@@ -9,6 +9,7 @@ const root = process.cwd();
 const home = path.join(root, '.agent-canvas', 'cli-smoke');
 const outDir = path.join(home, 'exports');
 const contextPath = path.join(outDir, 'demo-context.md');
+const codexPath = path.join(outDir, 'demo-codex.md');
 const env = { ...process.env, AGENT_CANVAS_HOME: home };
 
 async function run(args) {
@@ -46,10 +47,17 @@ assert(context.includes('Agent Context Packet'), 'context export missing packet 
 assert(context.includes('Source Chunk Manifest'), 'context export missing chunk manifest');
 assert(context.includes('Codex context handoff'), 'context export missing demo handoff text');
 
+await run(['export', 'latest', '--format', 'codex', '--out', codexPath]);
+const codex = await readFile(codexPath, 'utf8');
+assert(codex.includes('Codex Handoff'), 'codex export missing handoff heading');
+assert(codex.includes('get_canvas'), 'codex export missing MCP resume instruction');
+assert(codex.includes('Agent Context Packet'), 'codex export missing embedded context packet');
+
 console.log(JSON.stringify({
   ok: true,
   home,
   canvasId: demo.canvas.id,
   contextPath,
+  codexPath,
   searchResults: search.results.length,
 }, null, 2));

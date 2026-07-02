@@ -9,9 +9,9 @@ Last reviewed: 2026-07-01.
 - Canvas: `@xyflow/react` for typed workflow nodes and edges.
 - UI system: Tailwind CSS, lucide-react, Starlight Premium Web OS tokens.
 - AI surface: Vercel AI SDK dependency is present for provider adapters; v0.1 actions are deterministic and keyless.
-- Core package: Zod schemas, typed records, chunked source artifacts, citation metadata, local file store, action runner, ingestion adapters, JSON import/export, Markdown export, and agent context packet export.
+- Core package: Zod schemas, typed records, chunked source artifacts, citation metadata, local file store, action runner, ingestion adapters, JSON import/export, Markdown export, agent context packet export, and Codex handoff export.
 - Source intake: SSRF-hardened URL fetch, optional Firecrawl, PDF extraction, YouTube oEmbed and best-effort public captions, manual text/transcript ingestion.
-- MCP package: `@modelcontextprotocol/sdk` stdio server with positioned source ingest/update/action/import/export tools, including PDF ingest, chunk-backed search, and agent context export.
+- MCP package: `@modelcontextprotocol/sdk` stdio server with positioned source ingest/update/action/import/export tools, including PDF ingest, chunk-backed search, agent context export, and Codex handoff export.
 - QA: Vitest, Playwright desktop/mobile, security scan, visual QA screenshots.
 - Operator diagnostics: `pnpm doctor` for human-readable local readiness and `pnpm doctor:json` for machine-readable agent/CI/setup health.
 - Storage: local JSON files under `AGENT_CANVAS_HOME`, defaulting to `<home>/.starlight/agent-canvas`.
@@ -37,7 +37,7 @@ MCP stdio keeps the agent integration low-trust and local. Clients can read and 
 ## Enterprise Readiness Principles
 
 - Local-first by default.
-- Portable JSON import/export, Markdown exports, agent context packet exports, and citation-ready source chunks.
+- Portable JSON import/export, Markdown exports, agent context packet exports, Codex handoff exports, and citation-ready source chunks.
 - Safe MCP annotations and no destructive tools.
 - Secrets live in environment variables only.
 - API routes stay localhost-only unless `AGENT_CANVAS_ALLOW_REMOTE=1`.

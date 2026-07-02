@@ -217,6 +217,18 @@ try {
     throw new Error('context export did not include the source chunk manifest and YouTube chunk id.');
   }
 
+  const exportedCodex = await client.callTool({
+    name: 'export_canvas',
+    arguments: {
+      canvasId,
+      format: 'codex',
+    },
+  });
+  const codexBody = exportedCodex.structuredContent?.body;
+  if (typeof codexBody !== 'string' || !codexBody.includes('Codex Handoff') || !codexBody.includes('Agent Context Packet')) {
+    throw new Error('export_canvas did not return a Codex handoff prompt for the smoke canvas.');
+  }
+
   const exportedJson = await client.callTool({
     name: 'export_canvas',
     arguments: {

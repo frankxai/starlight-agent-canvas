@@ -9,6 +9,7 @@ pnpm canvas -- list
 pnpm canvas -- demo
 pnpm canvas -- import examples/demo-canvas.json
 pnpm canvas -- export latest --format context --out .agent-canvas/demo-context.md
+pnpm canvas -- export latest --format codex --out .agent-canvas/demo-codex.md
 pnpm canvas -- export <canvas-id> --format json
 pnpm canvas -- search "Codex context handoff"
 pnpm canvas -- show latest
@@ -27,7 +28,8 @@ pnpm canvas -- list --home C:\Users\frank\.starlight\agent-canvas
 - The CLI has no delete command.
 - Imports are non-destructive. If an incoming canvas id already exists, the store saves a copy with a fresh id.
 - Export defaults to `context` because the most common terminal use is an agent handoff packet.
-- `json`, `markdown`, and `context` export formats match the core/web export behavior.
+- `json`, `markdown`, `context`, and `codex` export formats match the core/web export behavior.
+- Use `--format codex` when you want a ready-to-paste Codex prompt that instructs Codex to resume with MCP `get_canvas` and includes the context packet as fallback.
 
 ## Smoke Test
 
@@ -35,4 +37,4 @@ pnpm canvas -- list --home C:\Users\frank\.starlight\agent-canvas
 pnpm canvas:smoke
 ```
 
-The smoke test uses a throwaway local home at `.agent-canvas/cli-smoke`, imports the bundled demo, lists canvases, searches artifacts, exports a context packet, and asserts that the packet contains the source chunk manifest and Codex handoff text.
+The smoke test uses a throwaway local home at `.agent-canvas/cli-smoke`, imports the bundled demo, lists canvases, searches artifacts, exports a context packet, exports a Codex handoff prompt, and asserts that both include the expected source and resume evidence.

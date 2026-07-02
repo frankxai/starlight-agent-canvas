@@ -22,6 +22,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
+  await expect(page.getByTestId('setup-codex-handoff')).toBeEnabled();
   await expect(page.getByTestId('intake-ingest')).toContainText('Map + Brief');
   await expect(page.getByTestId('intake-ingest')).toBeEnabled();
   await expect(page.getByTestId('new-blank-canvas')).toBeVisible();
@@ -45,6 +46,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('canvas-command-tray')).toContainText('Note');
   await expect(page.getByTestId('canvas-command-tray')).toContainText('Ask');
   await expect(page.getByTestId('canvas-command-tray')).toContainText('Context');
+  await expect(page.getByTestId('canvas-command-tray')).toContainText('Codex');
   await page.getByTestId('canvas-toolbar-source').click();
   await expect(page.getByTestId('status')).toContainText('Paste or drop a YouTube link');
   await expect(page.getByTestId('intake-text')).toBeFocused();
@@ -200,6 +202,14 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(contextResponse).toBeOK();
   expect(contextResponse.headers()['content-type']).toContain('text/markdown');
   expect(await contextResponse.text()).toContain('Agent Context Packet');
+
+  const codexResponse = await page.request.get(exportHref!.replace('format=json', 'format=codex'));
+  await expect(codexResponse).toBeOK();
+  expect(codexResponse.headers()['content-type']).toContain('text/markdown');
+  const codexText = await codexResponse.text();
+  expect(codexText).toContain('Codex Handoff');
+  expect(codexText).toContain('get_canvas');
+  expect(codexText).toContain('Agent Context Packet');
 
   const importTitle = `imported ${testInfo.project.name} ${Date.now()}`;
   exportedCanvas.id = `canvas-${importTitle.replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase()}`;

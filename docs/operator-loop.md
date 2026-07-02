@@ -12,7 +12,7 @@ flowchart LR
   node --> artifact["Local artifact + chunks"]
   artifact --> action["Action or agent MCP call"]
   action --> output["Inspectable output node"]
-  output --> handoff["JSON / Markdown / context export"]
+  output --> handoff["JSON / Markdown / context / Codex export"]
   handoff --> resume["Human or agent resumes"]
 ```
 
@@ -21,13 +21,13 @@ flowchart LR
 1. Start from the first viewport, not a docs page.
 2. Use `New` for a blank graph or `Demo` for a proof canvas.
 3. Use `Video`, `Web`, `Note`, or `Ask` when the top composer is the fastest path.
-4. Use the graph command tray when attention is already on the canvas: `Source`, `Paste`, `File`, `Note`, `Ask`, `Context`.
+4. Use the graph command tray when attention is already on the canvas: `Source`, `Paste`, `File`, `Note`, `Ask`, `Context`, `Codex`.
 5. Paste or drop YouTube, non-YouTube video links, web URLs, files, transcripts, rough notes, or mixed text.
 6. Confirm the preview chips before mapping.
 7. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 8. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, and character count.
 9. Run source-scoped actions when one source matters, or canvas actions when synthesis matters.
-10. Export `Context` for agents, `Markdown` for people, or `JSON` for portable rehydration.
+10. Export `Context` for general agent packets, `Codex` for ready-to-paste Codex continuation prompts, `Markdown` for people, or `JSON` for portable rehydration.
 
 ## Agent Interaction Loop
 
@@ -41,7 +41,7 @@ Agents should use the MCP server as a typed local operating surface, not as a ge
 6. Use `connect_nodes` to make evidence relationships visible.
 7. Use `run_node_action` for summaries, claims, comparisons, matrices, implementation briefs, or cited answers.
 8. Use `update_node` for cleanup instead of duplicating messy nodes.
-9. Use `export_canvas` with `format: "context"` when the next agent turn needs a self-contained packet.
+9. Use `export_canvas` with `format: "codex"` when Codex should continue through MCP, or `format: "context"` when the next agent turn needs a self-contained packet.
 10. Report node ids, artifact ids, chunk ids, and actions changed.
 
 ## Source Semantics
@@ -100,5 +100,5 @@ A workflow is not complete when a node merely appears. It is complete when:
 - the human can inspect/edit the result
 - an agent can read the same state through MCP
 - export works in the required format
+- Codex can resume from a handoff prompt or MCP `get_canvas`
 - the work can be resumed later from local data or portable JSON
-

@@ -56,6 +56,11 @@ describe('FileCanvasStore', () => {
     expect(context).toContain('## Source Chunk Manifest');
     expect(context).toContain('MCP-native');
 
+    const codex = await store.exportCanvas(canvas.id, 'codex');
+    expect(codex).toContain('# Codex Handoff: Planning');
+    expect(codex).toContain(`get_canvas\` for canvas id \`${canvas.id}`);
+    expect(codex).toContain('# Agent Context Packet: Planning');
+
     const portable = JSON.parse(await store.exportCanvas(canvas.id, 'json')) as typeof canvas;
     portable.id = 'canvas-imported-planning';
     portable.title = 'Imported planning';

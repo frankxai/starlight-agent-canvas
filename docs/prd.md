@@ -10,7 +10,7 @@ Creators and builders collect context across YouTube, PDFs, web pages, notes, re
 
 ## Product Promise
 
-Turn mixed source material into reusable, inspectable, portable agent context. A user can populate the canvas directly, an agent can operate on the same canvas through MCP, and both can export the result as JSON or Markdown.
+Turn mixed source material into reusable, inspectable, portable agent context. A user can populate the canvas directly, an agent can operate on the same canvas through MCP, and both can export the result as JSON, Markdown, a general agent context packet, or a Codex-ready continuation prompt.
 
 ## Primary Users
 
@@ -34,7 +34,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can see the active selected context before running actions.
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
-- User can export portable JSON, readable Markdown, and agent context packets; user can re-import portable JSON.
+- User can export portable JSON, readable Markdown, general agent context packets, and Codex-ready continuation prompts; user can re-import portable JSON.
 - User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
 - Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
@@ -63,7 +63,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - `pnpm doctor:json` emits a stable pass/warn/fail health contract with repo root, canvas home, MCP CLI path, Codex config path, checks, and next steps.
 - The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
 - `pnpm verify`, `pnpm test:e2e`, and `pnpm mcp:smoke` pass.
-- `pnpm canvas:smoke` passes and proves demo import, list, search, and context export from the terminal.
+- `pnpm canvas:smoke` passes and proves demo import, list, search, context export, and Codex handoff export from the terminal.
 - README links to install, PRD, user flows, MCP setup, Codex integration, system design, and production readiness.
 - GitHub has issue templates, PR template, CI, and a readiness checklist.
 - Visual evidence proves desktop and mobile first-use paths.
@@ -92,7 +92,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - A user can start from `Video`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
 - A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
-- An MCP client can ingest a text source, run an action, export Markdown/JSON/context, and import portable JSON through smoke tests.
+- An MCP client can ingest a text source, run an action, export Markdown/JSON/context/Codex handoff, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.
 
 ## Roadmap

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { canvasIdSchema, canvasRecordSchema } from '@starlight-agent-canvas/core';
+import { canvasIdSchema, canvasRecordSchema, exportFormatSchema } from '@starlight-agent-canvas/core';
 import { createToolHandlers } from './tool-handlers.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -136,7 +136,7 @@ function registerOperatorPrompts(server: McpServer) {
             'Use ingest_url, ingest_youtube, ingest_video, or ingest_text_source for sources so artifacts, provenance, and typed nodes stay connected.',
             'Add prompts, MCP tools, agent runs, and outputs as typed nodes. Connect evidence with references, derives_from, compares, runs, or exports edges.',
             'Run local actions for summaries, claims, comparisons, decision matrices, implementation briefs, and source-grounded answers.',
-            'Prefer export_canvas with format "context" for agent continuation, JSON for portable rehydration, and Markdown for human-readable handoff.',
+            'Prefer export_canvas with format "codex" for a ready-to-paste Codex continuation prompt, "context" for agent packets, JSON for portable rehydration, and Markdown for human-readable handoff.',
             'Do not use this server for secrets, external posting, destructive operations, payments, or remote account mutation.',
           ].join('\n'),
         },
@@ -380,10 +380,10 @@ export function createAgentCanvasMcpServer() {
     'export_canvas',
     {
       title: 'Export Canvas',
-      description: 'Export a canvas as portable JSON, readable Markdown, or an agent context packet.',
+      description: 'Export a canvas as portable JSON, readable Markdown, an agent context packet, or a ready-to-paste Codex handoff prompt.',
       inputSchema: {
         canvasId: canvasIdSchema,
-        format: z.enum(['json', 'markdown', 'context']).optional(),
+        format: exportFormatSchema.optional(),
       },
       annotations: READ_ONLY_LOCAL,
     },

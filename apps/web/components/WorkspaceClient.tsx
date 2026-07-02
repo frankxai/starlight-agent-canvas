@@ -1113,6 +1113,22 @@ function WorkspaceInner() {
     }
   }, [canvas]);
 
+  const copyCodexHandoff = useCallback(async () => {
+    if (!canvas) return;
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/canvases/${canvas.id}/export?format=codex`);
+      if (!response.ok) throw new Error(await response.text());
+      const text = await response.text();
+      await navigator.clipboard.writeText(text);
+      setStatus('Copied Codex handoff prompt.');
+    } catch (error) {
+      setStatus((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }, [canvas]);
+
   const copySelectedContext = useCallback(async () => {
     if (!selectedNode) return;
     try {
@@ -1877,6 +1893,10 @@ function WorkspaceInner() {
                 <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
                 Context
               </button>
+              <button type="button" data-testid="copy-codex-handoff" onClick={copyCodexHandoff} disabled={!canvas || busy} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-1 text-xs font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
+                <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                Codex
+              </button>
               <button type="button" data-testid="load-demo-canvas-toolbar" onClick={loadDemoCanvas} disabled={busy} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-1 text-xs font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
                 <LayoutTemplate className="h-3.5 w-3.5" aria-hidden="true" />
                 Demo
@@ -2254,6 +2274,16 @@ function WorkspaceInner() {
                       </button>
                     ))}
                   </div>
+                  <button
+                    type="button"
+                    data-testid="setup-codex-handoff"
+                    onClick={copyCodexHandoff}
+                    disabled={!canvas || busy}
+                    className="mt-2 flex w-full items-center justify-center gap-2 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-3 py-2 text-xs font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                    Codex handoff
+                  </button>
                 </>
               ) : null}
             </section>

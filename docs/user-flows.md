@@ -25,7 +25,7 @@ Expected result: the user sees what will be created before mapping, the new type
 6. Paste or drop context.
 7. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
 8. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-9. Inspect the created nodes and use `Context` or MCP `export_canvas` for handoff.
+9. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
 
@@ -35,7 +35,7 @@ Expected result: a new user can populate the canvas without reading docs or disc
 2. Click `Demo` in the first-viewport composer or toolbar.
 3. Confirm the canvas loads the bundled demo and selects `Nodeflow-style video source`.
 4. Inspect the receipt: `youtube`, `manual transcript`, source URL, chunks, and character count.
-5. Click `Context` to copy the agent packet, or export JSON/Markdown.
+5. Click `Context` to copy the agent packet, click `Codex` to copy the Codex continuation prompt, or export JSON/Markdown.
 6. Ask Codex/Claude/Gemini through MCP to list canvases and read the same imported canvas.
 
 Expected result: a first-time user can see the complete product loop in seconds without locating example files manually.
@@ -105,6 +105,7 @@ sequenceDiagram
   MCP->>Canvas: Add typed node
   Codex->>MCP: run_node_action
   MCP->>Canvas: Add output node and run log
+  Codex->>MCP: export_canvas format codex
   Human->>Canvas: Inspect and edit output
 ```
 
@@ -134,12 +135,12 @@ Mobile is intended for review and light intake in v0.1, not dense graph authorin
 ## Flow 8: Export, Import, And Handoff
 
 1. Complete source mapping and actions.
-2. Click `Context` for an agent packet, `JSON` for portable state, or `MD` for readable handoff.
+2. Click `Context` for an agent packet, `Codex` for a ready-to-paste Codex prompt, `JSON` for portable state, or `MD` for readable handoff.
 3. Attach the export to a PR, issue, Codex task, or project brief.
 4. Re-import the JSON from the canvas toolbar or through MCP when you want to rehydrate the exact graph later.
 5. If the canvas id already exists locally, import creates a non-destructive copy instead of overwriting active work.
 
-Expected result: a canvas can move between human review, repo artifacts, Codex/Claude/Gemini MCP sessions, and later local rehydration without becoming a dead screenshot. The context packet gives agents metadata, a node index, source chunk manifest, evidence corpus, recent runs, and a continuation prompt.
+Expected result: a canvas can move between human review, repo artifacts, Codex/Claude/Gemini MCP sessions, and later local rehydration without becoming a dead screenshot. The context packet gives agents metadata, a node index, source chunk manifest, evidence corpus, recent runs, and a continuation prompt; the Codex export wraps that packet in an explicit MCP resume instruction.
 
 ## Flow 9: Operator Health Loop
 

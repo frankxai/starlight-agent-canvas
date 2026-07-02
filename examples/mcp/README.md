@@ -32,7 +32,7 @@ Ingest this text source:
 Connect the source nodes as references.
 Run summarize on those nodes.
 Search artifacts for "Source Note Ask".
-Export the canvas with format "context".
+Export the canvas with format "codex".
 Return the node ids, artifact ids, chunk ids, and export format you used.
 ```
 
@@ -45,3 +45,4 @@ Expected proof points:
 - `run_node_action` creates an output node.
 - `search_artifacts` returns chunk-aware results.
 - `export_canvas` with `format: "context"` returns an agent packet.
+- `export_canvas` with `format: "codex"` returns a Codex-ready continuation prompt with the context packet embedded.

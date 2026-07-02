@@ -149,3 +149,35 @@ export function exportCanvasAsAgentContext(canvas: CanvasRecord): string {
 
   return lines.join('\n').trimEnd() + '\n';
 }
+
+export function exportCanvasAsCodexHandoff(canvas: CanvasRecord): string {
+  const contextPacket = exportCanvasAsAgentContext(canvas);
+  const lines = [
+    `# Codex Handoff: ${canvas.title}`,
+    '',
+    'Paste this into Codex when you want it to continue from the current Starlight Agent Canvas.',
+    '',
+    '## Prompt',
+    '',
+    'Use the `starlight-agent-canvas` MCP server as shared local context.',
+    `Start with \`get_canvas\` for canvas id \`${canvas.id}\` when MCP is available.`,
+    'Read the live canvas before writing. If MCP is unavailable, use the context packet below.',
+    'Identify the next highest-leverage action, cite node ids and chunk ids, then write durable updates back as typed nodes when useful.',
+    'Keep mutations explicit. Do not post externally, spend money, mutate accounts, expose secrets, or assume destructive tools exist.',
+    '',
+    '## Canvas To Resume',
+    '',
+    `- Canvas ID: \`${canvas.id}\``,
+    `- Title: ${canvas.title}`,
+    `- Nodes: ${canvas.nodes.length}`,
+    `- Edges: ${canvas.edges.length}`,
+    `- Runs: ${canvas.runs.length}`,
+    `- Artifacts: ${canvas.artifacts.length}`,
+    '',
+    '## Context Packet',
+    '',
+    contextPacket.trimEnd(),
+  ];
+
+  return lines.join('\n').trimEnd() + '\n';
+}

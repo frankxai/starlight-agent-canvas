@@ -13,6 +13,7 @@ import {
   type AddNodeInput,
   type ConnectNodesInput,
   type CreateCanvasInput,
+  type CanvasExportFormat,
   type IngestedSource,
   type RunActionInput,
   type UpdateNodeInput,
@@ -198,7 +199,7 @@ export function createToolHandlers(store = new FileCanvasStore()) {
       return ok(jsonText(results), { results });
     },
 
-    async export_canvas(args: { canvasId: string; format?: 'json' | 'markdown' | 'context' }): Promise<ToolResult> {
+    async export_canvas(args: { canvasId: string; format?: CanvasExportFormat }): Promise<ToolResult> {
       const format = args.format ?? 'json';
       const body = await store.exportCanvas(args.canvasId, format);
       return ok(body, { canvasId: args.canvasId, format, body });

@@ -42,13 +42,13 @@ The web app and MCP server operate over the same local data home. A source added
 4. Click `New` for a fresh blank graph, `Demo` for a working proof canvas, or `Video`, `Web`, `Note`, or `Ask` to start from your own material.
 5. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 6. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
-7. Click `Context` or use MCP `export_canvas` with `format: "context"` for agent handoff.
+7. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP.
 
 For the full human plus agent operating loop, see `docs/operator-loop.md`.
 
 ## What v0.1 Does
 
-- Create local canvases with portable JSON import/export, Markdown handoff exports, and agent context packets.
+- Create local canvases with portable JSON import/export, Markdown handoff exports, agent context packets, and Codex-ready continuation prompts.
 - Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
 - Create a fresh blank canvas from the first viewport, and click an empty primary intake action to focus the composer instead of hitting a dead disabled state.
@@ -59,7 +59,7 @@ For the full human plus agent operating loop, see `docs/operator-loop.md`.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
 - Ingest YouTube links with title lookup, best-effort public captions, and manual transcript fallback.
 - Run local actions from intake, selected sources, selected nodes, or the whole canvas: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions with citation metadata.
-- Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect a selected source receipt with ingest mode/chunks/provenance, run source-scoped actions, copy selected source context, export an agent-ready context packet, export the result, and re-import portable canvas JSON.
+- Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect a selected source receipt with ingest mode/chunks/provenance, run source-scoped actions, copy selected source context, copy a Codex continuation prompt, export the result, and re-import portable canvas JSON.
 - Inspect local setup, data home, MCP build, and Codex MCP wiring from the in-app `Setup / MCP` panel.
 - Auto-select and open newly created sources, notes, files, and action answers in the inspector so the captured context is immediately usable.
 - Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/video/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
@@ -183,11 +183,12 @@ Run `pnpm mcp:config -- --client json` to print this block with paths for your m
 pnpm canvas -- list
 pnpm canvas -- demo
 pnpm canvas -- export latest --format context --out .agent-canvas/demo-context.md
+pnpm canvas -- export latest --format codex --out .agent-canvas/demo-codex.md
 pnpm canvas -- search "Codex context handoff"
 pnpm canvas:smoke
 ```
 
-The CLI uses the same local data home as the web app and MCP server. It gives terminal users a safe way to import the demo, list local canvases, export JSON/Markdown/context, and search artifacts without opening the browser. See `docs/cli.md`.
+The CLI uses the same local data home as the web app and MCP server. It gives terminal users a safe way to import the demo, list local canvases, export JSON/Markdown/context/Codex handoff, and search artifacts without opening the browser. See `docs/cli.md`.
 
 ## Verify
 
@@ -201,13 +202,13 @@ pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health; `pnpm doctor:json` emits the same health contract for agents, CI, and setup automation. `pnpm canvas:smoke` proves terminal demo import, list, search, and context export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health; `pnpm doctor:json` emits the same health contract for agents, CI, and setup automation. `pnpm canvas:smoke` proves terminal demo import, list, search, context export, and Codex handoff export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context/Codex export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 
 - Next.js App Router, React, TypeScript, Tailwind.
 - `@xyflow/react` typed workflow canvas.
-- Zod schemas, chunked source artifacts, citations, and a local file-backed store in `packages/core`.
+- Zod schemas, chunked source artifacts, citations, context packets, Codex handoff prompts, and a local file-backed store in `packages/core`.
 - Source adapters for URL fetch, optional Firecrawl, PDF extraction, YouTube oEmbed/captions, and manual text.
 - `@modelcontextprotocol/sdk` stdio server in `packages/mcp`.
 - Vercel AI SDK dependency for future provider adapters; v0.1 actions remain deterministic and keyless.

@@ -16,7 +16,7 @@ The first viewport must communicate: this is a working agent canvas where the ca
 
 ## v0.1 Promise
 
-Turn mixed source material into reusable agent context and implementation artifacts without requiring a hosted account or API key.
+Turn mixed source material into reusable agent context, Codex continuation prompts, and implementation artifacts without requiring a hosted account or API key.
 
 ## v0.1 Capability Standard
 
@@ -27,6 +27,7 @@ Turn mixed source material into reusable agent context and implementation artifa
 - Create notes from the canvas composer or by double-clicking blank canvas space.
 - Edit node titles and bodies in the inspector, then reuse the edited canvas as agent context.
 - Ask source-grounded questions over selected nodes or the whole canvas.
+- Copy a ready Codex handoff that tells Codex which MCP canvas to resume and embeds the current context packet.
 - Auto-select newly created source and action output nodes so answers and ingested context are immediately inspectable.
 - Persist graph interaction: node drag positions, direct node connections, run outputs, and exports.
 - Let MCP clients perform the same source ingest, node update, action, search, and export workflow.

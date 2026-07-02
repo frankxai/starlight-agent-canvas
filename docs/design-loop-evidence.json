@@ -217,6 +217,21 @@
       "path_or_url": "docs/visual-qa/desktop-source-video-reduced-motion.png",
       "kind": "desktop reduced-motion source_video command tray screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-codex-handoff-command.png",
+      "kind": "desktop Codex handoff command tray screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-codex-handoff-command.png",
+      "kind": "mobile Codex handoff command tray screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-codex-handoff-reduced-motion.png",
+      "kind": "desktop reduced-motion Codex handoff screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -264,6 +279,11 @@
       "name": "source-video-command-tray",
       "status": "pass",
       "notes": "Generic video links now create source_video nodes with video artifacts and attached manual notes; desktop, mobile, and reduced-motion screenshots prove the command tray and mobile layout."
+    },
+    {
+      "name": "codex-handoff-loop",
+      "status": "pass",
+      "notes": "The workspace command tray and Setup/MCP panel expose Codex handoff controls; desktop, mobile, and reduced-motion screenshots plus API checks prove format=codex returns a ready-to-paste prompt with the context packet embedded."
     }
   ],
   "score": {
@@ -325,7 +345,10 @@
       "docs/visual-qa/desktop-reduced-motion.png",
       "docs/visual-qa/desktop-source-video-command-tray.png",
       "docs/visual-qa/mobile-source-video-command-tray.png",
-      "docs/visual-qa/desktop-source-video-reduced-motion.png"
+      "docs/visual-qa/desktop-source-video-reduced-motion.png",
+      "docs/visual-qa/desktop-codex-handoff-command.png",
+      "docs/visual-qa/mobile-codex-handoff-command.png",
+      "docs/visual-qa/desktop-codex-handoff-reduced-motion.png"
     ],
     "productionMetrics": {
       "desktop": {
@@ -382,7 +405,11 @@
       "sourceVideoNode": true,
       "canvasCommandTray": true,
       "mobileCommandTrayNoOverlap": true,
-      "mcpIngestVideoTool": true
+      "mcpIngestVideoTool": true,
+      "codexHandoffCommandTray": true,
+      "codexHandoffApiExport": true,
+      "codexHandoffMcpExport": true,
+      "codexHandoffCliExport": true
     },
     "metrics": {
       "desktop": {
@@ -404,6 +431,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, JSON/Markdown export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

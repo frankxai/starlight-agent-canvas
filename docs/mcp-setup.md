@@ -13,13 +13,14 @@ pnpm mcp:install:codex
 pnpm mcp:smoke
 ```
 
-The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests text, URL fallback, YouTube/manual transcript, generic video reference, and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context, asserts chunk-manifest output, and imports the portable JSON back as local context.
+The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests text, URL fallback, YouTube/manual transcript, generic video reference, and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context/Codex handoff, asserts chunk-manifest output, and imports the portable JSON back as local context.
 
 The terminal CLI is a companion, not a replacement:
 
 ```powershell
 pnpm canvas -- list
 pnpm canvas -- export latest --format context
+pnpm canvas -- export latest --format codex
 pnpm canvas:smoke
 ```
 
@@ -125,6 +126,7 @@ Use the same stdio shape when the host supports MCP servers:
 - `json`: portable state for import.
 - `markdown`: readable handoff.
 - `context`: agent context packet with operating contract, node index, evidence corpus, recent runs, and continuation prompt.
+- `codex`: ready-to-paste Codex continuation prompt that starts with MCP `get_canvas` for the canvas id and embeds the context packet as fallback.
 
 `add_node`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
 
