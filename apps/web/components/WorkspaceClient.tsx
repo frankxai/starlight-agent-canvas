@@ -109,6 +109,7 @@ type SetupStatus = {
   homeMode: 'custom' | 'default';
   mcp: {
     built: boolean;
+    mediaReady: boolean;
     cliPath: string;
     smokeCommand: string;
     buildCommand: string;
@@ -390,6 +391,15 @@ const VIDEO_HOSTS = [
   'vimeo.com',
   'wistia.com',
   'tiktok.com',
+  'twitch.tv',
+  'dailymotion.com',
+  'streamable.com',
+  'frame.io',
+  'instagram.com',
+  'facebook.com',
+  'x.com',
+  'twitter.com',
+  'linkedin.com',
   'drive.google.com',
   'dropbox.com',
 ];
@@ -632,7 +642,7 @@ export default function WorkspaceClient() {
 }
 
 function WorkspaceInner() {
-  const { screenToFlowPosition, setCenter } = useReactFlow<Node<AgentNodeData>, Edge>();
+  const { fitView, screenToFlowPosition, setCenter } = useReactFlow<Node<AgentNodeData>, Edge>();
   const [apiState, setApiState] = useState<ApiState>({ canvases: [], templates: [], home: '' });
   const [canvas, setCanvas] = useState<CanvasRecord | null>(null);
   const [flowNodes, setFlowNodes] = useState<Node<AgentNodeData>[]>([]);
@@ -701,8 +711,10 @@ function WorkspaceInner() {
       },
       {
         label: 'MCP build',
-        ok: setupStatus.mcp.built,
-        detail: setupStatus.mcp.built ? 'ready' : 'run build',
+        ok: setupStatus.mcp.built && setupStatus.mcp.mediaReady,
+        detail: setupStatus.mcp.built
+          ? setupStatus.mcp.mediaReady ? 'media-ready' : 'rebuild media tools'
+          : 'run build',
       },
       {
         label: 'Codex config',
@@ -730,7 +742,7 @@ function WorkspaceInner() {
     const sourceCount = canvas?.nodes.filter((node) => node.kind.startsWith('source_')).length ?? 0;
     return setupStatus.activation.steps.map((step, index) => {
       const ok = step.id === 'install'
-        ? setupStatus.mcp.built
+        ? setupStatus.mcp.built && setupStatus.mcp.mediaReady
         : step.id === 'proof'
           ? Boolean(canvas?.nodes.length)
           : step.id === 'context'
@@ -820,6 +832,20 @@ function WorkspaceInner() {
       setCenter(node.position.x + 130, node.position.y + 80, { zoom: compactCanvas ? 0.72 : 1, duration: 350 });
     }, 0);
   }, [compactCanvas, setCenter]);
+
+  const frameNodes = useCallback((ids: string[], padding = 0.24) => {
+    const uniqueIds = Array.from(new Set(ids.filter(Boolean)));
+    if (!uniqueIds.length) return;
+    window.setTimeout(() => {
+      void fitView({
+        nodes: uniqueIds.map((id) => ({ id })),
+        padding,
+        duration: 420,
+        minZoom: compactCanvas ? 0.42 : 0.58,
+        maxZoom: compactCanvas ? 0.82 : 1,
+      });
+    }, 50);
+  }, [compactCanvas, fitView]);
 
   const focusCitation = useCallback((citation: SourceCitation) => {
     if (!canvas) return;
@@ -1094,6 +1120,7 @@ function WorkspaceInner() {
 
     if (mappedCanvas) setCanvas(mappedCanvas);
     focusNode(lastCreated, createdIds);
+    frameNodes(createdIds);
 
     const actionInput = intakeActionInput(actionMode);
     if (canvas && actionInput.action && createdIds.length) {
@@ -1108,6 +1135,7 @@ function WorkspaceInner() {
       });
       if (result.canvas) setCanvas(result.canvas);
       focusNode(result.outputNode);
+      frameNodes(result.outputNode ? [...createdIds, result.outputNode.id] : createdIds, 0.28);
       await refreshList();
       setStatus(`${mappedStatus} Ran ${actionInput.action.replace(/_/g, ' ')} on ${createdIds.length} new item(s).`);
       return;
@@ -1115,7 +1143,7 @@ function WorkspaceInner() {
 
     await refreshList();
     setStatus(mappedStatus);
-  }, [canvas, focusNode, refreshList]);
+  }, [canvas, focusNode, frameNodes, refreshList]);
 
   const ingestFiles = useCallback(async (files: File[], position?: FlowPosition, actionMode: IntakeActionMode = intakeAction) => {
     if (!canvas || !files.length) return;
@@ -2205,6 +2233,23 @@ function WorkspaceInner() {
                   <p className="mt-2 text-sm leading-6 text-starlight-muted">
                     Paste or drop a YouTube link, image, URL, transcript, PDF, markdown, or raw notes. The canvas will turn it into source nodes, chunks, citations, and agent-ready context.
                   </p>
+                  <textarea
+                    data-testid="empty-intake-text"
+                    value={intakeText}
+                    onFocus={() => setComposerMode('source')}
+                    onChange={(event) => {
+                      setComposerMode('source');
+                      setIntakeText(event.target.value);
+                    }}
+                    onKeyDown={(event) => {
+                      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                        event.preventDefault();
+                        void submitCanvasIntake();
+                      }
+                    }}
+                    className="mt-4 min-h-20 w-full resize-none rounded-md border border-starlight-accent/35 bg-starlight-bg/88 px-3 py-2 text-left text-sm leading-5 text-starlight-ink"
+                    placeholder="Paste a YouTube link, video URL, screenshot notes, PDF text, or raw idea"
+                  />
                   <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <button
                       type="button"

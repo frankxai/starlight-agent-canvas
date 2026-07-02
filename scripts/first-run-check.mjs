@@ -61,13 +61,57 @@ function findOpenPort(preferred) {
   });
 }
 
-function stopServer(child) {
-  if (!child || child.killed) return;
-  if (process.platform === 'win32') {
-    spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+function waitForExit(child, timeoutMs = 5_000) {
+  if (!child || child.exitCode !== null || child.signalCode !== null) return Promise.resolve();
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, timeoutMs);
+    child.once('exit', () => {
+      clearTimeout(timer);
+      resolve();
+    });
+  });
+}
+
+function stopWindowsListenersOnPort(port) {
+  if (process.platform !== 'win32' || !port) return;
+  const command = [
+    `$owners = Get-NetTCPConnection -LocalPort ${Number(port)} -State Listen -ErrorAction SilentlyContinue | Select-Object -ExpandProperty OwningProcess -Unique`,
+    'foreach ($owner in $owners) {',
+    '  if ($owner -and $owner -ne $PID) { Stop-Process -Id $owner -Force -ErrorAction SilentlyContinue }',
+    '}',
+  ].join('; ');
+  spawnSync('powershell.exe', ['-NoProfile', '-Command', command], { stdio: 'ignore' });
+}
+
+async function stopServer(child, port) {
+  if (!child) {
+    stopWindowsListenersOnPort(port);
     return;
   }
-  child.kill('SIGTERM');
+  if (child.killed || child.exitCode !== null || child.signalCode !== null) {
+    stopWindowsListenersOnPort(port);
+    return;
+  }
+  if (process.platform === 'win32') {
+    spawnSync('taskkill', ['/pid', String(child.pid), '/T', '/F'], { stdio: 'ignore' });
+    await waitForExit(child);
+    stopWindowsListenersOnPort(port);
+    return;
+  }
+  try {
+    process.kill(-child.pid, 'SIGTERM');
+  } catch {
+    child.kill('SIGTERM');
+  }
+  await waitForExit(child);
+  if (child.exitCode === null && child.signalCode === null) {
+    try {
+      process.kill(-child.pid, 'SIGKILL');
+    } catch {
+      child.kill('SIGKILL');
+    }
+    await waitForExit(child, 2_000);
+  }
 }
 
 async function fetchJson(url, init) {
@@ -132,6 +176,7 @@ async function main() {
       cwd: repoRoot,
       env: { ...process.env, ...env },
       shell: !pnpmExecPath && process.platform === 'win32',
+      detached: process.platform !== 'win32',
       stdio: ['ignore', 'pipe', 'pipe'],
     });
     server.stdout.on('data', (chunk) => process.stdout.write(chunk));
@@ -159,7 +204,7 @@ async function main() {
     console.log(`Preview checked: ${baseUrl}`);
   } finally {
     if (server && !server.killed) {
-      stopServer(server);
+      await stopServer(server, port);
     }
     if (!argSet.has('--keep-home')) {
       await rm(tempHome, { recursive: true, force: true });

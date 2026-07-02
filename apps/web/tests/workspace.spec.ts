@@ -29,6 +29,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByRole('button', { name: new RegExp(title) }).click();
   await expect(page.getByTestId('intake-text')).toBeVisible();
   await expect(page.getByTestId('empty-canvas-actions')).toBeVisible();
+  await expect(page.getByTestId('empty-intake-text')).toBeVisible();
   await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
@@ -80,7 +81,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('intake-text')).toBeFocused();
   await page.getByTestId('canvas-quick-start').getByRole('button', { name: /Video/ }).click();
   await expect(page.getByTestId('status')).toContainText('Ready for a video link');
-  await page.getByTestId('intake-text').fill('https://example.com/demo.mp4\nManual video notes about workflow intake.');
+  await page.getByTestId('empty-intake-text').fill('https://example.com/demo.mp4\nManual video notes about workflow intake.');
   await expect(page.getByTestId('intake-preview')).toContainText('Video link');
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();
   await page.getByTestId('intake-ingest').click();

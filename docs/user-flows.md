@@ -14,7 +14,7 @@ flowchart LR
   action --> export["Export JSON or Markdown"]
 ```
 
-Expected result: the user sees what will be created before mapping, the new typed source node is selected, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
+Expected result: the user can use either the top composer or the center empty-canvas capture box as the first input surface. The user sees what will be created before mapping, the new typed source node is selected, the viewport frames the new source/action cluster, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
 
 ## Flow 1A: Self-Serve Quick Starter
 
@@ -62,7 +62,7 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 ## Flow 2A: Non-YouTube Video Reference
 
 1. Click `Video`.
-2. Paste a Loom, Vimeo, Wistia, TikTok, Drive, Dropbox, or direct video URL.
+2. Paste a Loom, Vimeo, Wistia, TikTok, Twitch, Dailymotion, Streamable, Frame.io, common social video, Drive, Dropbox, or direct video URL.
 3. Paste notes or a manual transcript beneath the URL when available.
 4. Confirm the intake preview shows `Video link` with `manual notes attached` when notes are present.
 5. Click `Map only` when you want the raw video reference node, or `Map + Brief` when you want an immediate output.

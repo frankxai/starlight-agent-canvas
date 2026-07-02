@@ -18,6 +18,15 @@ async function exists(filePath: string): Promise<boolean> {
   }
 }
 
+async function fileIncludes(filePath: string, terms: string[]): Promise<boolean> {
+  try {
+    const raw = await readFile(/*turbopackIgnore: true*/ filePath, 'utf8');
+    return terms.every((term) => raw.includes(term));
+  } catch {
+    return false;
+  }
+}
+
 function normalizeRuntimePath(value: string): string {
   const normalized = slash(path.normalize(value)).replace(/\/+$/, '');
   return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
@@ -93,6 +102,8 @@ async function codexConfigStatus(configPath: string) {
 export async function GET() {
   const repoRoot = repoRootFromRuntime();
   const mcpCliPath = path.join(repoRoot, 'packages', 'mcp', 'dist', 'cli.js');
+  const coreSchemaDistPath = path.join(repoRoot, 'packages', 'core', 'dist', 'schemas.js');
+  const mcpIndexDistPath = path.join(repoRoot, 'packages', 'mcp', 'dist', 'index.js');
   const codexConfigPath = path.join(os.homedir(), '.codex', 'config.toml');
   const codex = await codexConfigStatus(codexConfigPath);
   const canvasHome = getAgentCanvasHome();
@@ -107,6 +118,8 @@ export async function GET() {
     homeMode: process.env.AGENT_CANVAS_HOME ? 'custom' : 'default',
     mcp: {
       built: await exists(mcpCliPath),
+      mediaReady: (await fileIncludes(coreSchemaDistPath, ['source_video', 'source_image', 'video', 'image']))
+        && (await fileIncludes(mcpIndexDistPath, ['ingest_video', 'ingest_image', 'source_video', 'source_image'])),
       cliPath: mcpCliPath,
       smokeCommand: 'pnpm mcp:smoke',
       buildCommand: 'pnpm mcp:build',

@@ -109,6 +109,16 @@
       "inspected": true
     },
     {
+      "path_or_url": "docs/visual-qa/desktop-empty-center-capture.png",
+      "kind": "desktop empty canvas center capture screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-video-reference-framed.png",
+      "kind": "desktop mapped video reference framed on canvas screenshot",
+      "inspected": true
+    },
+    {
       "path_or_url": "docs/visual-qa/mobile-smart-intake-preview.png",
       "kind": "mobile smart intake preview screenshot",
       "inspected": true
@@ -394,6 +404,11 @@
       "name": "image-intake-loop",
       "status": "pass",
       "notes": "Image URLs now preview as typed image sources, uploaded screenshots become source_image nodes with image artifacts, and desktop/mobile/reduced-motion captures prove the source receipt, thumbnail preview, selected-source actions, and command tray."
+    },
+    {
+      "name": "center-capture-and-framed-nodes",
+      "status": "pass",
+      "notes": "The empty canvas now exposes a center-stage capture textarea, and newly mapped video/source clusters are framed into view after mapping or action creation; desktop screenshots were inspected."
     }
   ],
   "score": {
@@ -414,7 +429,7 @@
     "desktopInspected": true,
     "mobileInspected": true,
     "reducedMotionInspected": true,
-    "server": "local production next start on 127.0.0.1:3101 through sds, left running for Frank review",
+    "server": "local Next preview/dev verification on 127.0.0.1:3102 during QA; stopped before handoff unless Frank explicitly asks to keep it running",
     "screenshots": [
       "docs/visual-qa/desktop-production-os.png",
       "docs/visual-qa/mobile-production-os.png",
@@ -435,6 +450,8 @@
       "docs/visual-qa/mobile-setup-mcp-panel.png",
       "docs/visual-qa/desktop-smart-intake-preview.png",
       "docs/visual-qa/desktop-smart-intake-mapped.png",
+      "docs/visual-qa/desktop-empty-center-capture.png",
+      "docs/visual-qa/desktop-video-reference-framed.png",
       "docs/visual-qa/mobile-smart-intake-preview.png",
       "docs/visual-qa/desktop-source-receipt-actions.png",
       "docs/visual-qa/desktop-selected-source-answer.png",
@@ -539,7 +556,10 @@
       "codexHandoffCliExport": true,
       "citationFocusLoop": true,
       "guidedWorkflowTemplates": true,
-      "activationRunway": true
+      "activationRunway": true,
+      "emptyCenterCapture": true,
+      "frameNewNodeClusters": true,
+      "mcpMediaReadyStatus": true
     },
     "metrics": {
       "desktop": {

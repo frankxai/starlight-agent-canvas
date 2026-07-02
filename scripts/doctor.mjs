@@ -54,6 +54,15 @@ async function canRead(file) {
   }
 }
 
+async function fileIncludes(file, terms) {
+  try {
+    const raw = await readFile(file, 'utf8');
+    return terms.every((term) => raw.includes(term));
+  } catch {
+    return false;
+  }
+}
+
 function slash(value) {
   return value.replace(/\\/g, '/');
 }
@@ -145,6 +154,8 @@ status(Boolean(pnpmVersion), 'pnpm', pnpmVersion ?? 'not found; run corepack ena
 const packageJsonPath = path.join(root, 'package.json');
 const workspacePath = path.join(root, 'pnpm-workspace.yaml');
 const mcpCliPath = path.join(root, 'packages', 'mcp', 'dist', 'cli.js');
+const coreSchemaDistPath = path.join(root, 'packages', 'core', 'dist', 'schemas.js');
+const mcpIndexDistPath = path.join(root, 'packages', 'mcp', 'dist', 'index.js');
 const webAppPath = path.join(root, 'apps', 'web', 'package.json');
 const corePackagePath = path.join(root, 'packages', 'core', 'package.json');
 const mcpPackagePath = path.join(root, 'packages', 'mcp', 'package.json');
@@ -156,6 +167,16 @@ status(await canRead(webAppPath), 'web workspace', '', { required: true });
 status(await canRead(corePackagePath), 'core workspace', '', { required: true });
 status(await canRead(mcpPackagePath), 'mcp workspace', '', { required: true });
 status(existsSync(mcpCliPath), 'built MCP server', existsSync(mcpCliPath) ? mcpCliPath : 'run pnpm mcp:build');
+status(
+  await fileIncludes(coreSchemaDistPath, ['source_video', 'source_image', 'video', 'image']),
+  'built core media schema',
+  existsSync(coreSchemaDistPath) ? 'source/video/image kinds available' : 'run pnpm mcp:build after schema changes',
+);
+status(
+  await fileIncludes(mcpIndexDistPath, ['ingest_video', 'ingest_image', 'source_video', 'source_image']),
+  'built MCP media tools',
+  existsSync(mcpIndexDistPath) ? 'video/image ingest tools available' : 'run pnpm mcp:build after MCP changes',
+);
 
 const home = process.env.AGENT_CANVAS_HOME
   ?? (process.platform === 'win32'
