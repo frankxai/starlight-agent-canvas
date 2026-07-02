@@ -7,5 +7,6 @@ export * from './ids.js';
 export * from './ingest.js';
 export * from './intake.js';
 export * from './schemas.js';
+export * from './source-intake.js';
 export * from './store.js';
 export * from './templates.js';

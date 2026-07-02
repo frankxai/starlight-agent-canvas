@@ -51,8 +51,8 @@ import {
 } from 'lucide-react';
 import { describeCanvasExportScope } from '@starlight-agent-canvas/core/exporters';
 import { detectIntakeText } from '@starlight-agent-canvas/core/intake';
-import { describeSourceReadiness, type SourceReadinessStatus } from '@starlight-agent-canvas/core/readiness';
-import type { CanvasActionType, CanvasArtifact, CanvasEdge, CanvasEdgeKind, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
+import { describeSourceReadiness, type SourceReadiness, type SourceReadinessStatus } from '@starlight-agent-canvas/core/readiness';
+import type { CanvasActionType, CanvasArtifact, CanvasEdge, CanvasEdgeKind, CanvasIntakeTrace, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
 
 type CanvasSummary = {
   id: string;
@@ -87,6 +87,8 @@ type CanvasMutationResponse = {
 type IntakeAnythingResponse = CanvasMutationResponse & {
   nodes?: CanvasNode[];
   artifacts?: CanvasArtifact[];
+  trace?: CanvasIntakeTrace;
+  sourceReadiness?: SourceReadiness[];
   detected?: {
     itemCount: number;
     kinds: string[];
@@ -488,6 +490,14 @@ function createIntakeReceipt(
   };
 }
 
+function intakeTraceExportIds(trace: CanvasIntakeTrace): string[] {
+  return [...trace.nodeIds, trace.outputNodeId].filter((id): id is string => Boolean(id));
+}
+
+function intakeTraceReadyCount(trace: CanvasIntakeTrace): number {
+  return trace.items.filter((item) => item.readinessStatus === 'ready').length;
+}
+
 function metadataNumber(metadata: Record<string, unknown> | undefined, key: string): number | undefined {
   const value = metadata?.[key];
   return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
@@ -827,6 +837,9 @@ function WorkspaceInner() {
     if (!intakeReceipt) return [];
     return [...intakeReceipt.nodeIds, intakeReceipt.outputNodeId].filter((id): id is string => Boolean(id));
   }, [intakeReceipt]);
+  const recentIntakeTraces = useMemo(() => canvas?.intakeTraces.slice(0, 4) ?? [], [canvas?.intakeTraces]);
+  const latestTrace = recentIntakeTraces[0] ?? null;
+  const latestTraceExportIds = useMemo(() => latestTrace ? intakeTraceExportIds(latestTrace) : [], [latestTrace]);
   const selectedCitations = useMemo(() => selectedNode ? metadataCitations(selectedNode.metadata) : [], [selectedNode]);
   const selectedArtifact = useMemo(() => {
     const artifactId = metadataString(selectedNode?.metadata, 'artifactId');
@@ -1291,26 +1304,40 @@ function WorkspaceInner() {
   const addUrl = useCallback(async () => {
     if (!canvas || !url.trim()) return;
     await mutateCanvas(
-      () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
+      () => api<IntakeAnythingResponse>(`/api/canvases/${canvas.id}/ingest/anything`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ kind: 'source_url', title: hostTitle(url), body: '', metadata: { url } }),
+        body: JSON.stringify({ body: url.trim() }),
       }),
-      'Ingested URL source.',
-      (result) => focusNode(result.node),
+      'Mapped URL source.',
+      (result) => {
+        const createdNodes = (result as IntakeAnythingResponse).nodes ?? (result.node ? [result.node] : []);
+        focusNode(createdNodes[createdNodes.length - 1] ?? result.node);
+        setIntakeReceipt(createIntakeReceipt('URL intake', createdNodes, (result as IntakeAnythingResponse).artifacts ?? artifactsForNodes(result.canvas ?? canvas, createdNodes)));
+        setUrl('');
+      },
     );
   }, [canvas, focusNode, mutateCanvas, url]);
 
   const addYoutube = useCallback(async () => {
     if (!canvas || !youtubeUrl.trim()) return;
+    const intake = transcript.trim()
+      ? `${youtubeUrl.trim()}\nTranscript: ${transcript.trim()}`
+      : youtubeUrl.trim();
     await mutateCanvas(
-      () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
+      () => api<IntakeAnythingResponse>(`/api/canvases/${canvas.id}/ingest/anything`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ kind: 'source_youtube', title: hostTitle(youtubeUrl), body: transcript, metadata: { url: youtubeUrl } }),
+        body: JSON.stringify({ body: intake }),
       }),
-      'Ingested video source.',
-      (result) => focusNode(result.node),
+      'Mapped video source.',
+      (result) => {
+        const createdNodes = (result as IntakeAnythingResponse).nodes ?? (result.node ? [result.node] : []);
+        focusNode(createdNodes[createdNodes.length - 1] ?? result.node);
+        setIntakeReceipt(createIntakeReceipt('Video intake', createdNodes, (result as IntakeAnythingResponse).artifacts ?? artifactsForNodes(result.canvas ?? canvas, createdNodes)));
+        setYoutubeUrl('');
+        setTranscript('');
+      },
     );
   }, [canvas, focusNode, mutateCanvas, transcript, youtubeUrl]);
 
@@ -1629,6 +1656,39 @@ function WorkspaceInner() {
       setBusy(false);
     }
   }, [canvas, intakeReceipt, intakeReceiptExportIds]);
+
+  const focusIntakeTrace = useCallback((trace: CanvasIntakeTrace) => {
+    if (!canvas) return;
+    const ids = intakeTraceExportIds(trace);
+    const targetId = trace.outputNodeId ?? trace.nodeIds[trace.nodeIds.length - 1];
+    const target = canvas.nodes.find((node) => node.id === targetId) ?? canvas.nodes.find((node) => ids.includes(node.id));
+    if (!target) return;
+    focusNode(target, ids);
+    frameNodes(ids);
+    setStatus(`Focused ${trace.sourceLabel.toLowerCase()} trace with ${trace.nodeIds.length} source node(s).`);
+  }, [canvas, focusNode, frameNodes]);
+
+  const copyIntakeTraceExport = useCallback(async (trace: CanvasIntakeTrace, format: 'context' | 'codex') => {
+    if (!canvas) return;
+    const ids = intakeTraceExportIds(trace);
+    if (!ids.length) return;
+    setBusy(true);
+    try {
+      const params = new URLSearchParams({
+        format,
+        nodeIds: ids.join(','),
+      });
+      const response = await fetch(`/api/canvases/${canvas.id}/export?${params.toString()}`);
+      if (!response.ok) throw new Error(await response.text());
+      const text = await response.text();
+      await navigator.clipboard.writeText(text);
+      setStatus(`Copied ${format === 'codex' ? 'Codex handoff' : 'context packet'} for ${trace.sourceLabel.toLowerCase()}.`);
+    } catch (error) {
+      setStatus((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }, [canvas]);
 
   const copySelectedContext = useCallback(async () => {
     if (!selectedNode) return;
@@ -2932,6 +2992,139 @@ function WorkspaceInner() {
                   ))}
                   {!canvas?.nodes.length ? <span className="text-[11px] text-starlight-muted">No context yet.</span> : null}
                 </div>
+              </div>
+              <div className="mt-3 rounded-md border border-starlight-mint/30 bg-starlight-mint/10 p-3" data-testid="intake-trace-panel">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                      <ClipboardPaste className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
+                      Latest intake trace
+                    </div>
+                    <p className="mt-1 truncate text-[11px] text-starlight-muted" data-testid="intake-trace-summary">
+                      {latestTrace ? latestTrace.inputSummary : 'Paste, drop, or upload anything to create source nodes.'}
+                    </p>
+                  </div>
+                  <span className="shrink-0 rounded-md border border-starlight-mint/35 bg-starlight-bg px-2 py-1 text-[10px] font-semibold text-starlight-mint" data-testid="intake-trace-count">
+                    {latestTrace ? `${latestTrace.nodeIds.length} node${latestTrace.nodeIds.length === 1 ? '' : 's'}` : 'empty'}
+                  </span>
+                </div>
+                {latestTrace ? (
+                  <>
+                    <div className="mt-3 grid grid-cols-3 gap-2 text-[10px]" data-testid="intake-trace-stats">
+                      <div className="rounded-md border border-starlight-border bg-starlight-bg/80 p-2">
+                        <div className="uppercase text-starlight-muted">Ready</div>
+                        <div className="mt-1 font-semibold text-starlight-ink">{intakeTraceReadyCount(latestTrace)} / {latestTrace.items.length}</div>
+                      </div>
+                      <div className="rounded-md border border-starlight-border bg-starlight-bg/80 p-2">
+                        <div className="uppercase text-starlight-muted">Kinds</div>
+                        <div className="mt-1 truncate font-semibold text-starlight-ink">{latestTrace.detectedKinds.map(formatKind).join(', ')}</div>
+                      </div>
+                      <div className="rounded-md border border-starlight-border bg-starlight-bg/80 p-2">
+                        <div className="uppercase text-starlight-muted">Scope</div>
+                        <div className="mt-1 font-semibold text-starlight-ink">{latestTraceExportIds.length} handoff</div>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5" data-testid="intake-trace-items">
+                      {latestTrace.items.slice(0, 5).map((item) => (
+                        <button
+                          key={`${latestTrace.id}-${item.nodeId ?? item.title}`}
+                          type="button"
+                          disabled={!item.nodeId}
+                          onClick={() => {
+                            const target = canvas?.nodes.find((node) => node.id === item.nodeId);
+                            if (target) focusNode(target, latestTrace.nodeIds);
+                          }}
+                          className="inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1 text-[10px] text-starlight-muted transition hover:border-starlight-mint hover:text-starlight-ink disabled:cursor-default disabled:opacity-60"
+                          title={item.readinessLabel ?? item.title}
+                        >
+                          <span className={`h-1.5 w-1.5 rounded-full ${item.readinessStatus === 'ready' ? 'bg-starlight-mint' : item.readinessStatus === 'reference_only' ? 'bg-starlight-gold' : 'bg-starlight-muted'}`} aria-hidden="true" />
+                          <span className="shrink-0 font-semibold text-starlight-ink">{formatKind(item.kind)}</span>
+                          <span className="truncate">{item.title}</span>
+                        </button>
+                      ))}
+                      {latestTrace.items.length > 5 ? (
+                        <span className="rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1 text-[10px] text-starlight-muted">
+                          +{latestTrace.items.length - 5} more
+                        </span>
+                      ) : null}
+                    </div>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <button
+                        type="button"
+                        data-testid="intake-trace-inspect"
+                        onClick={() => focusIntakeTrace(latestTrace)}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-2 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-mint"
+                      >
+                        <Crosshair className="h-3.5 w-3.5" aria-hidden="true" />
+                        Inspect
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="intake-trace-context"
+                        disabled={busy}
+                        onClick={() => void copyIntakeTraceExport(latestTrace, 'context')}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-2 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
+                        Context
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="intake-trace-codex"
+                        disabled={busy}
+                        onClick={() => void copyIntakeTraceExport(latestTrace, 'codex')}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-2 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                        Codex
+                      </button>
+                    </div>
+                    {recentIntakeTraces.length > 1 ? (
+                      <div className="mt-2 space-y-1.5" data-testid="intake-trace-history">
+                        {recentIntakeTraces.slice(1).map((trace) => (
+                          <button
+                            key={trace.id}
+                            type="button"
+                            onClick={() => focusIntakeTrace(trace)}
+                            className="grid w-full grid-cols-[minmax(0,1fr)_auto] gap-2 rounded-md border border-starlight-border bg-starlight-bg/72 px-2 py-1.5 text-left text-[10px] text-starlight-muted transition hover:border-starlight-mint hover:text-starlight-ink"
+                          >
+                            <span className="truncate">{trace.inputSummary || trace.sourceLabel}</span>
+                            <span>{trace.nodeIds.length} node{trace.nodeIds.length === 1 ? '' : 's'}</span>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </>
+                ) : (
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      data-testid="intake-trace-start"
+                      disabled={!canMutate}
+                      onClick={() => requestComposerInput('source')}
+                      className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-accent/40 bg-starlight-accent/10 px-2 py-2 text-[11px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />
+                      Add source
+                    </button>
+                    <label className={`flex items-center justify-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-2 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-mint ${canMutate ? 'cursor-pointer' : 'cursor-not-allowed opacity-45'}`}>
+                      <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
+                      Upload
+                      <input
+                        type="file"
+                        multiple
+                        accept={SOURCE_FILE_ACCEPT}
+                        disabled={!canMutate}
+                        onChange={(event) => {
+                          const files = Array.from(event.currentTarget.files ?? []);
+                          event.currentTarget.value = '';
+                          void ingestFiles(files);
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
+                )}
               </div>
               <p className="mt-2 text-xs leading-5 text-starlight-muted">
                 Runs are local and deterministic in v0.1. Select nodes to scope an action, or leave empty to use the canvas.

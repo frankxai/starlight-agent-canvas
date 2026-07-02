@@ -292,6 +292,7 @@ export function createCanvasRecord(input: CreateCanvasInput): CanvasRecord {
     edges,
     runs: [],
     artifacts: [],
+    intakeTraces: [],
   };
 }
 

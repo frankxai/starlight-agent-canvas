@@ -1,5 +1,6 @@
 import { Buffer } from 'node:buffer';
 import { NextResponse } from 'next/server';
+import { createIntakeTraceForNodes } from '@starlight-agent-canvas/core';
 import { getStore } from '@/lib/store';
 
 export const runtime = 'nodejs';
@@ -53,7 +54,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       'Add visual observations, OCR text, design notes, claims, or questions here so agents can reason over the image.',
     ].join('\n');
 
-    const result = await getStore().ingestSource(id, {
+    const position = positionFromForm(form);
+    const store = getStore();
+    const result = await store.ingestSource(id, {
       kind: 'source_image',
       title: file.name,
       body,
@@ -67,9 +70,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         imageDataUrl: dataUrl,
         media: 'image_upload',
       },
-      position: positionFromForm(form),
+      position,
     });
-    return NextResponse.json(result);
+    const { trace, sourceReadiness } = createIntakeTraceForNodes({
+      canvas: result.canvas,
+      nodes: [result.node],
+      artifacts: [result.artifact],
+      origin: position ? 'web_drop' : 'web_upload',
+      sourceLabel: position ? 'Dropped image' : 'Uploaded image',
+      inputSummary: file.name,
+      inputChars: body.length,
+      detectedKinds: ['image'],
+    });
+    const canvas = await store.appendIntakeTrace(id, trace);
+    return NextResponse.json({ ...result, canvas, trace, sourceReadiness });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 400 });
   }

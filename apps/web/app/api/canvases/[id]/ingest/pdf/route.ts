@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ingestPdf, MAX_PDF_BYTES } from '@starlight-agent-canvas/core';
+import { createIntakeTraceForNodes, ingestPdf, MAX_PDF_BYTES } from '@starlight-agent-canvas/core';
 import { getStore } from '@/lib/store';
 
 export const runtime = 'nodejs';
@@ -25,7 +25,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const x = typeof rawX === 'string' ? Number(rawX) : NaN;
     const y = typeof rawY === 'string' ? Number(rawY) : NaN;
     const position = Number.isFinite(x) && Number.isFinite(y) ? { x, y } : undefined;
-    const result = await getStore().ingestSource(id, {
+    const store = getStore();
+    const result = await store.ingestSource(id, {
       kind: 'source_pdf',
       title: source.title,
       body: source.body,
@@ -33,7 +34,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       metadata: source.metadata,
       position,
     });
-    return NextResponse.json(result);
+    const { trace, sourceReadiness } = createIntakeTraceForNodes({
+      canvas: result.canvas,
+      nodes: [result.node],
+      artifacts: [result.artifact],
+      origin: position ? 'web_drop' : 'web_upload',
+      sourceLabel: position ? 'Dropped PDF' : 'Uploaded PDF',
+      inputSummary: file.name,
+      inputChars: source.body.length,
+      detectedKinds: ['pdf'],
+    });
+    const canvas = await store.appendIntakeTrace(id, trace);
+    return NextResponse.json({ ...result, canvas, trace, sourceReadiness });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 400 });
   }

@@ -35,6 +35,12 @@ export function scopeCanvasToNodes(canvas: CanvasRecord, nodeIds: string[] = [])
       .filter((id): id is string => Boolean(id)),
   );
   const titleSuffix = selectedNodes.length === 1 ? 'selected node' : `${selectedNodes.length} selected nodes`;
+  const selectedRunIds = new Set(canvas.runs
+    .filter((run) => (
+      (run.outputNodeId ? selectedSet.has(run.outputNodeId) : false)
+      || run.inputNodeIds.some((id) => selectedSet.has(id))
+    ))
+    .map((run) => run.id));
   const scopeDescription = [
     canvas.description || 'No canvas description provided.',
     '',
@@ -47,11 +53,18 @@ export function scopeCanvasToNodes(canvas: CanvasRecord, nodeIds: string[] = [])
     description: scopeDescription,
     nodes: selectedNodes,
     edges: canvas.edges.filter((edge) => selectedSet.has(edge.source) && selectedSet.has(edge.target)),
-    runs: canvas.runs.filter((run) => (
-      (run.outputNodeId ? selectedSet.has(run.outputNodeId) : false)
-      || run.inputNodeIds.some((id) => selectedSet.has(id))
-    )),
+    runs: canvas.runs.filter((run) => selectedRunIds.has(run.id)),
     artifacts: canvas.artifacts.filter((artifact) => artifactIds.has(artifact.id)),
+    intakeTraces: canvas.intakeTraces
+      .map((trace) => ({
+        ...trace,
+        nodeIds: trace.nodeIds.filter((id) => selectedSet.has(id)),
+        artifactIds: trace.artifactIds.filter((id) => artifactIds.has(id)),
+        outputNodeId: trace.outputNodeId && selectedSet.has(trace.outputNodeId) ? trace.outputNodeId : undefined,
+        runId: trace.runId && selectedRunIds.has(trace.runId) ? trace.runId : undefined,
+        items: trace.items.filter((item) => item.nodeId ? selectedSet.has(item.nodeId) : false),
+      }))
+      .filter((trace) => trace.nodeIds.length || Boolean(trace.outputNodeId) || Boolean(trace.runId)),
   };
 }
 

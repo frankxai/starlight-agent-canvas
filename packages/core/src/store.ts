@@ -1,7 +1,7 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { canvasIdSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, exportCanvasOptionsSchema, ingestSourceInputSchema, updateNodeInputSchema, type AddNodeInput, type CanvasArtifact, type CanvasEdge, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type IngestSourceInput, type RunActionInput, type UpdateNodeInput, type CanvasExportFormat, type CanvasExportOptions } from './schemas.js';
+import { canvasIdSchema, canvasIntakeTraceSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, exportCanvasOptionsSchema, ingestSourceInputSchema, updateNodeInputSchema, type AddNodeInput, type CanvasArtifact, type CanvasEdge, type CanvasIntakeTrace, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type IngestSourceInput, type RunActionInput, type UpdateNodeInput, type CanvasExportFormat, type CanvasExportOptions } from './schemas.js';
 import { buildSourceChunks, chunksForArtifact } from './chunks.js';
 import { createCanvasRecord } from './templates.js';
 import { exportCanvasAsAgentContext, exportCanvasAsCodexHandoff, exportCanvasAsMarkdown, scopeCanvasToNodes } from './exporters.js';
@@ -313,6 +313,23 @@ export class FileCanvasStore {
       const result = runCanvasAction(canvas, input);
       await this.saveCanvasFile(result.canvas);
       return result;
+    });
+  }
+
+  async appendIntakeTrace(canvasId: string, trace: CanvasIntakeTrace, limit = 50): Promise<CanvasRecord> {
+    return this.withCanvasLock(canvasId, async (safeCanvasId) => {
+      const parsed = canvasIntakeTraceSchema.parse(trace);
+      const canvas = await this.getCanvas(safeCanvasId);
+      const timestamp = nowIso();
+      const intakeTraces = [
+        parsed,
+        ...canvas.intakeTraces.filter((candidate) => candidate.id !== parsed.id),
+      ].slice(0, limit);
+      return this.saveCanvasFile({
+        ...canvas,
+        updatedAt: timestamp,
+        intakeTraces,
+      });
     });
   }
 

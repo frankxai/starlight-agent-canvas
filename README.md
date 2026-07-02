@@ -61,6 +61,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 - Use the canvas itself as the intake surface: paste into the top composer, click `Paste & Map` to turn the clipboard into nodes immediately, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
 - Keep mixed media context together: when a paste contains YouTube/video/image URLs followed by labeled transcript, notes, timestamps, OCR, alt text, or visual observations, those details attach to the matching source instead of becoming duplicate loose notes.
 - Confirm every paste/drop/upload mapping with the latest intake receipt: created node kinds, artifact kinds, optional action output, and exact `Context` / `Codex` copy actions for the newly mapped material.
+- Persist every paste/drop/upload mapping as an intake trace on the canvas: detected input kinds, source URLs, created node ids, artifact ids, readiness labels, optional run/output id, and scoped `Inspect`, `Context`, and `Codex` actions remain visible after refresh and through MCP `get_canvas`.
 - Inspect source readiness on every selected source: `Codex-ready transcript`, `Codex-ready video notes`, `Codex-ready visual notes`, `Codex-ready PDF`, `URL reference saved`, or `Needs visual text`, with usable chars, chunks, ingest mode, and the next best action.
 - Follow a live operator loop in the first viewport: `Capture`, `Map`, `Inspect`, `Ask`, and `Handoff` update from actual canvas state and expose direct actions.
 - Create a fresh blank canvas from the first viewport, and click an empty primary intake action to focus the composer instead of hitting a dead disabled state.
@@ -78,7 +79,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 - Inspect local setup, data home, MCP build, and Codex MCP wiring from the in-app `Setup / MCP` panel.
 - Inspect the in-app Agent toolbelt for the Codex MCP path: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`, plus copy adoption report and terminal Codex handoff commands.
 - Auto-select and open newly created sources, notes, files, and action answers in the inspector so the captured context is immediately usable.
-- Expose safe stdio MCP tools so coding agents can get the latest canvas with source-readiness facts, ingest mixed pasted context with one `ingest_anything` call, ingest positioned text/URL/YouTube/video/image/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
+- Expose safe stdio MCP tools so coding agents can get the latest canvas with source-readiness facts and persistent intake traces, ingest mixed pasted context with one `ingest_anything` call, ingest positioned text/URL/YouTube/video/image/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
 - Keep runtime data outside the repo by default.
 
 ## Quick Start

@@ -180,6 +180,15 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('context-receipt-inspect')).toBeEnabled();
   await expect(page.getByTestId('context-receipt-copy-context')).toBeEnabled();
   await expect(page.getByTestId('context-receipt-copy-codex')).toBeEnabled();
+  await expect(page.getByTestId('intake-trace-panel')).toContainText('Latest intake trace');
+  await expect(page.getByTestId('intake-trace-summary')).toContainText('example.com');
+  await expect(page.getByTestId('intake-trace-count')).toContainText('1 node');
+  await expect(page.getByTestId('intake-trace-stats')).toContainText('1 / 1');
+  await expect(page.getByTestId('intake-trace-items')).toContainText('video');
+  await expect(page.getByTestId('intake-trace-items')).toContainText('Video example.com');
+  await expect(page.getByTestId('intake-trace-inspect')).toBeEnabled();
+  await expect(page.getByTestId('intake-trace-context')).toBeEnabled();
+  await expect(page.getByTestId('intake-trace-codex')).toBeEnabled();
   await expect(page.getByTestId('source-readiness-label')).toContainText('Codex-ready video notes');
   await expect(page.getByTestId('source-readiness-state')).toContainText('Actions ready');
   await expect(page.getByTestId('source-readiness-detail')).toContainText('Manual transcript, notes, or timestamp context');
@@ -194,9 +203,11 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
     const exported = await exportResponse.json() as {
       nodes: Array<{ kind: string; body: string; metadata: Record<string, unknown> }>;
       artifacts: Array<{ kind: string; body: string; metadata: Record<string, unknown> }>;
+      intakeTraces: Array<{ nodeIds: string[]; items: Array<{ readinessLabel?: string }> }>;
     };
     expect(exported.nodes.some((node) => node.kind === 'source_video' && node.body.includes('Manual video notes'))).toBe(true);
     expect(exported.artifacts.some((artifact) => artifact.kind === 'video' && artifact.body.includes('Manual video notes'))).toBe(true);
+    expect(exported.intakeTraces.some((trace) => trace.items.some((item) => item.readinessLabel === 'Codex-ready video notes'))).toBe(true);
   }
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Brief' }).click();
   await page.getByTestId('intake-text').fill('');

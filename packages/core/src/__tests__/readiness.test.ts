@@ -129,6 +129,7 @@ describe('source readiness', () => {
       edges: [],
       runs: [],
       artifacts: [sourceArtifact],
+      intakeTraces: [],
     };
 
     const readiness = describeCanvasSourceReadiness(canvas);

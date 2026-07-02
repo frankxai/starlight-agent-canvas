@@ -109,6 +109,36 @@ export const actionRunSchema = z.object({
   metadata: z.record(z.unknown()).default({}),
 });
 
+export const canvasIntakeTraceItemSchema = z.object({
+  kind: z.enum(['youtube', 'video', 'image', 'url', 'text', 'pdf', 'file', 'note']),
+  title: z.string().min(1),
+  nodeId: z.string().min(1).optional(),
+  artifactId: z.string().min(1).optional(),
+  artifactKind: z.enum(['url', 'pdf', 'youtube', 'video', 'image', 'markdown', 'json', 'manual']).optional(),
+  readinessStatus: z.enum(['ready', 'needs_context', 'reference_only']).optional(),
+  readinessLabel: z.string().optional(),
+  source: z.string().optional(),
+});
+
+export const canvasIntakeTraceSchema = z.object({
+  id: z.string().min(1),
+  source: z.string().min(1),
+  sourceLabel: z.string().min(1),
+  status: z.enum(['mapped', 'mapped_with_action', 'failed']).default('mapped'),
+  inputSummary: z.string().default(''),
+  inputChars: z.number().int().nonnegative().default(0),
+  detectedKinds: z.array(z.string()).default([]),
+  urls: z.array(z.string()).default([]),
+  nodeIds: z.array(z.string()).default([]),
+  artifactIds: z.array(z.string()).default([]),
+  runId: z.string().optional(),
+  action: actionTypeSchema.optional(),
+  outputNodeId: z.string().optional(),
+  items: z.array(canvasIntakeTraceItemSchema).default([]),
+  createdAt: z.string().datetime(),
+  metadata: z.record(z.unknown()).default({}),
+});
+
 export const canvasRecordSchema = z.object({
   schemaVersion: z.literal(CANVAS_SCHEMA_VERSION),
   id: canvasIdSchema,
@@ -120,6 +150,7 @@ export const canvasRecordSchema = z.object({
   edges: z.array(canvasEdgeSchema).default([]),
   runs: z.array(actionRunSchema).default([]),
   artifacts: z.array(canvasArtifactSchema).default([]),
+  intakeTraces: z.array(canvasIntakeTraceSchema).default([]),
 });
 
 export const createCanvasInputSchema = z.object({
@@ -183,6 +214,8 @@ export type SourceChunk = z.infer<typeof sourceChunkSchema>;
 export type CanvasArtifact = z.infer<typeof canvasArtifactSchema>;
 export type SourceCitation = z.infer<typeof sourceCitationSchema>;
 export type ActionRun = z.infer<typeof actionRunSchema>;
+export type CanvasIntakeTraceItem = z.infer<typeof canvasIntakeTraceItemSchema>;
+export type CanvasIntakeTrace = z.infer<typeof canvasIntakeTraceSchema>;
 export type CanvasRecord = z.infer<typeof canvasRecordSchema>;
 export type CreateCanvasInput = z.infer<typeof createCanvasInputSchema>;
 export type AddNodeInput = z.infer<typeof addNodeInputSchema>;

@@ -13,6 +13,7 @@ describe('canvas schema', () => {
     });
     expect(parsed.nodes).toEqual([]);
     expect(parsed.edges).toEqual([]);
+    expect(parsed.intakeTraces).toEqual([]);
   });
 
   it('normalizes source ingest and action prompts', () => {

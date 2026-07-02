@@ -20,6 +20,10 @@
     "./readiness": {
       "types": "./dist/readiness.d.ts",
       "import": "./dist/readiness.js"
+    },
+    "./source-intake": {
+      "types": "./dist/source-intake.d.ts",
+      "import": "./dist/source-intake.js"
     }
   },
   "scripts": {

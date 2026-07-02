@@ -106,9 +106,13 @@ describe('MCP tool handlers', () => {
     });
     const anythingNodeIds = anything.structuredContent?.nodeIds as string[];
     const anythingRun = anything.structuredContent?.run as { outputNode?: { id: string } };
+    const anythingTrace = anything.structuredContent?.trace as { id: string; nodeIds: string[]; status: string };
     expect(anything.content[0].text).toContain('video');
     expect(anythingNodeIds).toHaveLength(1);
     expect(anythingRun.outputNode?.id).toBeTruthy();
+    expect(anythingTrace.id).toBeTruthy();
+    expect(anythingTrace.nodeIds).toEqual(anythingNodeIds);
+    expect(anythingTrace.status).toBe('mapped_with_action');
 
     const url = await handlers.ingest_url({
       canvasId: canvas.id,
@@ -242,6 +246,14 @@ describe('MCP tool handlers', () => {
     expect(results.find((item) => item.kind === 'youtube')?.artifact.body).toContain('Manual transcript');
     expect(results.find((item) => item.kind === 'video')?.artifact.body).toContain('Loom walkthrough');
     expect(results.find((item) => item.kind === 'image')?.artifact.body).toContain('visible buttons');
+    const trace = result.structuredContent?.trace as { id: string; items: Array<{ readinessLabel: string }>; nodeIds: string[] };
+    expect(trace.id).toBeTruthy();
+    expect(trace.nodeIds).toHaveLength(3);
+    expect(trace.items.map((item) => item.readinessLabel)).toEqual([
+      'Codex-ready transcript',
+      'Codex-ready video notes',
+      'Codex-ready visual notes',
+    ]);
     expect(readiness.map((item) => item.label)).toEqual([
       'Codex-ready transcript',
       'Codex-ready video notes',
@@ -254,6 +266,7 @@ describe('MCP tool handlers', () => {
     expect(latestText).toContain('source_youtube');
     expect(latestText).toContain('source_video');
     expect(latestText).toContain('source_image');
+    expect(latestText).toContain(trace.id);
     expect(latestText).toContain('Codex-ready visual notes');
     expect(latestText).not.toContain('kind":"note"');
   });

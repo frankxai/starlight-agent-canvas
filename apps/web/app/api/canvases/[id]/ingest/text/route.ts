@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createIntakeTraceForNodes } from '@starlight-agent-canvas/core';
 import { getStore } from '@/lib/store';
 
 export const runtime = 'nodejs';
@@ -22,7 +23,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const truncated = text.length > MAX_TEXT_CHARS
       ? `${text.slice(0, MAX_TEXT_CHARS)}\n\n[Truncated at ${MAX_TEXT_CHARS} characters.]`
       : text;
-    const result = await getStore().ingestSource(id, {
+    const store = getStore();
+    const result = await store.ingestSource(id, {
       kind: 'note',
       title: String(body.title || titleFromBody(truncated)),
       body: truncated,
@@ -35,7 +37,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       },
       position: body.position,
     });
-    return NextResponse.json(result);
+    const { trace, sourceReadiness } = createIntakeTraceForNodes({
+      canvas: result.canvas,
+      nodes: [result.node],
+      artifacts: [result.artifact],
+      origin: 'web_upload',
+      sourceLabel: body.source ? 'Uploaded text' : 'Pasted text',
+      inputSummary: result.node.title,
+      inputChars: truncated.length,
+      detectedKinds: ['text'],
+    });
+    const canvas = await store.appendIntakeTrace(id, trace);
+    return NextResponse.json({ ...result, canvas, trace, sourceReadiness });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 400 });
   }
