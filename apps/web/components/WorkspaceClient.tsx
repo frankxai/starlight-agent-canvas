@@ -932,7 +932,7 @@ function WorkspaceInner() {
   const [intakeText, setIntakeText] = useState('');
   const [intakeAction, setIntakeAction] = useState<IntakeActionMode>('summarize');
   const [composerMode, setComposerMode] = useState<ComposerMode>('source');
-  const [askPrompt, setAskPrompt] = useState('What capabilities, gaps, and next build moves does this canvas show?');
+  const [askPrompt, setAskPrompt] = useState('');
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
   const [enrichmentKind, setEnrichmentKind] = useState<SourceEnrichmentKind>('notes');
@@ -950,6 +950,9 @@ function WorkspaceInner() {
   const selectedNode = useMemo(() => canvas?.nodes.find((node) => node.id === selectedIds[0]) ?? null, [canvas, selectedIds]);
   const selectedNodes = useMemo(() => canvas?.nodes.filter((node) => selectedIds.includes(node.id)) ?? [], [canvas, selectedIds]);
   const selectedChars = useMemo(() => selectedNodes.reduce((total, node) => total + node.body.length, 0), [selectedNodes]);
+  const sourceNodeCount = useMemo(() => canvas?.nodes.filter((node) => node.kind.startsWith('source_')).length ?? 0, [canvas?.nodes]);
+  const actionOutputCount = useMemo(() => canvas?.nodes.filter((node) => node.kind === 'output' || node.kind === 'agent_run').length ?? 0, [canvas?.nodes]);
+  const shouldShowCanvasIntakeTarget = Boolean(canvas && (canvas.nodes.length === 0 || (!sourceNodeCount && !actionOutputCount && canvas.runs.length === 0)));
   const contextScope = useMemo(() => {
     if (!canvas) return null;
     try {
@@ -1450,7 +1453,10 @@ function WorkspaceInner() {
       }),
       'Added canvas note.',
       (result) => {
-        focusNode(result.node);
+        if (result.node) {
+          focusNode(result.node);
+          setIntakeReceipt(createIntakeReceipt('Note intake', [result.node], []));
+        }
       },
     );
   }, [canvas, focusNode, mutateCanvas]);
@@ -1961,12 +1967,17 @@ function WorkspaceInner() {
   }, [canvas, focusNode, refreshList, selectedIds]);
 
   const askCanvas = useCallback(async () => {
+    if (!canvas?.nodes.length) {
+      requestComposerInput('source');
+      setStatus('Add a source or note before asking. The canvas needs context first.');
+      return;
+    }
     if (!askPrompt.trim()) {
       requestComposerInput('ask');
       return;
     }
     await runAction('answer_question', askPrompt);
-  }, [askPrompt, requestComposerInput, runAction]);
+  }, [askPrompt, canvas?.nodes.length, requestComposerInput, runAction]);
 
   const askSelectedSource = useCallback(async () => {
     if (!selectedNode) return;
@@ -2494,18 +2505,56 @@ function WorkspaceInner() {
                 Drop to map onto this canvas
               </div>
             ) : null}
-            {canvas?.nodes.length ? (
+            {canvas?.nodes.length && !shouldShowCanvasIntakeTarget ? (
               <div
-                className="pointer-events-none absolute left-3 right-3 top-[300px] z-10 rounded-lg border border-starlight-border bg-starlight-surface/82 p-3 shadow-command backdrop-blur sm:left-auto sm:right-4 sm:top-[188px] sm:max-w-[280px]"
+                className="absolute left-3 right-3 top-[300px] z-10 rounded-lg border border-starlight-border bg-starlight-surface/88 p-3 shadow-command backdrop-blur sm:left-auto sm:right-4 sm:top-[188px] sm:max-w-[300px]"
                 data-testid="canvas-drop-affordance"
               >
                 <div className="flex items-center gap-2 text-xs font-semibold text-starlight-ink">
                   <MousePointerClick className="h-4 w-4 text-starlight-mint" aria-hidden="true" />
-                  Paste or drop onto the graph
+                  Canvas accepts context
                 </div>
                 <p className="mt-1 text-[11px] leading-4 text-starlight-muted">
-                  Video links, images, URLs, PDFs, transcripts, and notes become movable source nodes with traceable Codex context.
+                  Drop files or links anywhere. Use the controls here to map sources, notes, and Codex-ready context.
                 </p>
+                <div className="mt-2 grid grid-cols-3 gap-1.5">
+                  <button
+                    type="button"
+                    data-testid="canvas-affordance-paste"
+                    disabled={!canMutate}
+                    onClick={() => pasteClipboardToIntake('source')}
+                    className="flex min-h-8 items-center justify-center gap-1 rounded-md border border-starlight-accent/40 bg-starlight-accent/10 px-2 text-[10px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
+                    Paste
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="canvas-affordance-note"
+                    disabled={!canMutate}
+                    onClick={() => addCanvasNoteAt()}
+                    className="flex min-h-8 items-center justify-center gap-1 rounded-md border border-starlight-gold/40 bg-starlight-gold/10 px-2 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
+                    Note
+                  </button>
+                  <label className={`flex min-h-8 items-center justify-center gap-1 rounded-md border border-starlight-border bg-starlight-bg/70 px-2 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-accent ${canMutate ? 'cursor-pointer' : 'cursor-not-allowed opacity-45'}`}>
+                    <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
+                    File
+                    <input
+                      data-testid="canvas-affordance-file"
+                      type="file"
+                      multiple
+                      accept={SOURCE_FILE_ACCEPT}
+                      disabled={!canMutate}
+                      onChange={(event) => {
+                        void ingestFiles(Array.from(event.currentTarget.files ?? []));
+                        event.currentTarget.value = '';
+                      }}
+                      className="sr-only"
+                    />
+                  </label>
+                </div>
               </div>
             ) : null}
             <div className="absolute left-3 right-3 top-3 z-40 max-h-[calc(100%-5.25rem)] overflow-y-auto rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:max-h-none md:w-[min(760px,calc(100%-2rem))] md:overflow-visible" data-testid="live-composer">
@@ -2544,6 +2593,55 @@ function WorkspaceInner() {
               <p className="mt-2 text-xs leading-5 text-starlight-muted" data-testid="live-intake-helper">
                 Paste a YouTube link, any video URL, screenshot, PDF, file, transcript, or notes. Agent Canvas maps it into typed nodes, chunks, readiness, and Codex-readable context.
               </p>
+              {shouldShowCanvasIntakeTarget ? (
+                <div className="mt-2 rounded-md border border-starlight-accent/30 bg-starlight-accent/10 p-2.5 md:hidden" data-testid="mobile-first-source-actions">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-starlight-ink">
+                    <UploadCloud className="h-3.5 w-3.5 text-starlight-accent" aria-hidden="true" />
+                    Add your first context
+                  </div>
+                  <p className="mt-1 text-[11px] leading-4 text-starlight-muted">
+                    Paste a source, add your note, or upload a file to create the first canvas node.
+                  </p>
+                  <div className="mt-2 grid grid-cols-3 gap-1.5">
+                    <button
+                      type="button"
+                      data-testid="mobile-first-source-paste"
+                      disabled={!canMutate}
+                      onClick={() => pasteClipboardToIntake('source')}
+                      className="flex min-h-9 items-center justify-center gap-1 rounded-md border border-starlight-accent/45 bg-starlight-bg/70 px-2 text-[10px] font-semibold text-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
+                      Paste
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="mobile-first-source-note"
+                      disabled={!canMutate}
+                      onClick={submitCanvasNote}
+                      className="flex min-h-9 items-center justify-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-bg/70 px-2 text-[10px] font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
+                      Note
+                    </button>
+                    <label className={`flex min-h-9 items-center justify-center gap-1 rounded-md border border-starlight-border bg-starlight-bg/70 px-2 text-[10px] font-semibold text-starlight-ink ${canMutate ? 'cursor-pointer' : 'cursor-not-allowed opacity-45'}`}>
+                      <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
+                      File
+                      <input
+                        data-testid="mobile-first-source-file"
+                        type="file"
+                        multiple
+                        accept={SOURCE_FILE_ACCEPT}
+                        disabled={!canMutate}
+                        onChange={(event) => {
+                          void ingestFiles(Array.from(event.currentTarget.files ?? []));
+                          event.currentTarget.value = '';
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : null}
               <div className="mt-2 grid gap-2 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
                 <div className="flex flex-wrap gap-1.5" data-testid="canvas-quick-start">
                   <button
@@ -2794,7 +2892,7 @@ function WorkspaceInner() {
                         </span>
                       </div>
                       <div className="mt-1 flex flex-wrap items-center gap-1.5 text-[10px] text-starlight-muted">
-                        <span data-testid="context-receipt-node-count">{intakeReceipt.nodeIds.length} source node(s)</span>
+                        <span data-testid="context-receipt-node-count">{intakeReceipt.nodeIds.length} context node(s)</span>
                         {intakeReceipt.artifactKinds.length ? (
                           <span data-testid="context-receipt-artifacts">{intakeReceipt.artifactKinds.map(formatKind).join(', ')} artifacts</span>
                         ) : null}
@@ -3148,13 +3246,28 @@ function WorkspaceInner() {
               </label>
             </div>
             <div className="absolute inset-0 pt-[250px] sm:pt-0">
-              {!canvas?.nodes.length ? (
+              {shouldShowCanvasIntakeTarget ? (
                 <div className="absolute left-1/2 top-[54%] z-10 hidden w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-starlight-accent/25 bg-starlight-surface/88 p-5 text-center shadow-command backdrop-blur md:block" data-testid="empty-canvas-actions">
                   <UploadCloud className="mx-auto h-7 w-7 text-starlight-accent" aria-hidden="true" />
-                  <h2 className="mt-3 text-base font-semibold text-starlight-ink">Paste, drop, or upload context here</h2>
+                  <h2 className="mt-3 text-base font-semibold text-starlight-ink">
+                    {canvas?.nodes.length ? 'Add your first source' : 'Paste, drop, or upload context here'}
+                  </h2>
                   <p className="mt-2 text-sm leading-6 text-starlight-muted">
-                    YouTube, video links, images, URLs, PDFs, transcripts, markdown, and raw notes become source nodes, chunks, citations, and agent-ready context.
+                    YouTube, video links, images, URLs, PDFs, transcripts, markdown, and raw notes become source nodes, chunks, citations, and Codex-readable context.
                   </p>
+                  <div className="mt-3 grid grid-cols-4 gap-1.5 text-[10px]" data-testid="canvas-intake-contract">
+                    {[
+                      { label: 'Video', detail: 'transcript or notes' },
+                      { label: 'Web', detail: 'readable source' },
+                      { label: 'File', detail: 'PDF / image / text' },
+                      { label: 'Note', detail: 'human context' },
+                    ].map((item) => (
+                      <div key={item.label} className="min-w-0 rounded-md border border-starlight-border bg-starlight-bg/72 px-2 py-1.5">
+                        <span className="block truncate font-semibold text-starlight-ink">{item.label}</span>
+                        <span className="block truncate text-starlight-muted">{item.detail}</span>
+                      </div>
+                    ))}
+                  </div>
                   <textarea
                     data-testid="empty-intake-text"
                     value={intakeText}
@@ -3195,6 +3308,7 @@ function WorkspaceInner() {
                       <FileUp className="h-4 w-4" aria-hidden="true" />
                       Upload
                       <input
+                        data-testid="empty-upload-source"
                         type="file"
                         multiple
                         accept={SOURCE_FILE_ACCEPT}

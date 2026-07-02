@@ -62,18 +62,20 @@ This builds the production app, starts it on a temporary localhost port with a t
 
 The setup script:
 
-1. Runs `pnpm install`.
-2. Builds the MCP server.
-3. Runs `pnpm doctor`.
-4. Runs the MCP smoke test against a throwaway local data home.
-5. Runs the Codex config smoke test against a temporary config and data home, then launches the configured MCP server and calls safe tools.
-6. Seeds the `Starlight Agent Canvas OS` local canvas.
-7. Prints the Codex MCP config block as a dry-run.
+1. Runs the local Starlight security scan preflight when `../security/Invoke-RepoSecurityScan.ps1` exists.
+2. Runs `pnpm install`.
+3. Builds the MCP server.
+4. Runs `pnpm doctor`.
+5. Runs the MCP smoke test against a throwaway local data home.
+6. Runs the Codex config smoke test against a temporary config and data home, then launches the configured MCP server and calls safe tools.
+7. Seeds the `Starlight Agent Canvas OS` local canvas.
+8. Prints the Codex MCP config block as a dry-run.
 
 Optional flags:
 
 ```powershell
 node scripts/setup.mjs --skip-install
+node scripts/setup.mjs --skip-security-scan
 node scripts/setup.mjs --verify
 node scripts/setup.mjs --codex-write
 node scripts/setup.mjs --skip-smoke
@@ -82,7 +84,7 @@ node scripts/setup.mjs --skip-seed
 
 `--codex-write` updates `~/.codex/config.toml` and creates a timestamped backup first.
 
-`pnpm doctor` verifies the local prerequisites, workspace files, built MCP server, `.mcp.json`, and Codex wiring. The Codex check only reports fully wired when the installed config points at this repository's current `packages/mcp/dist/cli.js` and the active `AGENT_CANVAS_HOME`.
+`pnpm doctor` verifies the local prerequisites, workspace files, built MCP server, `.mcp.json`, and Codex wiring. The Codex check only reports fully wired when the installed config points at this repository's current `packages/mcp/dist/cli.js` and the active `AGENT_CANVAS_HOME`. If `.mcp.json` uses a different `AGENT_CANVAS_HOME`, doctor reports a warning so humans and agents can avoid split local data homes; the generated Codex config remains the preferred MCP client setup.
 `pnpm mcp:codex:smoke` verifies the same installer path without touching your real Codex config. It writes a temporary Codex config, points it at a temporary `AGENT_CANVAS_HOME`, runs `doctor --config` against that file, launches the configured MCP server from outside the repo, calls `tools/list` and `list_canvases`, and cleans up.
 
 Machine-readable install status is available for agents, CI, and setup automation:

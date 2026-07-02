@@ -57,9 +57,15 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('intake-text')).toBeVisible();
   if (testInfo.project.name === 'mobile') {
     await expect(page.getByTestId('empty-canvas-actions')).toBeHidden();
+    await expect(page.getByTestId('mobile-first-source-actions')).toBeVisible();
+    await expect(page.getByTestId('mobile-first-source-actions')).toContainText('Add your first context');
+    await expect(page.getByTestId('mobile-first-source-paste')).toBeEnabled();
+    await expect(page.getByTestId('mobile-first-source-note')).toBeEnabled();
   } else {
     await expect(page.getByTestId('empty-canvas-actions')).toBeVisible();
     await expect(page.getByTestId('empty-canvas-actions')).toContainText('Paste, drop, or upload context here');
+    await expect(page.getByTestId('canvas-intake-contract')).toContainText('Video');
+    await expect(page.getByTestId('canvas-intake-contract')).toContainText('File');
     await expect(page.getByTestId('empty-intake-text')).toBeVisible();
   }
   await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
@@ -123,6 +129,9 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('new-blank-canvas')).toBeVisible();
   await expect(page.getByTestId('rail-intake-paste')).toContainText('Paste & Map');
   await expect(page.getByTestId('intake-paste')).toContainText('Paste & Map');
+  await page.getByTestId('ask-canvas').click();
+  await expect(page.getByTestId('status')).toContainText('Add a source or note before asking');
+  await expect(page.getByTestId('intake-text')).toBeFocused();
   await page.evaluate(() => {
     Object.defineProperty(navigator, 'clipboard', {
       configurable: true,
@@ -185,7 +194,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('status')).toContainText('Mapped 1 item(s): Video link.');
   await expect(page.getByTestId('context-mapping-receipt')).toContainText('Mapped context receipt');
   await expect(page.getByTestId('context-mapping-receipt')).toContainText('Composer intake');
-  await expect(page.getByTestId('context-receipt-node-count')).toContainText('1 source node');
+  await expect(page.getByTestId('context-receipt-node-count')).toContainText('1 context node');
   await expect(page.getByTestId('context-receipt-artifacts')).toContainText('video artifacts');
   await expect(page.getByTestId('context-receipt-codex-ready')).toContainText('Codex-ready');
   await expect(page.getByTestId('context-receipt-items')).toContainText('source video');
@@ -278,8 +287,12 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('quick-note').click();
   await expect(page.getByTestId('inspector-title')).toBeVisible();
   await expect(page.getByTestId('inspector-title')).toHaveValue('My canvas note: collect the product gaps and turn them into a brief.');
+  await expect(page.getByTestId('context-receipt-node-count')).toContainText('1 context node');
+  await expect(page.getByTestId('context-receipt-codex-ready')).toContainText('Codex-ready');
   await expect(page.getByTestId('canvas-drop-affordance')).toBeVisible();
-  await expect(page.getByTestId('canvas-drop-affordance')).toContainText('Paste or drop onto the graph');
+  await expect(page.getByTestId('canvas-drop-affordance')).toContainText('Canvas accepts context');
+  await expect(page.getByTestId('canvas-affordance-paste')).toBeEnabled();
+  await expect(page.getByTestId('canvas-affordance-note')).toBeEnabled();
   await expect(page.getByTestId('save-node')).toBeEnabled();
   await page.getByTestId('inspector-title').fill('Edited canvas note');
   await page.getByTestId('inspector-body').fill('Edited note body with product gaps, source needs, and next actions.');

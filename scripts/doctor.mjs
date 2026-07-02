@@ -222,6 +222,18 @@ if (await canRead(path.join(root, '.mcp.json'))) {
   status(Boolean(server?.args?.length), '.mcp.json args', server?.args?.join(' ') ?? 'missing');
   const firstArg = typeof server?.args?.[0] === 'string' ? server.args[0] : '';
   status(Boolean(firstArg) && slash(path.resolve(firstArg)) === slash(path.resolve(mcpCliPath)), '.mcp.json points at this MCP build', firstArg || 'missing');
+  const mcpJsonHome = typeof server?.env?.AGENT_CANVAS_HOME === 'string' ? server.env.AGENT_CANVAS_HOME : '';
+  const normalizedMcpJsonHome = mcpJsonHome ? slash(path.resolve(root, mcpJsonHome)) : '';
+  const normalizedActiveHome = slash(path.resolve(home));
+  status(
+    Boolean(mcpJsonHome) && normalizedMcpJsonHome === normalizedActiveHome,
+    '.mcp.json canvas home env',
+    mcpJsonHome
+      ? normalizedMcpJsonHome === normalizedActiveHome
+        ? mcpJsonHome
+        : `${mcpJsonHome} differs from active ${home}; generated Codex config is preferred`
+      : 'missing AGENT_CANVAS_HOME',
+  );
 }
 
 const codex = await codexConfigStatus(codexConfigPath, mcpCliPath, home);

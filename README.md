@@ -107,9 +107,9 @@ node scripts/setup.mjs --skip-install
 pnpm dev
 ```
 
-`node scripts/setup.mjs` runs dependency install, MCP build, doctor, MCP smoke, Codex config smoke, Starlight OS canvas seed, and a dry-run Codex MCP config print. Use `node scripts/setup.mjs --codex-write` when you want it to update `~/.codex/config.toml` with a timestamped backup.
+`node scripts/setup.mjs` runs the local Starlight security scan preflight when available, dependency install, MCP build, doctor, MCP smoke, Codex config smoke, Starlight OS canvas seed, and a dry-run Codex MCP config print. Use `node scripts/setup.mjs --codex-write` when you want it to update `~/.codex/config.toml` with a timestamped backup. Use `--skip-security-scan` only when you intentionally want to bypass the local estate preflight; public clones without the Starlight security repo skip it automatically.
 
-`pnpm doctor` now verifies local prerequisites, workspace files, the built MCP server, `.mcp.json`, and whether Codex is wired to this exact MCP CLI path and `AGENT_CANVAS_HOME`.
+`pnpm doctor` now verifies local prerequisites, workspace files, the built MCP server, `.mcp.json`, and whether Codex is wired to this exact MCP CLI path and `AGENT_CANVAS_HOME`. It also warns when `.mcp.json` points at a different data home than the active app/Codex home so local state does not split across two canvases.
 `pnpm mcp:codex:smoke` proves the Codex installer path without mutating your real Codex config: it writes a temporary `config.toml`, runs `doctor --config`, launches the configured MCP server from outside the repo, calls `tools/list` and `list_canvases`, then removes the temp files.
 `pnpm first-success` prints the maintained human plus Codex activation contract; `pnpm first-success:json` emits the same contract for agents, setup helpers, issue triage, and CI.
 `pnpm adoption:report` turns doctor, release audit, demo proof, visual evidence, GitHub metadata, and Codex MCP status into one human-readable adoption snapshot; `pnpm adoption:report:json` emits the same contract for agents and CI.

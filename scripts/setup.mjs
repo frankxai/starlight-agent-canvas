@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -20,6 +21,7 @@ function usage() {
     '',
     'Options:',
     '  --skip-install       Do not run pnpm install',
+    '  --skip-security-scan Do not run the local Starlight security scan preflight',
     '  --skip-smoke         Do not run MCP or Codex config smoke tests',
     '  --skip-seed          Do not seed the Starlight OS canvas',
     '  --codex-write        Install Codex MCP config with backup',
@@ -53,6 +55,31 @@ function runPnpm(commandArgs, label) {
   return run(pnpm, [...pnpmPrefixArgs, ...commandArgs], label, useShell);
 }
 
+async function runSecurityPreflight() {
+  if (args.has('--skip-security-scan')) {
+    console.log('\n== Starlight security scan ==');
+    console.log('Skipped by --skip-security-scan.');
+    return;
+  }
+
+  const scanScript = path.resolve(process.cwd(), '..', 'security', 'Invoke-RepoSecurityScan.ps1');
+  if (process.platform !== 'win32' || !existsSync(scanScript)) {
+    console.log('\n== Starlight security scan ==');
+    console.log('No local estate security scan found; continuing with OSS setup.');
+    return;
+  }
+
+  await run('powershell', [
+    '-NoProfile',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    scanScript,
+    '-Path',
+    process.cwd(),
+  ], 'Starlight security scan');
+}
+
 if (args.has('--help') || args.has('-h')) {
   usage();
   process.exit(0);
@@ -63,6 +90,7 @@ console.log(`AGENT_CANVAS_HOME=${canvasHome}`);
 console.log('No provider keys are required for v0.1.');
 
 try {
+  await runSecurityPreflight();
   if (!args.has('--skip-install')) {
     await runPnpm(['install'], 'Install dependencies');
   }

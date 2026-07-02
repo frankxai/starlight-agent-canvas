@@ -592,6 +592,31 @@
       "path_or_url": "docs/visual-qa/desktop-intake-map-preview-youtube-reduced-motion.png",
       "kind": "desktop reduced-motion intake map preview screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-first-source-target.png",
+      "kind": "desktop first-source canvas intake target screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-first-source-target-filled.png",
+      "kind": "desktop first-source intake after source capture screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-actionable-context-target.png",
+      "kind": "desktop actionable graph context affordance screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-first-source-target.png",
+      "kind": "mobile first-source action panel screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-first-source-target-reduced-motion.png",
+      "kind": "desktop reduced-motion first-source target screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -747,6 +772,21 @@
       "name": "intake-map-preview-loop",
       "status": "pass",
       "notes": "The composer now shows an explicit map preview before commit: future node kind, artifact kind, readiness state, source URL, and output-action mode. Desktop, mobile, and reduced-motion screenshots were inspected."
+    },
+    {
+      "name": "first-source-canvas-activation",
+      "status": "pass",
+      "notes": "Blank and starter canvases now expose visible first-source actions on desktop and mobile, including Paste, Note, and File entry points; screenshots were inspected for desktop, mobile, and reduced-motion states."
+    },
+    {
+      "name": "ask-empty-context-guard",
+      "status": "pass",
+      "notes": "Ask Canvas now refuses to run on an empty canvas, focuses the intake composer, and asks for source or note context before producing an output."
+    },
+    {
+      "name": "context-affordance-after-population",
+      "status": "pass",
+      "notes": "Populated canvases keep an actionable graph affordance with Paste, Note, and File controls instead of passive helper text."
     }
   ],
   "score": {
@@ -872,7 +912,12 @@
       "docs/visual-qa/desktop-context-gaps-reference-reduced-motion.png",
       "docs/visual-qa/desktop-intake-map-preview-youtube.png",
       "docs/visual-qa/mobile-intake-map-preview-youtube.png",
-      "docs/visual-qa/desktop-intake-map-preview-youtube-reduced-motion.png"
+      "docs/visual-qa/desktop-intake-map-preview-youtube-reduced-motion.png",
+      "docs/visual-qa/desktop-first-source-target.png",
+      "docs/visual-qa/desktop-first-source-target-filled.png",
+      "docs/visual-qa/desktop-actionable-context-target.png",
+      "docs/visual-qa/mobile-first-source-target.png",
+      "docs/visual-qa/desktop-first-source-target-reduced-motion.png"
     ],
     "productionMetrics": {
       "desktop": {
@@ -957,7 +1002,13 @@
       "scopedIntakeTraceExport": true,
       "intakeMapPreview": true,
       "mapPreviewSummary": true,
-      "mapPreviewDetails": true
+      "mapPreviewDetails": true,
+      "firstSourceTargetDesktop": true,
+      "firstSourceTargetMobile": true,
+      "actionableGraphContextAffordance": true,
+      "askCanvasEmptyGuard": true,
+      "noteReceiptCodexReady": true,
+      "mcpHomeDriftWarning": true
     },
     "metrics": {
       "desktop": {
@@ -979,6 +1030,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Paste / Drop Anything, Source / Note / Ask composer controls, a supported-input contract strip for YouTube, any video, image, web, PDF, text, and note mappings, a live Capture / Map / Inspect / Ask / Handoff operator loop, guided workflow templates with clickable stages, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste with blocked/empty clipboard fallback, smart detected-source chips, intake map preview with future node/artifact/readiness/output mode, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, persistent intake trace with readiness labels and scoped Inspect/Context/Codex actions, Context gaps lane for reference-only or needs-context sources, selected Codex export preview with visible scope rules and exact included/excluded material, selected-source context receipts, source-readiness receipts with action-ready or needs-context state, source Attach context enrichment for transcript/OCR/notes/claims with rebuilt chunks and readiness updates, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, clickable answer/run-log citations with highlighted source chunks, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, reviewable JSON import preview with fresh duplicate-id detection and source-evidence focus after confirmation, in-app Setup/MCP status for local home, MCP build, Codex wiring, first-success input contracts, and the five-step activation runway from install health to proof canvas, source mapping, context export, and Codex MCP wiring; mobile loads the graph below the composer before rails with a compact bottom toolbar, the first-viewport composer is bounded on mobile so it does not collide with the command tray, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present, and source readiness, context gaps, plus intake trace receipts are visible to both humans and MCP clients."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Paste / Drop Anything, Source / Note / Ask composer controls, a supported-input contract strip for YouTube, any video, image, web, PDF, text, and note mappings, a live Capture / Map / Inspect / Ask / Handoff operator loop, guided workflow templates with clickable stages, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste with blocked/empty clipboard fallback, smart detected-source chips, intake map preview with future node/artifact/readiness/output mode, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, first-source canvas targets on desktop and mobile, blank Ask guardrails that require context, note receipts in the same Codex-ready handoff loop as sources, populated-canvas Paste/Note/File graph affordances, interactive empty-state actions, selected-context scoping, persistent intake trace with readiness labels and scoped Inspect/Context/Codex actions, Context gaps lane for reference-only or needs-context sources, selected Codex export preview with visible scope rules and exact included/excluded material, selected-source context receipts, source-readiness receipts with action-ready or needs-context state, source Attach context enrichment for transcript/OCR/notes/claims with rebuilt chunks and readiness updates, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, clickable answer/run-log citations with highlighted source chunks, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, reviewable JSON import preview with fresh duplicate-id detection and source-evidence focus after confirmation, in-app Setup/MCP status for local home, MCP build, Codex wiring, first-success input contracts, and the five-step activation runway from install health to proof canvas, source mapping, context export, and Codex MCP wiring; mobile loads the graph below the composer before rails with a compact bottom toolbar, the first-viewport composer is bounded on mobile so it does not collide with the command tray, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present, and source readiness, context gaps, plus intake trace receipts are visible to both humans and MCP clients."
   }
 }

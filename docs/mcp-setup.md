@@ -37,6 +37,7 @@ pnpm mcp:config -- --client codex
 ```
 
 Use generated config for real clients because it prints absolute paths for the current machine. `.mcp.json` is a repo-local development hint for tools that understand project-relative MCP config; do not treat it as the preferred copy/paste block for Codex, Claude Desktop, or Gemini on another machine.
+`pnpm doctor` warns if `.mcp.json` uses a different `AGENT_CANVAS_HOME` than the active app/Codex home; keep one data home when you expect the browser and agents to share the same canvas state.
 
 Or use the safe Codex installer:
 
