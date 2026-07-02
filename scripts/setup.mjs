@@ -20,7 +20,7 @@ function usage() {
     '',
     'Options:',
     '  --skip-install       Do not run pnpm install',
-    '  --skip-smoke         Do not run MCP smoke test',
+    '  --skip-smoke         Do not run MCP or Codex config smoke tests',
     '  --skip-seed          Do not seed the Starlight OS canvas',
     '  --codex-write        Install Codex MCP config with backup',
     '  --verify            Run pnpm verify after setup',
@@ -70,6 +70,7 @@ try {
   await runPnpm(['doctor'], 'Doctor');
   if (!args.has('--skip-smoke')) {
     await runPnpm(['mcp:smoke'], 'MCP smoke test');
+    await runPnpm(['mcp:codex:smoke'], 'Codex config smoke test');
   }
   if (!args.has('--skip-seed')) {
     await runPnpm(['seed:starlight'], 'Seed Starlight OS canvas');

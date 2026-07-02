@@ -19,6 +19,7 @@
 - [ ] `pnpm first-success:json`
 - [ ] `pnpm verify`
 - [ ] `pnpm mcp:smoke`
+- [ ] `pnpm mcp:codex:smoke`
 - [ ] `pnpm test:e2e`
 - [ ] Security scan
 - [ ] Visual QA screenshots updated when UI changed

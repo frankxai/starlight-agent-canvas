@@ -226,6 +226,6 @@ Expected result: a canvas can move between human review, repo artifacts, Codex/C
 8. Run `pnpm adoption:report:json` when Codex, CI, or another automation needs to parse that same adoption state.
 9. Confirm `summary.fail` is `0` in doctor and release audit sections.
 10. Treat Codex config warnings as optional until MCP is intentionally installed.
-11. Run `pnpm release:audit`, `pnpm canvas:smoke`, and `pnpm mcp:smoke` before a release or important handoff.
+11. Run `pnpm release:audit`, `pnpm canvas:smoke`, `pnpm mcp:smoke`, and `pnpm mcp:codex:smoke` before a release or important handoff.
 
 Expected result: a contributor, operator, or agent can prove local health without reading implementation files or guessing which warnings are release blockers.

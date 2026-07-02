@@ -83,13 +83,14 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 - `pnpm doctor` explains local readiness and missing build steps.
 - `pnpm doctor:json` emits a stable pass/warn/fail health contract with repo root, canvas home, MCP CLI path, Codex config path, checks, and next steps.
+- `pnpm mcp:codex:smoke` proves the Codex installer and doctor config parser against a temporary Codex config and temporary canvas home without mutating the user's real Codex configuration.
 - `pnpm adoption:report` and `pnpm adoption:report:json` combine doctor health, release audit health, demo proof, visual evidence, Git/GitHub state, Codex MCP path/home, first-success commands, and a compact Codex prompt.
 - `pnpm first-success` and `pnpm first-success:json` expose the install/open/capture/inspect/handoff/Codex contract and supported input contracts.
 - The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
 - The setup/MCP status panel exposes the adoption report command and agent toolbelt from `/api/setup/status`.
 - `/api/setup/status` exposes an activation contract with steps, proof commands, and a Codex activation prompt.
 - `/api/setup/status` exposes `firstSuccess` with phases, supported-input mappings, proof commands, and first-success command copies from `docs/first-success.contract.json`.
-- `pnpm verify`, `pnpm test:e2e`, and `pnpm mcp:smoke` pass.
+- `pnpm verify`, `pnpm test:e2e`, `pnpm mcp:smoke`, and `pnpm mcp:codex:smoke` pass.
 - `pnpm canvas:smoke` passes and proves demo import, list, search, context export, and Codex handoff export from the terminal.
 - README links to install, PRD, user flows, MCP setup, Codex integration, system design, and production readiness.
 - GitHub has issue templates, PR template, CI, and a readiness checklist.

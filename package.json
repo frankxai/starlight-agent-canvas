@@ -41,6 +41,7 @@
     "mcp:build": "pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/mcp build",
     "mcp:config": "node scripts/print-mcp-config.mjs",
     "mcp:install:codex": "node scripts/install-codex-mcp.mjs",
+    "mcp:codex:smoke": "pnpm mcp:build && node scripts/codex-config-smoke.mjs",
     "mcp:smoke": "pnpm mcp:build && node packages/mcp/scripts/smoke.mjs",
     "mcp:start": "pnpm --filter @starlight-agent-canvas/mcp start"
   },

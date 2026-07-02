@@ -10,8 +10,38 @@ const execFileAsync = promisify(execFile);
 const execAsync = promisify(exec);
 const root = process.cwd();
 const minNode = [22, 13, 0];
-const jsonOutput = process.argv.includes('--json');
+const args = process.argv.slice(2).filter((arg) => arg !== '--');
+const jsonOutput = args.includes('--json');
 const checks = [];
+
+function valueAfter(flag) {
+  const index = args.indexOf(flag);
+  if (index < 0) return undefined;
+  const value = args[index + 1];
+  if (!value || value.startsWith('--')) {
+    console.error(`Missing value after ${flag}.`);
+    process.exit(1);
+  }
+  return value;
+}
+
+function usage() {
+  console.log([
+    'Usage:',
+    '  pnpm doctor',
+    '  pnpm doctor:json',
+    '  node scripts/doctor.mjs --config C:/path/config.toml --json',
+    '',
+    'Options:',
+    '  --json             Emit machine-readable JSON',
+    '  --config <path>    Verify a specific Codex config path instead of ~/.codex/config.toml',
+  ].join('\n'));
+}
+
+if (args.includes('--help') || args.includes('-h')) {
+  usage();
+  process.exit(0);
+}
 
 function compareVersions(current, minimum) {
   for (let index = 0; index < minimum.length; index += 1) {
@@ -159,7 +189,7 @@ const mcpIndexDistPath = path.join(root, 'packages', 'mcp', 'dist', 'index.js');
 const webAppPath = path.join(root, 'apps', 'web', 'package.json');
 const corePackagePath = path.join(root, 'packages', 'core', 'package.json');
 const mcpPackagePath = path.join(root, 'packages', 'mcp', 'package.json');
-const codexConfigPath = path.join(os.homedir(), '.codex', 'config.toml');
+const codexConfigPath = path.resolve(valueAfter('--config') ?? path.join(os.homedir(), '.codex', 'config.toml'));
 
 status(await canRead(packageJsonPath), 'package.json', '', { required: true });
 status(await canRead(workspacePath), 'pnpm workspace', '', { required: true });
@@ -218,6 +248,7 @@ if (jsonOutput) {
     nextSteps: [
       'pnpm install',
       'pnpm mcp:build && pnpm mcp:smoke',
+      'pnpm mcp:codex:smoke',
       'pnpm seed:starlight',
       'pnpm mcp:install:codex -- --write   # optional, then restart Codex',
       'pnpm dev',
@@ -228,9 +259,10 @@ if (jsonOutput) {
   console.log('Next steps:');
   console.log('1. pnpm install');
   console.log('2. pnpm mcp:build && pnpm mcp:smoke');
-  console.log('3. pnpm seed:starlight');
-  console.log('4. pnpm mcp:install:codex -- --write   # optional, then restart Codex');
-  console.log('5. pnpm dev');
+  console.log('3. pnpm mcp:codex:smoke');
+  console.log('4. pnpm seed:starlight');
+  console.log('5. pnpm mcp:install:codex -- --write   # optional, then restart Codex');
+  console.log('6. pnpm dev');
 }
 
 if (summary.fail > 0) {

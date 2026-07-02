@@ -14,7 +14,7 @@
       "id": "install",
       "label": "Install",
       "humanAction": "Run the setup script from a GitHub clone.",
-      "detail": "Setup script, doctor, MCP build, smoke, seed, dry-run MCP config.",
+      "detail": "Setup script, doctor, MCP build, MCP smoke, Codex config smoke, seed, dry-run MCP config.",
       "command": "node scripts/setup.mjs",
       "proof": ["pnpm doctor:json", "pnpm adoption:report"]
     },
@@ -57,7 +57,7 @@
       "detail": "Use MCP tools to read, ingest, run actions, and export the same canvas.",
       "command": "pnpm mcp:install:codex -- --write",
       "mcpLoop": ["get_latest_canvas", "ingest_anything", "enrich_source_node", "run_node_action", "export_canvas"],
-      "proof": ["pnpm mcp:smoke", "pnpm doctor"]
+      "proof": ["pnpm mcp:smoke", "pnpm mcp:codex:smoke", "pnpm doctor"]
     }
   ],
   "inputContracts": [
@@ -148,9 +148,9 @@
   ],
   "commands": {
     "firstRun": ["node scripts/setup.mjs", "pnpm dev"],
-    "proof": ["pnpm first-run:check", "pnpm canvas:smoke", "pnpm mcp:smoke", "pnpm test:e2e"],
+    "proof": ["pnpm first-run:check", "pnpm canvas:smoke", "pnpm mcp:smoke", "pnpm mcp:codex:smoke", "pnpm test:e2e"],
     "readiness": ["pnpm doctor:json", "pnpm first-success:json", "pnpm adoption:report:json", "pnpm release:audit"],
-    "codex": ["pnpm mcp:build", "pnpm mcp:install:codex -- --write", "pnpm doctor"]
+    "codex": ["pnpm mcp:build", "pnpm mcp:install:codex -- --write", "pnpm mcp:codex:smoke", "pnpm doctor"]
   },
   "codexPrompt": "Use starlight-agent-canvas as shared local context. Call get_latest_canvas, read the graph before writing, add durable evidence with ingest_anything when new context appears, enrich reference-only sources with enrich_source_node when transcript/OCR/notes are available, run one useful action, then export_canvas with format \"codex\". Return node ids, artifact ids, chunk ids, and every node/action changed.",
   "knownLimits": [

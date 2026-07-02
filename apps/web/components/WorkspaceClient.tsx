@@ -182,6 +182,7 @@ type SetupStatus = {
     configuredHome: string;
     installDryRunCommand: string;
     installWriteCommand: string;
+    smokeCommand: string;
   };
   setup: {
     localCommand: string;
@@ -1053,6 +1054,7 @@ function WorkspaceInner() {
     { label: 'Setup', command: setupStatus.setup.localCommand },
     { label: 'Codex', command: setupStatus.codex.installWriteCommand },
     { label: 'Smoke', command: setupStatus.mcp.smokeCommand },
+    { label: 'Proof', command: setupStatus.codex.smokeCommand },
     { label: 'Report', command: setupStatus.adoption.reportCommand },
   ] : [], [setupStatus]);
   const activationRunway = useMemo(() => {
@@ -3997,6 +3999,7 @@ function WorkspaceInner() {
                     <div className="truncate">Home: {shortPath(setupStatus.canvasHome)}</div>
                     <div className="truncate">MCP: {shortPath(setupStatus.mcp.cliPath)}</div>
                     <div className="truncate">Codex: {shortPath(setupStatus.codex.configPath)}</div>
+                    <div className="truncate">Codex proof: {setupStatus.codex.smokeCommand}</div>
                   </div>
                   <div className="mt-3 rounded-md border border-starlight-border bg-starlight-surface/70 p-3" data-testid="activation-runway">
                     <div className="flex items-center justify-between gap-3">

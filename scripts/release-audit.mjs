@@ -107,6 +107,7 @@ function checkPackageScripts() {
     'canvas:smoke',
     'mcp:build',
     'mcp:install:codex',
+    'mcp:codex:smoke',
     'mcp:smoke',
   ];
   const missing = requiredScripts.filter((script) => !pkg.scripts?.[script]);
@@ -132,6 +133,7 @@ function checkCi() {
     'pnpm test',
     'pnpm canvas:smoke',
     'pnpm mcp:smoke',
+    'pnpm mcp:codex:smoke',
     'pnpm build',
     'pnpm first-run:check',
     'pnpm test:e2e',
@@ -353,6 +355,7 @@ checkFiles('oss surface files', [
 
 checkFiles('operator scripts', [
   'scripts/adoption-report.mjs',
+  'scripts/codex-config-smoke.mjs',
   'scripts/doctor.mjs',
   'scripts/first-success-contract.mjs',
   'scripts/release-audit.mjs',
@@ -426,6 +429,7 @@ checkTrackedFiles('required tracked files', [
   'pnpm-workspace.yaml',
   'pnpm-lock.yaml',
   'scripts/adoption-report.mjs',
+  'scripts/codex-config-smoke.mjs',
   'scripts/doctor.mjs',
   'scripts/first-success-contract.mjs',
   'scripts/release-audit.mjs',

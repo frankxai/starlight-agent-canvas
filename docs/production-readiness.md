@@ -10,6 +10,7 @@ pnpm release:audit
 pnpm verify
 pnpm canvas:smoke
 pnpm mcp:smoke
+pnpm mcp:codex:smoke
 pnpm test:e2e
 ```
 
@@ -57,7 +58,7 @@ Optional:
 
 1. Run local gates.
 2. Run `pnpm release:audit` for GitHub/OSS/docs/demo/visual/safety readiness.
-3. Verify MCP stdio smoke.
+3. Verify MCP stdio smoke and Codex config smoke.
 4. Capture desktop, mobile, and reduced-motion screenshots.
 5. Commit to `main`.
 6. Confirm the GitHub readiness checklist in `docs/github-readiness.md`.

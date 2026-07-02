@@ -623,12 +623,12 @@
     {
       "name": "setup-mcp-status",
       "status": "pass",
-      "notes": "The app shows data home, MCP build, Codex config, Codex server wiring, safe paths, and copyable setup commands from a real local status route."
+      "notes": "The app shows data home, MCP build, Codex config, Codex server wiring, safe paths, copyable setup commands, and the visible Codex temp-config proof command from a real local status route."
     },
     {
       "name": "agent-toolbelt",
       "status": "pass",
-      "notes": "The Setup/MCP panel now shows the Codex MCP tool sequence, adoption report command, agent prompt, and terminal Codex handoff command; desktop and mobile screenshots were inspected."
+      "notes": "The Setup/MCP panel now shows the Codex MCP tool sequence, temp-config smoke proof, adoption report command, agent prompt, and terminal Codex handoff command; desktop and mobile screenshots were inspected."
     },
     {
       "name": "supported-input-contract",

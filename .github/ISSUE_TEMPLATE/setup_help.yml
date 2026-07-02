@@ -37,6 +37,7 @@ body:
         pnpm first-success
         pnpm mcp:build
         pnpm mcp:smoke
+        pnpm mcp:codex:smoke
     validations:
       required: true
   - type: textarea
@@ -60,6 +61,14 @@ body:
     attributes:
       label: `pnpm mcp:smoke` output
       description: Redact private usernames or local paths if needed.
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: codex_smoke
+    attributes:
+      label: `pnpm mcp:codex:smoke` output
+      description: Redact private usernames or local paths if needed. This command uses temporary files and should not mutate your real Codex config.
       render: text
     validations:
       required: false

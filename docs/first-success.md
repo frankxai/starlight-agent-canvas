@@ -35,6 +35,6 @@ pnpm first-success -- --out .agent-canvas/first-success.md
 3. Capture: paste/drop/upload/type source context in the first viewport.
 4. Inspect: select the source/output and review receipts, chunks, citations, and body text.
 5. Handoff: copy `Context`, copy `Codex`, or export from CLI.
-6. Codex: wire MCP, restart Codex, and operate on the latest canvas.
+6. Codex: prove the generated config with `pnpm mcp:codex:smoke`, wire MCP when ready, restart Codex, and operate on the latest canvas.
 
 The same loop is visible in the app through `Setup / MCP`, enforced by `pnpm release:audit`, and included in the adoption report.

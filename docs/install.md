@@ -66,8 +66,9 @@ The setup script:
 2. Builds the MCP server.
 3. Runs `pnpm doctor`.
 4. Runs the MCP smoke test against a throwaway local data home.
-5. Seeds the `Starlight Agent Canvas OS` local canvas.
-6. Prints the Codex MCP config block as a dry-run.
+5. Runs the Codex config smoke test against a temporary config and data home.
+6. Seeds the `Starlight Agent Canvas OS` local canvas.
+7. Prints the Codex MCP config block as a dry-run.
 
 Optional flags:
 
@@ -82,6 +83,7 @@ node scripts/setup.mjs --skip-seed
 `--codex-write` updates `~/.codex/config.toml` and creates a timestamped backup first.
 
 `pnpm doctor` verifies the local prerequisites, workspace files, built MCP server, `.mcp.json`, and Codex wiring. The Codex check only reports fully wired when the installed config points at this repository's current `packages/mcp/dist/cli.js` and the active `AGENT_CANVAS_HOME`.
+`pnpm mcp:codex:smoke` verifies the same installer path without touching your real Codex config. It writes a temporary Codex config, points it at a temporary `AGENT_CANVAS_HOME`, runs `doctor --config` against that file, and cleans up.
 
 Machine-readable install status is available for agents, CI, and setup automation:
 
@@ -206,9 +208,11 @@ pnpm mcp:config -- --client json
 pnpm mcp:install:codex
 pnpm mcp:install:codex -- --write
 pnpm mcp:smoke
+pnpm mcp:codex:smoke
 ```
 
 `pnpm mcp:install:codex` is a dry-run. It prints the target config path and the exact TOML block. Add `-- --write` to install or replace only the `starlight-agent-canvas` MCP sections in Codex config, preserving unrelated settings and creating a backup first.
+Run `pnpm mcp:codex:smoke` before writing when you want non-mutating proof that the generated block is parseable by `doctor`.
 
 Use generated config for real MCP clients because it prints absolute paths for the current machine:
 
@@ -239,6 +243,7 @@ The same exports are available from the terminal with `pnpm canvas -- export <ca
 ## Troubleshooting
 
 - `pnpm doctor` warns that the MCP server is not built: run `pnpm mcp:build`.
+- `pnpm mcp:codex:smoke` fails: run `pnpm mcp:build`, then rerun the smoke. It uses temp files, so failures do not modify your real Codex config.
 - `pnpm doctor` says Codex has a path/home mismatch: run `pnpm mcp:install:codex -- --write`, restart Codex, then run `pnpm doctor` again.
 - The app cannot find canvases: check `AGENT_CANVAS_HOME`.
 - `Paste & Map` says clipboard read was blocked or empty: the composer is focused on purpose. Press `Ctrl+V` in that field, type manually, or drop the source onto the graph.

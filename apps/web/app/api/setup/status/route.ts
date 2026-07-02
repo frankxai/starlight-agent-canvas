@@ -24,6 +24,9 @@ type FirstSuccessContract = {
     codexUse: string;
     status: string;
   }>;
+  commands?: {
+    proof?: string[];
+  };
 };
 
 function getAgentCanvasHome(): string {
@@ -163,6 +166,7 @@ export async function GET() {
       configuredHome: codex.configuredHome,
       installDryRunCommand: 'pnpm mcp:install:codex',
       installWriteCommand: 'pnpm mcp:install:codex -- --write',
+      smokeCommand: 'pnpm mcp:codex:smoke',
     },
     setup: {
       localCommand: 'pnpm setup:local',
@@ -184,7 +188,7 @@ export async function GET() {
       contractCommand: 'pnpm first-success',
       jsonCommand: 'pnpm first-success:json',
       docs: ['docs/first-success.md', 'docs/first-success.contract.json', 'docs/operator-loop.md'],
-      proofCommands: ['pnpm first-run:check', 'pnpm canvas:smoke', 'pnpm mcp:smoke'],
+      proofCommands: firstSuccessContract.commands?.proof ?? ['pnpm first-run:check', 'pnpm canvas:smoke', 'pnpm mcp:smoke', 'pnpm mcp:codex:smoke'],
       phases: firstSuccessContract.phases.map((phase) => ({
         id: phase.id,
         label: phase.label,
@@ -234,7 +238,7 @@ export async function GET() {
         {
           id: 'install',
           label: 'Install and health',
-          detail: 'Run setup, build MCP, smoke the server, seed a canvas, and verify local health.',
+          detail: 'Run setup, build MCP, smoke the server, prove the Codex config path, seed a canvas, and verify local health.',
           command: 'node scripts/setup.mjs',
         },
         {

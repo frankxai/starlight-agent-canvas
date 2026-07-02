@@ -19,7 +19,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   const setupJson = await setupStatus.json() as {
     canvasHome: string;
     mcp: { smokeCommand: string };
-    codex: { installWriteCommand: string };
+    codex: { installWriteCommand: string; smokeCommand: string };
     adoption: { reportCommand: string; jsonCommand: string };
     firstSuccess: {
       schemaVersion: string;
@@ -35,11 +35,13 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   expect(setupJson.canvasHome).toBeTruthy();
   expect(setupJson.mcp.smokeCommand).toBe('pnpm mcp:smoke');
   expect(setupJson.codex.installWriteCommand).toBe('pnpm mcp:install:codex -- --write');
+  expect(setupJson.codex.smokeCommand).toBe('pnpm mcp:codex:smoke');
   expect(setupJson.adoption.reportCommand).toBe('pnpm adoption:report');
   expect(setupJson.adoption.jsonCommand).toBe('pnpm adoption:report:json');
   expect(setupJson.firstSuccess.contractCommand).toBe('pnpm first-success');
   expect(setupJson.firstSuccess.jsonCommand).toBe('pnpm first-success:json');
   expect(setupJson.firstSuccess.proofCommands).toContain('pnpm first-run:check');
+  expect(setupJson.firstSuccess.proofCommands).toContain('pnpm mcp:codex:smoke');
   expect(setupJson.firstSuccess.schemaVersion).toBe('starlight.agentCanvas.firstSuccess.v1');
   expect(setupJson.firstSuccess.phases.map((phase) => phase.id)).toEqual(['install', 'open', 'capture', 'inspect', 'handoff', 'codex']);
   expect(setupJson.firstSuccess.inputContracts.map((contract) => contract.id)).toEqual(['youtube', 'video', 'image', 'web', 'pdf', 'text', 'note']);
@@ -79,6 +81,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('operator-loop-map')).toContainText('no source');
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
+  await expect(page.getByTestId('setup-panel')).toContainText('Codex proof');
   await expect(page.getByTestId('setup-codex-handoff')).toBeEnabled();
   await expect(page.getByTestId('agent-toolbelt')).toContainText('Agent toolbelt');
   await expect(page.getByTestId('agent-tool-get_latest_canvas')).toContainText('get_latest_canvas');

@@ -121,6 +121,7 @@ function packageScriptState() {
     'first-run:check',
     'canvas:smoke',
     'mcp:smoke',
+    'mcp:codex:smoke',
     'test:e2e',
   ];
   return expected.map((name) => ({
@@ -240,6 +241,7 @@ function commandSets() {
     ],
     codexMcp: [
       'pnpm mcp:build',
+      'pnpm mcp:codex:smoke',
       'pnpm mcp:install:codex -- --write',
       'pnpm doctor',
       'pnpm adoption:report',
@@ -251,6 +253,7 @@ function commandSets() {
       'pnpm release:audit',
       'pnpm canvas:smoke',
       'pnpm mcp:smoke',
+      'pnpm mcp:codex:smoke',
       'pnpm first-run:check',
     ],
     terminalHandoff: [

@@ -75,19 +75,20 @@ Use labels:
 7. Run `pnpm verify`.
 8. Run `pnpm canvas:smoke`.
 9. Run `pnpm mcp:smoke`.
-10. Run `pnpm first-run:check` to prove a fresh production preview can boot, import the demo canvas, and export context from a temporary data home.
-11. Run `pnpm test:e2e`.
-12. Confirm `/api/setup/status` exposes `activation.steps`, `firstSuccess.phases`, proof commands, and the Codex activation prompt.
-13. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
-14. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
-15. Run the Starlight staged/full security scan.
-16. Confirm visual QA screenshots are current.
-17. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
-18. Confirm `.env` and private canvas exports are not staged.
-19. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
-20. Update README links and docs index.
-21. Keep CODEOWNERS pointed at the active maintainer account or team before enforcing owner review.
-22. Tag release only after GitHub CI passes.
+10. Run `pnpm mcp:codex:smoke` to prove the Codex config installer through a temporary config and temporary canvas home without mutating the real user config.
+11. Run `pnpm first-run:check` to prove a fresh production preview can boot, import the demo canvas, and export context from a temporary data home.
+12. Run `pnpm test:e2e`.
+13. Confirm `/api/setup/status` exposes `activation.steps`, `firstSuccess.phases`, proof commands, and the Codex activation prompt.
+14. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
+15. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
+16. Run the Starlight staged/full security scan.
+17. Confirm visual QA screenshots are current.
+18. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
+19. Confirm `.env` and private canvas exports are not staged.
+20. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
+21. Update README links and docs index.
+22. Keep CODEOWNERS pointed at the active maintainer account or team before enforcing owner review.
+23. Tag release only after GitHub CI passes.
 
 Public install proof to keep current:
 
@@ -100,7 +101,7 @@ node scripts/setup.mjs
 pnpm dev
 ```
 
-The setup script must remain explicit about what it does: dependency install, doctor, MCP build, MCP smoke, seed, and Codex config dry-run unless `--codex-write` is supplied.
+The setup script must remain explicit about what it does: dependency install, doctor, MCP build, MCP smoke, Codex config smoke, seed, and Codex config dry-run unless `--codex-write` is supplied.
 
 Use `docs/readiness-evidence.md` as the current proof matrix before tagging or announcing a release. Use `docs/release-audit.md` for the local machine-checkable release gate.
 

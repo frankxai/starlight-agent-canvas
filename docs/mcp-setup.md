@@ -11,6 +11,7 @@ pnpm mcp:config -- --client codex
 pnpm mcp:config -- --client json
 pnpm mcp:install:codex
 pnpm mcp:smoke
+pnpm mcp:codex:smoke
 ```
 
 The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, reads the latest canvas, ingests text, paste-anything mixed context, URL fallback, YouTube/manual transcript, generic video reference, enriches a reference-only video source, ingests image reference and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context/Codex handoff, asserts chunk-manifest output, and imports the portable JSON back as local context.
@@ -45,6 +46,7 @@ pnpm mcp:install:codex -- --write
 ```
 
 The first command is a dry-run. The second command updates `~/.codex/config.toml`, removes any previous `starlight-agent-canvas` MCP block, preserves unrelated settings, and writes a timestamped backup first.
+Run `pnpm mcp:codex:smoke` when you want to prove the installer and doctor path without changing your real Codex config. It writes a temporary config, uses a temporary canvas home, verifies it through `doctor --config`, and cleans up.
 
 The output shape is:
 
