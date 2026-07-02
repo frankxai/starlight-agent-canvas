@@ -140,6 +140,7 @@ function registerOperatorPrompts(server: McpServer) {
             'Use the starlight-agent-canvas MCP server as a local, typed operating canvas.',
             'Start by calling get_latest_canvas, or list_canvases and get_canvas when you need a specific canvas.',
             'Use ingest_anything when the human gives mixed pasted context. Use ingest_url, ingest_youtube, ingest_video, ingest_image, or ingest_text_source when the source type is already known.',
+            'Use enrich_source_node when a mapped YouTube, video, image, URL, or PDF node is only a reference and you have transcript, OCR, visual notes, claims, or excerpts to attach.',
             'Add prompts, MCP tools, agent runs, and outputs as typed nodes. Connect evidence with references, derives_from, compares, runs, or exports edges.',
             'Run local actions for summaries, claims, comparisons, decision matrices, implementation briefs, and source-grounded answers.',
             'Prefer export_canvas with format "codex" for a ready-to-paste Codex continuation prompt, "context" for agent packets, JSON for portable rehydration, and Markdown for human-readable handoff.',
@@ -261,6 +262,31 @@ export function createAgentCanvasMcpServer() {
       annotations: SAFE_LOCAL_WRITE,
     },
     async (args) => handlers.update_node(args),
+  );
+
+  server.registerTool(
+    'enrich_source_node',
+    {
+      title: 'Enrich Source Node',
+      description: 'Attach transcript, OCR, timestamp notes, visual observations, claims, or excerpts to an existing source node and rebuild its local artifact chunks.',
+      inputSchema: {
+        canvasId: canvasIdSchema,
+        nodeId: z.string().min(1),
+        body: z.string().min(1),
+        enrichmentKind: z.enum(['transcript', 'timestamp_notes', 'ocr', 'visual_notes', 'claims', 'notes']).optional(),
+        append: z.boolean().optional(),
+        title: z.string().min(1).optional(),
+        sourceLabel: z.string().min(1).optional(),
+        metadata: z.record(z.unknown()).optional(),
+      },
+      annotations: SAFE_LOCAL_WRITE,
+    },
+    async (args) => handlers.enrich_source_node({
+      ...args,
+      enrichmentKind: args.enrichmentKind ?? 'notes',
+      append: args.append ?? true,
+      metadata: args.metadata ?? {},
+    }),
   );
 
   server.registerTool(

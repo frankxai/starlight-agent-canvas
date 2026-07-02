@@ -195,7 +195,7 @@ export async function GET() {
     agent: {
       prompt: [
         'Use starlight-agent-canvas as shared local context.',
-        'Call get_latest_canvas, read the graph before writing, add durable evidence through ingest_anything when new context appears, run the smallest useful action, then export_canvas with format "codex".',
+        'Call get_latest_canvas, read the graph before writing, add durable evidence through ingest_anything when new context appears, enrich reference-only sources with enrich_source_node, run the smallest useful action, then export_canvas with format "codex".',
         'Return node ids, artifact ids, chunk ids, and every node/action changed.',
       ].join(' '),
       terminalHandoffCommand: 'pnpm canvas -- export latest --format codex --out .agent-canvas/latest-codex.md',
@@ -207,6 +207,10 @@ export async function GET() {
         {
           name: 'ingest_anything',
           detail: 'map links, notes, media',
+        },
+        {
+          name: 'enrich_source_node',
+          detail: 'attach transcript/OCR/notes',
         },
         {
           name: 'run_node_action',

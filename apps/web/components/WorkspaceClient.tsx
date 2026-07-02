@@ -52,7 +52,7 @@ import {
 import { describeCanvasExportScope } from '@starlight-agent-canvas/core/exporters';
 import { detectIntakeText } from '@starlight-agent-canvas/core/intake';
 import { describeSourceReadiness, type SourceReadiness, type SourceReadinessStatus } from '@starlight-agent-canvas/core/readiness';
-import type { CanvasActionType, CanvasArtifact, CanvasEdge, CanvasEdgeKind, CanvasIntakeTrace, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
+import type { CanvasActionType, CanvasArtifact, CanvasEdge, CanvasEdgeKind, CanvasIntakeTrace, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation, SourceEnrichmentKind } from '@starlight-agent-canvas/core';
 
 type CanvasSummary = {
   id: string;
@@ -81,6 +81,9 @@ type ApiState = {
 type CanvasMutationResponse = {
   canvas?: CanvasRecord;
   node?: CanvasNode;
+  artifact?: CanvasArtifact;
+  trace?: CanvasIntakeTrace;
+  sourceReadiness?: SourceReadiness[];
   outputNode?: CanvasNode;
 };
 
@@ -325,6 +328,15 @@ const EDGE_KINDS: Array<{ id: CanvasEdgeKind; label: string }> = [
   { id: 'exports', label: 'Exports' },
 ];
 
+const ENRICHMENT_KINDS: Array<{ id: SourceEnrichmentKind; label: string; detail: string }> = [
+  { id: 'transcript', label: 'Transcript', detail: 'captions or full video text' },
+  { id: 'timestamp_notes', label: 'Timestamps', detail: 'time-coded notes' },
+  { id: 'ocr', label: 'OCR', detail: 'visible text' },
+  { id: 'visual_notes', label: 'Visual notes', detail: 'observations or design notes' },
+  { id: 'claims', label: 'Claims', detail: 'facts and assertions' },
+  { id: 'notes', label: 'Notes', detail: 'human context' },
+];
+
 function offsetPosition(position: FlowPosition | undefined, index: number): FlowPosition | undefined {
   if (!position) return undefined;
   return {
@@ -414,6 +426,31 @@ function toFlow(canvas: CanvasRecord, compact = false): { nodes: Node<AgentNodeD
 
 function formatKind(kind: string) {
   return kind.replace(/_/g, ' ');
+}
+
+function defaultEnrichmentKind(node?: CanvasNode | null): SourceEnrichmentKind {
+  if (node?.kind === 'source_youtube' || node?.kind === 'source_video') return 'transcript';
+  if (node?.kind === 'source_image') return 'visual_notes';
+  return 'notes';
+}
+
+function enrichmentPlaceholder(kind: SourceEnrichmentKind, node?: CanvasNode | null): string {
+  if (kind === 'transcript') return 'Paste transcript, captions, cleaned video notes, or a timestamped summary.';
+  if (kind === 'timestamp_notes') return 'Example: 00:42 shows the workflow; 02:10 names a product gap; 04:30 gives the decision.';
+  if (kind === 'ocr') return 'Paste OCR text or visible UI copy from the screenshot/image.';
+  if (kind === 'visual_notes') return 'Describe what is visible, what matters, and what an agent should notice.';
+  if (kind === 'claims') return 'List claims, facts, contradictions, evidence, or open questions.';
+  if (node?.kind === 'source_url') return 'Paste extracted article text, notes, or claims from this link.';
+  return 'Add notes, excerpts, decisions, constraints, or context that should travel with this source.';
+}
+
+function enrichmentStatusLabel(kind: SourceEnrichmentKind): string {
+  if (kind === 'transcript') return 'transcript';
+  if (kind === 'timestamp_notes') return 'timestamp notes';
+  if (kind === 'ocr') return 'OCR text';
+  if (kind === 'visual_notes') return 'visual notes';
+  if (kind === 'claims') return 'claims';
+  return 'notes';
 }
 
 function sourceReadinessTone(status: SourceReadinessStatus) {
@@ -809,6 +846,8 @@ function WorkspaceInner() {
   const [askPrompt, setAskPrompt] = useState('What capabilities, gaps, and next build moves does this canvas show?');
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
+  const [enrichmentKind, setEnrichmentKind] = useState<SourceEnrichmentKind>('notes');
+  const [enrichmentBody, setEnrichmentBody] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
@@ -855,6 +894,7 @@ function WorkspaceInner() {
   const selectedReadiness = useMemo(() => (
     selectedNode ? describeSourceReadiness(selectedNode, selectedArtifact ?? undefined) : null
   ), [selectedArtifact, selectedNode]);
+  const canEnrichSelectedSource = Boolean(selectedNode && (selectedNode.kind.startsWith('source_') || selectedArtifact));
   const selectedChunkPreviews = useMemo(() => {
     const chunks = selectedArtifact?.chunks ?? [];
     if (!focusedChunkId) return chunks.slice(0, 2);
@@ -1139,6 +1179,11 @@ function WorkspaceInner() {
   }, [selectedNode?.id, selectedNode?.title, selectedNode?.body]);
 
   useEffect(() => {
+    setEnrichmentKind(defaultEnrichmentKind(selectedNode));
+    setEnrichmentBody('');
+  }, [selectedNode?.id, selectedNode?.kind]);
+
+  useEffect(() => {
     setIntakeReceipt(null);
   }, [canvas?.id]);
 
@@ -1300,6 +1345,50 @@ function WorkspaceInner() {
       'Saved selected node.',
     );
   }, [canvas, editBody, editTitle, mutateCanvas, selectedNode]);
+
+  const attachSourceContext = useCallback(async () => {
+    if (!canvas || !selectedNode || !enrichmentBody.trim()) return;
+    await mutateCanvas(
+      () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes/${selectedNode.id}/enrich`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          body: enrichmentBody.trim(),
+          enrichmentKind,
+          append: true,
+          sourceLabel: 'Inspector enrichment',
+        }),
+      }),
+      `Attached ${enrichmentStatusLabel(enrichmentKind)} to selected source.`,
+      (result) => {
+        const enrichedNode = result.node;
+        if (enrichedNode) {
+          focusNode(enrichedNode);
+          setIntakeReceipt(createIntakeReceipt(
+            'Source enrichment',
+            [enrichedNode],
+            result.artifact ? [result.artifact] : artifactsForNodes(result.canvas ?? canvas, [enrichedNode]),
+          ));
+        }
+        setEnrichmentBody('');
+      },
+    );
+  }, [canvas, enrichmentBody, enrichmentKind, focusNode, mutateCanvas, selectedNode]);
+
+  const pasteClipboardToEnrichment = useCallback(async () => {
+    if (!navigator.clipboard?.readText) {
+      setStatus('Clipboard read is not available in this browser.');
+      return;
+    }
+    try {
+      const text = (await navigator.clipboard.readText()).trim();
+      if (!text) throw new Error('Clipboard is empty.');
+      setEnrichmentBody(text);
+      setStatus('Pasted clipboard into selected source context.');
+    } catch (error) {
+      setStatus((error as Error).message);
+    }
+  }, []);
 
   const addUrl = useCallback(async () => {
     if (!canvas || !url.trim()) return;
@@ -3424,6 +3513,68 @@ function WorkspaceInner() {
                           </span>
                           <span className="rounded-md border border-starlight-border bg-starlight-bg px-2 py-1">
                             {formatKind(selectedReadiness.evidence.ingest)}
+                          </span>
+                        </div>
+                      </div>
+                    ) : null}
+                    {canEnrichSelectedSource ? (
+                      <div className="mt-2 rounded-md border border-starlight-accent/30 bg-starlight-accent/10 p-3" data-testid="source-enrichment">
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div>
+                            <div className="text-xs font-semibold text-starlight-accent">Attach context</div>
+                            <p className="mt-1 text-[11px] leading-5 text-starlight-muted">
+                              Add transcript, OCR, notes, or claims to make this source usable by actions and MCP.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            data-testid="source-enrichment-paste"
+                            onClick={pasteClipboardToEnrichment}
+                            disabled={!canMutate}
+                            className="inline-flex items-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg px-2 py-1 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                          >
+                            <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
+                            Paste
+                          </button>
+                        </div>
+                        <div className="mt-3 grid grid-cols-2 gap-1.5" data-testid="source-enrichment-kind">
+                          {ENRICHMENT_KINDS.map((kind) => (
+                            <button
+                              key={kind.id}
+                              type="button"
+                              onClick={() => setEnrichmentKind(kind.id)}
+                              className={`rounded-md border px-2 py-1.5 text-left text-[10px] transition ${
+                                enrichmentKind === kind.id
+                                  ? 'border-starlight-accent bg-starlight-accent/15 text-starlight-ink'
+                                  : 'border-starlight-border bg-starlight-bg text-starlight-muted hover:border-starlight-accent/60'
+                              }`}
+                              aria-pressed={enrichmentKind === kind.id}
+                            >
+                              <span className="block font-semibold">{kind.label}</span>
+                              <span className="mt-0.5 block truncate">{kind.detail}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <textarea
+                          data-testid="source-enrichment-body"
+                          value={enrichmentBody}
+                          onChange={(event) => setEnrichmentBody(event.target.value)}
+                          className="mt-3 min-h-24 w-full rounded-md border border-starlight-border bg-starlight-bg px-3 py-2 text-xs leading-5 text-starlight-ink"
+                          placeholder={enrichmentPlaceholder(enrichmentKind, selectedNode)}
+                        />
+                        <div className="mt-2 flex flex-wrap items-center gap-2">
+                          <button
+                            type="button"
+                            data-testid="source-enrichment-attach"
+                            onClick={attachSourceContext}
+                            disabled={!canMutate || !enrichmentBody.trim()}
+                            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md bg-starlight-accent px-3 py-2 text-xs font-semibold text-[#05060A] transition hover:bg-[#8CBAFF] disabled:cursor-not-allowed disabled:opacity-45"
+                          >
+                            <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />
+                            Attach Context
+                          </button>
+                          <span className="text-[10px] text-starlight-muted">
+                            Chunks rebuild for search, Ask, export, and Codex.
                           </span>
                         </div>
                       </div>

@@ -82,7 +82,22 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 Expected result: the canvas accepts arbitrary video links as local context references without claiming unsupported video download or platform transcription.
 If no transcript or notes are present, source readiness says `Video reference saved` and asks for transcript, timestamp notes, claims, or takeaways before deep analysis.
 
-## Flow 2B: Image Evidence
+## Flow 2B: Enrich A Reference-Only Source
+
+1. Paste a video URL, image URL, web URL, or other source without notes and click `Map only`.
+2. Select the created source node.
+3. Confirm source readiness says `Video reference saved`, `URL reference saved`, `Needs visual text`, or another needs-context state.
+4. In the inspector, use `Attach context`.
+5. Choose `Transcript`, `Timestamps`, `OCR`, `Visual notes`, `Claims`, or `Notes`.
+6. Paste the transcript, OCR text, timestamp notes, observations, claims, excerpts, or human notes.
+7. Click `Attach Context`.
+8. Confirm the source-readiness label changes to a Codex-ready state and chunks appear in the receipt.
+9. Run `Ask selected`, `Source summary`, or `Extract claims`.
+10. Export Context/Codex and confirm the new text appears in the source chunk manifest and intake trace manifest.
+
+Expected result: a source can start as a bare link and become real agent context later without recreating the node or losing provenance.
+
+## Flow 2C: Image Evidence
 
 1. Click `Image`.
 2. Paste an image URL with labeled visual notes, OCR, alt text, or observations, or drop/upload a PNG, JPEG, WebP, GIF, or AVIF screenshot.
@@ -133,13 +148,15 @@ sequenceDiagram
   MCP->>Canvas: Read local canvas JSON
   Codex->>MCP: ingest_anything or typed ingest tool
   MCP->>Canvas: Add typed node
+  Codex->>MCP: enrich_source_node when transcript/OCR/notes arrive later
+  MCP->>Canvas: Update artifact chunks and source readiness
   Codex->>MCP: run_node_action
   MCP->>Canvas: Add output node and run log
   Codex->>MCP: export_canvas format codex
   Human->>Canvas: Inspect and edit output
 ```
 
-Expected result: human and agent work on the same local state with explicit, reviewable mutations. When the agent receives a messy pasted source blob, `ingest_anything` mirrors the web canvas intake, maps YouTube, video, image, URL, and note context without making the user pick a lower-level tool, keeps nearby media transcripts/notes/OCR attached to the right source, persists the same intake trace visible in the UI, exports that trace in Context/Codex packets, and returns source-readiness facts so Codex knows whether to run actions or ask for missing context.
+Expected result: human and agent work on the same local state with explicit, reviewable mutations. When the agent receives a messy pasted source blob, `ingest_anything` mirrors the web canvas intake, maps YouTube, video, image, URL, and note context without making the user pick a lower-level tool, keeps nearby media transcripts/notes/OCR attached to the right source, persists the same intake trace visible in the UI, exports that trace in Context/Codex packets, and returns source-readiness facts so Codex knows whether to run actions, ask for missing context, or call `enrich_source_node` when the missing transcript/OCR/notes are available.
 
 ## Flow 5A: Guided Workflow Template
 
@@ -162,7 +179,7 @@ Expected result: templates are not decorative examples; they are reusable operat
 5. Inspect the `First success` card: install, open, capture, inspect, handoff, and Codex.
 6. Inspect the Input contracts matrix to see how each supported input maps to node kinds such as `source_youtube`, `source_video`, `source_image`, `source_url`, and `source_pdf`.
 7. Copy `Setup`, `Codex`, `Smoke`, `first-run check`, `first-success`, or `prod preview` commands when a status needs action.
-8. Inspect the `Agent toolbelt`: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
+8. Inspect the `Agent toolbelt`: `get_latest_canvas`, `ingest_anything`, `enrich_source_node`, `run_node_action`, and `export_canvas`.
 9. Copy the agent prompt, adoption report command, or terminal Codex handoff command when the next step should move from UI to Codex.
 10. Copy the Codex activation prompt when Codex should continue from the current local canvas.
 11. Restart Codex after installing MCP config.

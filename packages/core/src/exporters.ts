@@ -224,6 +224,7 @@ export function exportCanvasAsAgentContext(canvas: CanvasRecord): string {
     '- If MCP is available, read the live canvas before mutating it and write durable findings back as nodes.',
     '- Use `get_latest_canvas` when resuming the human-active canvas and `ingest_anything` when the human provides mixed pasted context.',
     '- Use `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, or `ingest_pdf` for known source types instead of keeping important context only in chat.',
+    '- Use `enrich_source_node` when a mapped source is reference-only and transcript, OCR, notes, claims, or excerpts become available later.',
     '- Use `run_node_action` for deterministic local summaries, claims, comparisons, matrices, build briefs, and source-grounded answers.',
     '- Do not post externally, spend money, mutate accounts, expose secrets, or assume destructive tools exist.',
     '',

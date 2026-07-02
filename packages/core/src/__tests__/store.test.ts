@@ -50,6 +50,33 @@ describe('FileCanvasStore', () => {
     expect(image.artifact.kind).toBe('image');
     expect(image.artifact.metadata.imageDataUrl).toContain('data:image/png');
 
+    const videoReference = await store.ingestSource(canvas.id, {
+      kind: 'source_video',
+      title: 'Reference-only demo',
+      body: 'Video transcript was not fetched from https://vimeo.com/123456789. The link is mapped as a video reference. Add a transcript, notes, timestamps, or claims to analyze it.',
+      source: 'https://vimeo.com/123456789',
+      artifactKind: 'video',
+      metadata: { ingest: 'video_reference', url: 'https://vimeo.com/123456789' },
+    });
+    const enriched = await store.enrichSourceNode(canvas.id, videoReference.node.id, {
+      body: 'Timestamp 00:42: the walkthrough shows how a creator drops a video link, adds notes, and hands the mapped context to Codex.',
+      enrichmentKind: 'timestamp_notes',
+      sourceLabel: 'Manual video enrichment',
+    });
+    expect(enriched.node.body).toContain('Timestamp 00:42');
+    expect(enriched.artifact?.body).toContain('walkthrough shows');
+    expect(enriched.artifact?.chunks[0]?.id).toContain(':chunk-001');
+    expect(enriched.artifact?.metadata.ingest).toBe('manual_timestamp_notes');
+    expect(enriched.sourceReadiness[0]).toMatchObject({
+      status: 'ready',
+      label: 'Codex-ready video notes',
+      canRunActions: true,
+    });
+    expect(enriched.trace.sourceLabel).toBe('Manual video enrichment');
+    expect(enriched.trace.items[0].readinessLabel).toBe('Codex-ready video notes');
+    const savedEnriched = await store.getCanvas(canvas.id);
+    expect(savedEnriched.intakeTraces[0].id).toBe(enriched.trace.id);
+
     const moved = await store.updateNode(canvas.id, ingested.node.id, { position: { x: 640, y: 360 } });
     expect(moved.node.position).toEqual({ x: 640, y: 360 });
 
@@ -66,7 +93,9 @@ describe('FileCanvasStore', () => {
     expect(context).toContain('# Agent Context Packet: Planning');
     expect(context).toContain('## Operating Contract');
     expect(context).toContain('## Source Chunk Manifest');
+    expect(context).toContain('## Intake Trace Manifest');
     expect(context).toContain('MCP-native');
+    expect(context).toContain('walkthrough shows how a creator drops a video link');
 
     const codex = await store.exportCanvas(canvas.id, 'codex');
     expect(codex).toContain('# Codex Handoff: Planning');
@@ -96,7 +125,7 @@ describe('FileCanvasStore', () => {
     portable.title = 'Imported planning';
     const imported = await store.importCanvas(portable);
     expect(imported.id).toBe('canvas-imported-planning');
-    expect(imported.nodes.length).toBe(afterConcurrentWrites.nodes.length + 2);
+    expect(imported.nodes.length).toBe(afterConcurrentWrites.nodes.length + 3);
 
     const importedCopy = await store.importCanvas(portable);
     expect(importedCopy.id).not.toBe(imported.id);

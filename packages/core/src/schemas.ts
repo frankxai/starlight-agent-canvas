@@ -190,6 +190,24 @@ export const updateNodeInputSchema = z.object({
   metadata: z.record(z.unknown()).optional(),
 });
 
+export const sourceEnrichmentKindSchema = z.enum([
+  'transcript',
+  'timestamp_notes',
+  'ocr',
+  'visual_notes',
+  'claims',
+  'notes',
+]);
+
+export const enrichSourceInputSchema = z.object({
+  body: z.string().min(1),
+  enrichmentKind: sourceEnrichmentKindSchema.default('notes'),
+  append: z.boolean().default(true),
+  title: z.string().min(1).optional(),
+  sourceLabel: z.string().min(1).optional(),
+  metadata: z.record(z.unknown()).default({}),
+});
+
 export const connectNodesInputSchema = z.object({
   source: z.string().min(1),
   target: z.string().min(1),
@@ -221,5 +239,7 @@ export type CreateCanvasInput = z.infer<typeof createCanvasInputSchema>;
 export type AddNodeInput = z.infer<typeof addNodeInputSchema>;
 export type IngestSourceInput = z.infer<typeof ingestSourceInputSchema>;
 export type UpdateNodeInput = z.infer<typeof updateNodeInputSchema>;
+export type SourceEnrichmentKind = z.infer<typeof sourceEnrichmentKindSchema>;
+export type EnrichSourceInput = z.input<typeof enrichSourceInputSchema>;
 export type ConnectNodesInput = z.infer<typeof connectNodesInputSchema>;
 export type RunActionInput = z.input<typeof runActionInputSchema>;

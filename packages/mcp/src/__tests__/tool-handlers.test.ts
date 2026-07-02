@@ -73,6 +73,41 @@ describe('MCP tool handlers', () => {
     expect(genericVideoArtifact.kind).toBe('video');
     expect(genericVideoArtifact.chunks[0].id).toContain('chunk-001');
 
+    const referenceVideo = await handlers.ingest_video({
+      canvasId: canvas.id,
+      url: 'https://www.loom.com/share/reference-only-video',
+      title: 'Reference-only workflow video',
+      position: { x: 720, y: 460 },
+    });
+    const referenceVideoNode = referenceVideo.structuredContent?.node as { id: string; kind: string };
+    const beforeEnrichment = await handlers.get_canvas({ canvasId: canvas.id });
+    const beforeReadiness = beforeEnrichment.structuredContent?.sourceReadiness as Array<{ nodeId: string; label: string; status: string; canRunActions: boolean }>;
+    expect(beforeReadiness.find((item) => item.nodeId === referenceVideoNode.id)).toMatchObject({
+      label: 'Video reference saved',
+      status: 'reference_only',
+      canRunActions: false,
+    });
+    const enrichedReference = await handlers.enrich_source_node({
+      canvasId: canvas.id,
+      nodeId: referenceVideoNode.id,
+      body: 'Transcript: this reference-only video now explains the human paste, enrich, ask, and Codex handoff loop.',
+      enrichmentKind: 'transcript',
+      sourceLabel: 'MCP source enrichment',
+    });
+    const enrichedArtifact = enrichedReference.structuredContent?.artifact as { body: string; chunks: Array<{ id: string }>; metadata: Record<string, unknown> };
+    const enrichmentTrace = enrichedReference.structuredContent?.trace as { sourceLabel: string; items: Array<{ readinessLabel: string }> };
+    const enrichedReadiness = enrichedReference.structuredContent?.sourceReadiness as Array<{ label: string; status: string; canRunActions: boolean }>;
+    expect(enrichedArtifact.body).toContain('reference-only video now explains');
+    expect(enrichedArtifact.chunks[0].id).toContain('chunk-001');
+    expect(enrichedArtifact.metadata.ingest).toBe('manual_video_transcript');
+    expect(enrichmentTrace.sourceLabel).toBe('MCP source enrichment');
+    expect(enrichmentTrace.items[0].readinessLabel).toBe('Codex-ready video notes');
+    expect(enrichedReadiness[0]).toMatchObject({
+      label: 'Codex-ready video notes',
+      status: 'ready',
+      canRunActions: true,
+    });
+
     const imageReference = await handlers.ingest_image({
       canvasId: canvas.id,
       url: 'https://example.com/workflow.png',

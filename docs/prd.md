@@ -28,6 +28,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - After paste, drop, or upload mapping, the composer shows a latest intake receipt with created node kinds, artifact kinds, optional action output, and receipt-scoped `Context` / `Codex` copy actions.
 - Non-YouTube video links are captured as first-class `source_video` nodes with `video` artifacts, attached notes/transcripts, chunks, and `media: video_reference` provenance; full provider-specific transcription is deferred.
 - Image links and uploaded screenshots are captured as first-class `source_image` nodes with `image` artifacts, local preview metadata, optional visual notes/OCR text, chunks, and `media: image_reference` or `media: image_upload` provenance; first-class OCR/vision extraction is deferred.
+- Users can enrich an existing reference-only source after mapping by attaching transcript, timestamp notes, OCR, visual observations, claims, or excerpts; the node body, linked artifact, chunks, source readiness, and intake trace update together.
 - The first-viewport composer exposes quick starters for `Video`, `Image`, `Web`, `Note`, and `Ask`, plus a visible `Drop -> Map -> Ask -> Handoff` loop.
 - The first-viewport composer exposes a live operator loop for `Capture -> Map -> Inspect -> Ask -> Handoff`, backed by actual canvas state and direct actions.
 - Templates launch guided workflow canvases with ordered stages, source slots, prompt nodes, expected output targets, and Codex/MCP handoff nodes.
@@ -48,7 +49,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
 - User can export portable JSON, readable Markdown, general agent context packets, and Codex-ready continuation prompts; user can re-import portable JSON.
 - User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
-- User can see the in-app agent tool path for Codex/MCP work: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
+- User can see the in-app agent tool path for Codex/MCP work: `get_latest_canvas`, `ingest_anything`, `enrich_source_node`, `run_node_action`, and `export_canvas`.
 - User can copy the adoption report command, agent prompt, and terminal Codex handoff command from inside the workspace.
 - User can see a maintained first-success contract in the workspace: install, open, capture, inspect, handoff, and Codex.
 - User can follow a live activation runway from install health to proof canvas, mapped source context, context export, and Codex MCP wiring.
@@ -57,7 +58,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
 - Operators, GitHub contributors, setup helpers, and agents can parse the first-success contract through `pnpm first-success:json`.
 - Operators, GitHub contributors, and agents can parse adoption readiness through `pnpm adoption:report:json`, not only scattered docs and screenshots.
-- MCP clients can list, read, get the latest canvas with source-readiness facts, create, import, add/update positioned nodes, ingest mixed paste-anything content, ingest text/URL/YouTube/video/image/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
+- MCP clients can list, read, get the latest canvas with source-readiness facts, create, import, add/update positioned nodes, ingest mixed paste-anything content, ingest text/URL/YouTube/video/image/PDF sources, enrich existing source nodes, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
 
 ## Non-Goals
@@ -126,13 +127,14 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can identify what `Map` created after clicking it, inspect the latest mapped cluster, and copy a context/Codex handoff scoped to that intake.
 - A user can paste a mixed media research blob containing a YouTube URL, generic video URL, image URL, and nearby transcript/notes/OCR labels, then get typed media nodes with attached context and no duplicate stray note node.
 - A user can select any mapped source and know whether it is Codex-ready now or needs transcript, OCR, page text, or notes first.
+- A user can select a reference-only source, attach transcript/OCR/notes in the inspector, and immediately run selected-source actions without recreating the source.
 - A user can start from `Video`, `Image`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
 - A user can see which workflow stage is complete and trigger the next one from the first viewport.
 - A user can launch a workflow template and understand the ordered stages from the Workflow Map without reading docs.
 - A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
 - A user can add an image URL or uploaded screenshot, see a thumbnail in the graph/inspector, and preserve the image artifact/provenance in JSON/context export.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context/Codex handoff for the whole canvas or selected node ids, and import portable JSON through smoke tests.
-- An MCP client can mirror the human paste-anything flow with one `ingest_anything` call that detects YouTube, generic video, image, URL, and text context, keeps nearby media notes/transcripts/OCR attached, returns source-readiness facts, and optionally runs an action on only the newly mapped nodes.
+- An MCP client can mirror the human paste-anything flow with one `ingest_anything` call that detects YouTube, generic video, image, URL, and text context, keeps nearby media notes/transcripts/OCR attached, returns source-readiness facts, optionally enriches existing source nodes through `enrich_source_node`, and optionally runs an action on only the newly mapped or enriched nodes.
 - Contributors can identify the right issue template and local verification command without reading code.
 
 ## Roadmap

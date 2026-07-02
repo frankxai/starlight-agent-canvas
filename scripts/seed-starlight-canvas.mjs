@@ -64,7 +64,7 @@ const canvas = {
       'mcp_tool',
       'MCP Boundary',
       [
-        'Exposed tools: list_canvases, get_latest_canvas, get_canvas, create_canvas, add_node, update_node, ingest_anything, ingest_text_source, ingest_url, ingest_youtube, ingest_video, ingest_image, ingest_pdf, connect_nodes, run_node_action, search_artifacts, export_canvas.',
+        'Exposed tools: list_canvases, get_latest_canvas, get_canvas, create_canvas, add_node, update_node, enrich_source_node, ingest_anything, ingest_text_source, ingest_url, ingest_youtube, ingest_video, ingest_image, ingest_pdf, connect_nodes, run_node_action, search_artifacts, export_canvas.',
         'No destructive tools. No posting. No social scraping. No payments. No external account mutation.',
         'Runtime state is under AGENT_CANVAS_HOME. Frank local default: C:/Users/frank/.starlight/agent-canvas.',
       ].join('\n'),

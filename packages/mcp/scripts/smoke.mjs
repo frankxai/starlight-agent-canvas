@@ -17,6 +17,7 @@ const expectedTools = [
   'import_canvas',
   'add_node',
   'update_node',
+  'enrich_source_node',
   'ingest_text_source',
   'ingest_anything',
   'ingest_url',
@@ -126,6 +127,37 @@ try {
   }
   if (!Array.isArray(genericVideoArtifact.chunks) || !genericVideoArtifact.chunks.length) {
     throw new Error('ingest_video did not create source chunks.');
+  }
+
+  const referenceVideo = await client.callTool({
+    name: 'ingest_video',
+    arguments: {
+      canvasId,
+      url: 'https://www.loom.com/share/reference-only-smoke',
+      title: 'Smoke reference-only video',
+      position: { x: 740, y: 500 },
+    },
+  });
+  const referenceVideoNodeId = referenceVideo.structuredContent?.node?.id;
+  if (typeof referenceVideoNodeId !== 'string') {
+    throw new Error('ingest_video did not create a reference-only video node.');
+  }
+  const enrichedVideo = await client.callTool({
+    name: 'enrich_source_node',
+    arguments: {
+      canvasId,
+      nodeId: referenceVideoNodeId,
+      body: 'Transcript: reference-only smoke video is enriched with context for search, Ask, and Codex export.',
+      enrichmentKind: 'transcript',
+      sourceLabel: 'MCP smoke enrichment',
+    },
+  });
+  const enrichedVideoArtifact = enrichedVideo.structuredContent?.artifact;
+  if (!Array.isArray(enrichedVideoArtifact?.chunks) || !enrichedVideoArtifact.chunks.length) {
+    throw new Error('enrich_source_node did not rebuild source chunks.');
+  }
+  if (enrichedVideo.structuredContent?.trace?.items?.[0]?.readinessLabel !== 'Codex-ready video notes') {
+    throw new Error('enrich_source_node did not return a Codex-ready readiness trace.');
   }
 
   const image = await client.callTool({

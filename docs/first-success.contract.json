@@ -56,7 +56,7 @@
       "humanAction": "Install MCP config, restart Codex, and ask it to operate on the latest canvas.",
       "detail": "Use MCP tools to read, ingest, run actions, and export the same canvas.",
       "command": "pnpm mcp:install:codex -- --write",
-      "mcpLoop": ["get_latest_canvas", "ingest_anything", "run_node_action", "export_canvas"],
+      "mcpLoop": ["get_latest_canvas", "ingest_anything", "enrich_source_node", "run_node_action", "export_canvas"],
       "proof": ["pnpm mcp:smoke", "pnpm doctor"]
     }
   ],
@@ -152,10 +152,10 @@
     "readiness": ["pnpm doctor:json", "pnpm first-success:json", "pnpm adoption:report:json", "pnpm release:audit"],
     "codex": ["pnpm mcp:build", "pnpm mcp:install:codex -- --write", "pnpm doctor"]
   },
-  "codexPrompt": "Use starlight-agent-canvas as shared local context. Call get_latest_canvas, read the graph before writing, add durable evidence with ingest_anything when new context appears, run one useful action, then export_canvas with format \"codex\". Return node ids, artifact ids, chunk ids, and every node/action changed.",
+  "codexPrompt": "Use starlight-agent-canvas as shared local context. Call get_latest_canvas, read the graph before writing, add durable evidence with ingest_anything when new context appears, enrich reference-only sources with enrich_source_node when transcript/OCR/notes are available, run one useful action, then export_canvas with format \"codex\". Return node ids, artifact ids, chunk ids, and every node/action changed.",
   "knownLimits": [
-    "Non-YouTube provider transcript adapters are future work; v0.1 captures them as safe video references plus notes.",
-    "Image OCR and provider vision are future work; v0.1 captures image references/uploads plus human notes.",
+    "Non-YouTube provider transcript adapters are future work; v0.1 captures them as safe video references plus notes and supports later manual enrichment.",
+    "Image OCR and provider vision are future work; v0.1 captures image references/uploads plus human notes and supports later manual OCR/visual-note enrichment.",
     "Hosted collaboration, auth, billing, marketplace, and provider-backed AI actions are v0.2+."
   ],
   "docs": [

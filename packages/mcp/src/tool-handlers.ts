@@ -4,6 +4,7 @@ import {
   connectNodesInputSchema,
   createIntakeTraceForNodes,
   createCanvasInputSchema,
+  enrichSourceInputSchema,
   FileCanvasStore,
   ingestSourceInputSchema,
   ingestPdf,
@@ -17,6 +18,7 @@ import {
   type CreateCanvasInput,
   type CanvasActionType,
   type CanvasExportFormat,
+  type EnrichSourceInput,
   type IngestedSource,
   type RunActionInput,
   type UpdateNodeInput,
@@ -179,6 +181,12 @@ export function createToolHandlers(store = new FileCanvasStore()) {
       const { canvasId, nodeId, ...input } = args;
       const result = await store.updateNode(canvasId, nodeId, updateNodeInputSchema.parse(input));
       return ok(`Updated node ${result.node.title} (${result.node.id})`, result);
+    },
+
+    async enrich_source_node(args: { canvasId: string; nodeId: string } & EnrichSourceInput): Promise<ToolResult> {
+      const { canvasId, nodeId, ...input } = args;
+      const result = await store.enrichSourceNode(canvasId, nodeId, enrichSourceInputSchema.parse(input));
+      return ok(`Enriched source ${result.node.title} (${result.node.id})`, result);
     },
 
     async ingest_text_source(args: {

@@ -39,7 +39,7 @@ It verifies that Codex has the `starlight-agent-canvas` server/env blocks and th
 It also verifies that the built core/MCP artifacts include the current video and image node/tool schema, which catches stale MCP builds after source media support changes.
 The in-app `Setup / MCP` panel also exposes the activation runway and a copyable Codex activation prompt backed by `/api/setup/status`.
 It also exposes the First Success contract so Codex and the human share the same install/open/capture/inspect/handoff/Codex loop.
-It also exposes the Agent toolbelt so the human can see the MCP sequence Codex should use: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
+It also exposes the Agent toolbelt so the human can see the MCP sequence Codex should use: `get_latest_canvas`, `ingest_anything`, `enrich_source_node`, `run_node_action`, and `export_canvas`.
 
 When Codex or another agent needs parseable setup state, run:
 
@@ -113,6 +113,7 @@ For implementation continuation, prefer `export_canvas` with `format: "codex"` o
 - `ingest_video`: add a Loom, Vimeo, direct video, Drive, Dropbox, or similar video URL plus optional manual transcript/notes.
 - `ingest_image`: add an image URL or local PNG/JPEG/WebP/GIF/AVIF bytes plus optional visual notes/OCR text.
 - `ingest_pdf`: add a base64 PDF as a local PDF source artifact.
+- `enrich_source_node`: attach transcript, OCR, timestamp notes, visual observations, claims, or excerpts to an existing reference-only source; this updates the node, linked artifact chunks, source readiness, and trace together.
 - `add_node`: create note, prompt, MCP tool, agent run, or output nodes.
 - `update_node`: clean up titles, bodies, metadata, or positions.
 - `connect_nodes`: make evidence relationships explicit.
@@ -124,6 +125,8 @@ If MCP is temporarily unavailable, `pnpm canvas -- export latest --format codex`
 If setup health is uncertain, `pnpm doctor:json` gives Codex a structured checklist without requiring it to parse terminal prose.
 
 For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Use this for agent-generated canvases so human review starts from a coherent visual map.
+
+When `sourceReadiness` says `Video reference saved`, `URL reference saved`, `Needs visual text`, or `Needs text`, do not pretend the source has been analyzed. Ask for missing context, or use `enrich_source_node` if you already have transcript text, OCR text, notes, claims, or excerpts from another safe source.
 
 ## Human Interaction Pattern
 

@@ -47,7 +47,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   expect(setupJson.firstSuccess.inputContracts.find((contract) => contract.id === 'video')?.output).toContain('source_video');
   expect(setupJson.agent.prompt).toContain('get_latest_canvas');
   expect(setupJson.agent.terminalHandoffCommand).toContain('format codex');
-  expect(setupJson.agent.tools.map((tool) => tool.name)).toEqual(['get_latest_canvas', 'ingest_anything', 'run_node_action', 'export_canvas']);
+  expect(setupJson.agent.tools.map((tool) => tool.name)).toEqual(['get_latest_canvas', 'ingest_anything', 'enrich_source_node', 'run_node_action', 'export_canvas']);
   expect(setupJson.activation.firstRunCheckCommand).toBe('pnpm first-run:check');
   expect(setupJson.activation.codexPrompt).toContain('Use starlight-agent-canvas');
   expect(setupJson.activation.steps.map((step) => step.id)).toEqual(['install', 'proof', 'context', 'handoff', 'codex']);
@@ -83,6 +83,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('agent-toolbelt')).toContainText('Agent toolbelt');
   await expect(page.getByTestId('agent-tool-get_latest_canvas')).toContainText('get_latest_canvas');
   await expect(page.getByTestId('agent-tool-ingest_anything')).toContainText('ingest_anything');
+  await expect(page.getByTestId('agent-tool-enrich_source_node')).toContainText('enrich_source_node');
   await expect(page.getByTestId('agent-tool-run_node_action')).toContainText('run_node_action');
   await expect(page.getByTestId('agent-tool-export_canvas')).toContainText('export_canvas');
   await expect(page.getByTestId('agent-toolbelt-prompt')).toBeEnabled();
@@ -210,6 +211,39 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
     expect(exported.artifacts.some((artifact) => artifact.kind === 'video' && artifact.body.includes('Manual video notes'))).toBe(true);
     expect(exported.intakeTraces.some((trace) => trace.items.some((item) => item.readinessLabel === 'Codex-ready video notes'))).toBe(true);
   }
+
+  await page.getByTestId('intake-text').fill('https://vimeo.com/246813579');
+  await expect(page.getByTestId('intake-preview')).toContainText('Video link');
+  await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();
+  await page.getByTestId('intake-ingest').click();
+  await expect(page.getByTestId('status')).toContainText('Mapped 1 item(s): Video link.');
+  await expect(page.getByTestId('source-readiness-label')).toContainText('Video reference saved');
+  await expect(page.getByTestId('source-readiness-state')).toContainText('Needs context');
+  await expect(page.getByTestId('source-enrichment')).toContainText('Attach context');
+  await expect(page.getByTestId('source-enrichment-kind')).toContainText('Transcript');
+  await expect(page.getByTestId('source-enrichment-attach')).toBeDisabled();
+  await page.getByTestId('source-enrichment-body').fill('Transcript: the reference-only video explains how creators paste, enrich, ask, and hand context to Codex.');
+  await page.getByTestId('source-enrichment-attach').click();
+  await expect(page.getByTestId('status')).toContainText('Attached transcript to selected source.');
+  await expect(page.getByTestId('source-readiness-label')).toContainText('Codex-ready video notes');
+  await expect(page.getByTestId('source-readiness-state')).toContainText('Actions ready');
+  await expect(page.getByTestId('source-readiness-evidence')).toContainText('manual video transcript');
+  await expect(page.getByTestId('source-chunk-preview')).toContainText('reference-only video explains');
+  await expect(page.getByTestId('intake-trace-panel')).toContainText('Latest intake trace');
+  await expect(page.getByTestId('intake-trace-stats')).toContainText('1 / 1');
+  {
+    const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
+    expect(exportHref).toBeTruthy();
+    const exportResponse = await page.request.get(exportHref!);
+    await expect(exportResponse).toBeOK();
+    const exported = await exportResponse.json() as {
+      artifacts: Array<{ kind: string; body: string; metadata: Record<string, unknown>; chunks: Array<{ text: string }> }>;
+      intakeTraces: Array<{ sourceLabel: string; items: Array<{ readinessLabel?: string }> }>;
+    };
+    expect(exported.artifacts.some((artifact) => artifact.kind === 'video' && artifact.body.includes('reference-only video explains') && artifact.chunks.length > 0)).toBe(true);
+    expect(exported.intakeTraces.some((trace) => trace.sourceLabel === 'Inspector enrichment' && trace.items.some((item) => item.readinessLabel === 'Codex-ready video notes'))).toBe(true);
+  }
+
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Brief' }).click();
   await page.getByTestId('intake-text').fill('');
   await page.getByTestId('composer-mode').getByRole('button', { name: 'Note' }).click();

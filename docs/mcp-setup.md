@@ -13,7 +13,7 @@ pnpm mcp:install:codex
 pnpm mcp:smoke
 ```
 
-The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, reads the latest canvas, ingests text, paste-anything mixed context, URL fallback, YouTube/manual transcript, generic video reference, image reference, and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context/Codex handoff, asserts chunk-manifest output, and imports the portable JSON back as local context.
+The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, reads the latest canvas, ingests text, paste-anything mixed context, URL fallback, YouTube/manual transcript, generic video reference, enriches a reference-only video source, ingests image reference and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context/Codex handoff, asserts chunk-manifest output, and imports the portable JSON back as local context.
 
 The terminal CLI is a companion, not a replacement:
 
@@ -113,6 +113,7 @@ Use the same stdio shape when the host supports MCP servers:
 - `import_canvas`
 - `add_node`
 - `update_node`
+- `enrich_source_node`
 - `ingest_anything`
 - `ingest_text_source`
 - `ingest_url`
@@ -140,7 +141,9 @@ Use the same stdio shape when the host supports MCP servers:
 
 `ingest_anything` mirrors the web app's paste-anything behavior for MCP clients. It accepts mixed pasted content, detects YouTube links, generic video links, image links, web URLs, and plain notes, then creates typed nodes and artifacts. When a media URL is followed by source-specific labels such as transcript, notes, timestamps, OCR, alt text, or visual observations, that text stays attached to the matching YouTube/video/image source instead of becoming a duplicate note node. The response includes `sourceReadiness` for the newly mapped nodes, including labels such as `Codex-ready transcript`, `Codex-ready video notes`, `Codex-ready visual notes`, `URL reference saved`, or `Needs visual text`. It accepts optional `canvasId`; when omitted, it uses the latest local canvas and creates a fresh local capture canvas only when none exists. It also accepts optional `runAction` when the agent should immediately summarize, extract claims, build a brief, or answer a question over only the newly mapped nodes.
 
-The web app exposes the matching local route at `/api/canvases/:id/ingest/anything`. The first-viewport composer uses that route after client-side preview, and `pnpm first-run:check` exercises it in a production preview against a temporary data home.
+`enrich_source_node` is the follow-up path for links that were mapped before transcript, OCR, excerpts, or notes were available. It accepts `body`, `enrichmentKind` (`transcript`, `timestamp_notes`, `ocr`, `visual_notes`, `claims`, or `notes`), optional `append`, optional `title`, and optional metadata. It updates the visible node and linked artifact together, rebuilds source chunks, returns fresh `sourceReadiness`, and records an intake trace with the new readiness label.
+
+The web app exposes the matching local routes at `/api/canvases/:id/ingest/anything` and `/api/canvases/:id/nodes/:nodeId/enrich`. The first-viewport composer uses the intake route after client-side preview, and the inspector `Attach context` panel uses the enrichment route for selected sources.
 
 `add_node`, `ingest_anything`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
 
@@ -168,4 +171,4 @@ Prompt:
 
 ## Boundary
 
-The server is local-only and non-destructive in v0.1. It does not delete canvases, post externally, scrape social platforms, spend money, alter external accounts, or require provider keys. `ingest_url`, `ingest_youtube`, `ingest_video`, and `ingest_image` are source intake tools that create local artifacts and nodes; generic video links are saved as reference context with optional manual transcript or notes, while image links/uploads are saved with visual provenance and optional notes/OCR text.
+The server is local-only and non-destructive in v0.1. It does not delete canvases, post externally, scrape social platforms, spend money, alter external accounts, or require provider keys. `ingest_url`, `ingest_youtube`, `ingest_video`, and `ingest_image` are source intake tools that create local artifacts and nodes; `enrich_source_node` only updates existing local source context. Generic video links are saved as reference context with optional manual transcript or notes, while image links/uploads are saved with visual provenance and optional notes/OCR text.
