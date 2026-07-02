@@ -85,6 +85,56 @@ function removeUrls(value: string, urls: string[]): string {
   return urls.reduce((text, url) => text.replace(url, ' '), value).replace(/\s+/g, ' ').trim();
 }
 
+type IntakeUrlMatch = {
+  url: string;
+  start: number;
+  end: number;
+};
+
+function extractIntakeUrlMatches(value: string, expectedUrls: string[]): IntakeUrlMatch[] {
+  const expected = new Set(expectedUrls);
+  const matches: IntakeUrlMatch[] = [];
+  URL_PATTERN.lastIndex = 0;
+  for (const match of value.matchAll(URL_PATTERN)) {
+    const matched = match[0];
+    const url = matched.replace(/[),.;]+$/, '');
+    if (!url || !expected.has(url) || typeof match.index !== 'number') continue;
+    matches.push({ url, start: match.index, end: match.index + url.length });
+  }
+  return matches;
+}
+
+function cleanAttachedText(value: string): string {
+  return value
+    .replace(/^[\s:;,\-\u2013\u2014|]+/, '')
+    .replace(/[\s:;,\-\u2013\u2014|]+$/, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n[ \t]+/g, '\n')
+    .trim();
+}
+
+function looksSourceSpecific(value: string): boolean {
+  const text = cleanAttachedText(value).toLowerCase();
+  if (!text) return false;
+  return /^(manual\s+)?(transcript|notes?|video notes?|visual notes?|ocr|alt text|timestamp|timestamps|claims?|captions?|description|summary|takeaways?)\b/.test(text)
+    || /\b(transcript|timestamp|timestamps|ocr|alt text|visual observation|visual observations)\b/.test(text);
+}
+
+function textOutsideRanges(value: string, ranges: Array<{ start: number; end: number }>): string {
+  const sorted = ranges
+    .filter((range) => range.end > range.start)
+    .sort((a, b) => a.start - b.start || a.end - b.end);
+  const parts: string[] = [];
+  let cursor = 0;
+  for (const range of sorted) {
+    const start = Math.max(cursor, range.start);
+    if (start > cursor) parts.push(value.slice(cursor, start));
+    cursor = Math.max(cursor, range.end);
+  }
+  if (cursor < value.length) parts.push(value.slice(cursor));
+  return cleanAttachedText(parts.join('\n')).replace(/\s+/g, ' ').trim();
+}
+
 function hostTitle(value: string, fallback: string): string {
   try {
     return new URL(value).hostname.replace(/^www\./, '') || fallback;
@@ -102,42 +152,66 @@ export function detectIntakeText(value: string): DetectedIntakePlan {
   const raw = value.trim();
   if (!raw) return { raw, urls: [], notes: '', items: [] };
 
-  const urls = isYoutubeVideoId(raw) ? [normalizeYoutubeReference(raw)] : extractIntakeUrls(raw);
+  const directYoutubeId = isYoutubeVideoId(raw);
+  const urls = directYoutubeId ? [normalizeYoutubeReference(raw)] : extractIntakeUrls(raw);
   const youtubeUrls = urls.filter(isYoutubeLink);
   const videoUrls = urls.filter((item) => !isYoutubeLink(item) && isKnownVideoLink(item));
   const imageUrls = urls.filter((item) => !isYoutubeLink(item) && !isKnownVideoLink(item) && isKnownImageLink(item));
   const webUrls = urls.filter((item) => !isYoutubeLink(item) && !isKnownVideoLink(item) && !isKnownImageLink(item));
-  const notes = removeUrls(raw, urls);
+  const mediaUrls = new Set([...youtubeUrls, ...videoUrls, ...imageUrls]);
+  const urlMatches = directYoutubeId ? [] : extractIntakeUrlMatches(raw, urls);
+  const consumedRanges: Array<{ start: number; end: number }> = urlMatches.map((match) => ({ start: match.start, end: match.end }));
+  const attachedTextByUrl = new Map<string, string>();
+
+  if (urls.length > 1) {
+    for (const [index, match] of urlMatches.entries()) {
+      if (!mediaUrls.has(match.url)) continue;
+      const nextStart = urlMatches[index + 1]?.start ?? raw.length;
+      const candidate = cleanAttachedText(raw.slice(match.end, nextStart));
+      if (!looksSourceSpecific(candidate)) continue;
+      attachedTextByUrl.set(match.url, candidate);
+      consumedRanges.push({ start: match.end, end: nextStart });
+    }
+  }
+
+  const notes = directYoutubeId
+    ? ''
+    : urls.length > 1
+      ? textOutsideRanges(raw, consumedRanges)
+      : removeUrls(raw, urls);
   const singleMediaWithAttachedText = urls.length === 1 && (youtubeUrls.length === 1 || videoUrls.length === 1 || imageUrls.length === 1);
   const items: DetectedIntakeItem[] = [];
 
   for (const url of youtubeUrls) {
+    const attachedText = attachedTextByUrl.get(url) ?? (singleMediaWithAttachedText ? notes : '');
     items.push({
       kind: 'youtube',
       title: `YouTube ${hostTitle(url, 'source')}`,
-      body: singleMediaWithAttachedText ? notes : '',
+      body: attachedText,
       url,
-      attachedText: singleMediaWithAttachedText ? notes : '',
+      attachedText,
     });
   }
 
   for (const url of videoUrls) {
+    const attachedText = attachedTextByUrl.get(url) ?? (singleMediaWithAttachedText ? notes : '');
     items.push({
       kind: 'video',
       title: `Video ${hostTitle(url, 'source')}`,
-      body: singleMediaWithAttachedText ? notes : '',
+      body: attachedText,
       url,
-      attachedText: singleMediaWithAttachedText ? notes : '',
+      attachedText,
     });
   }
 
   for (const url of imageUrls) {
+    const attachedText = attachedTextByUrl.get(url) ?? (singleMediaWithAttachedText ? notes : '');
     items.push({
       kind: 'image',
       title: `Image ${hostTitle(url, 'source')}`,
-      body: singleMediaWithAttachedText ? notes : '',
+      body: attachedText,
       url,
-      attachedText: singleMediaWithAttachedText ? notes : '',
+      attachedText,
     });
   }
 

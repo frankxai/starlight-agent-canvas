@@ -29,15 +29,16 @@ Expected result: the user can use either the top composer or the center empty-ca
 8. Paste or drop context.
 9. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
 10. Confirm the live operator loop advances from `Capture` to `Map` after source nodes exist.
-11. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-12. Confirm the latest intake receipt lists the created node kind(s), artifact kind(s), optional output, and `Codex-ready` state.
-13. Use the receipt's `Inspect`, `Context`, or `Codex` controls when you want exactly the newly mapped material.
-14. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
-15. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
-16. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
-17. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
+11. If the paste contains multiple media URLs with nearby labeled transcript, notes, timestamps, OCR, alt text, or visual observations, confirm those details stay attached to the matching media source.
+12. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+13. Confirm the latest intake receipt lists the created node kind(s), artifact kind(s), optional output, and `Codex-ready` state.
+14. Use the receipt's `Inspect`, `Context`, or `Codex` controls when you want exactly the newly mapped material.
+15. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
+16. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
+17. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
+18. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
 
-Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
+Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts, and source-specific notes remain bound to the media they explain.
 
 ## Flow 1B: One-Click Demo Proof
 
@@ -71,8 +72,8 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 
 1. Click `Video`.
 2. Paste a Loom, Vimeo, Wistia, TikTok, Twitch, Dailymotion, Streamable, Frame.io, common social video, Drive, Dropbox, or direct video URL.
-3. Paste notes or a manual transcript beneath the URL when available.
-4. Confirm the intake preview shows `Video link` with `manual notes attached` when notes are present.
+3. Paste labeled notes, timestamps, or a manual transcript beneath the URL when available.
+4. Confirm the intake preview shows `Video link` with attached notes/transcript when source-specific context is present.
 5. Click `Map only` when you want the raw video reference node, or `Map + Brief` when you want an immediate output.
 6. Export JSON/context and confirm the source is a `source_video` node with a `video` artifact and `media: video_reference` provenance.
 
@@ -81,8 +82,8 @@ Expected result: the canvas accepts arbitrary video links as local context refer
 ## Flow 2B: Image Evidence
 
 1. Click `Image`.
-2. Paste an image URL with visual notes, or drop/upload a PNG, JPEG, WebP, GIF, or AVIF screenshot.
-3. Confirm the intake preview shows `Image source` when a URL is detected.
+2. Paste an image URL with labeled visual notes, OCR, alt text, or observations, or drop/upload a PNG, JPEG, WebP, GIF, or AVIF screenshot.
+3. Confirm the intake preview shows `Image source` when a URL is detected and keeps nearby visual notes/OCR attached.
 4. Click `Map only` for raw visual evidence, or `Map + Brief` when you want immediate synthesis from the attached notes/OCR text.
 5. Confirm the graph node and inspector show an image preview.
 6. Confirm the context receipt shows `image`, `image reference` or `image upload`, source URL/file, chunks, and character count.
@@ -134,7 +135,7 @@ sequenceDiagram
   Human->>Canvas: Inspect and edit output
 ```
 
-Expected result: human and agent work on the same local state with explicit, reviewable mutations. When the agent receives a messy pasted source blob, `ingest_anything` mirrors the web canvas intake and maps YouTube, video, image, URL, and note context without making the user pick a lower-level tool.
+Expected result: human and agent work on the same local state with explicit, reviewable mutations. When the agent receives a messy pasted source blob, `ingest_anything` mirrors the web canvas intake, maps YouTube, video, image, URL, and note context without making the user pick a lower-level tool, and keeps nearby media transcripts/notes/OCR attached to the right source.
 
 ## Flow 5A: Guided Workflow Template
 

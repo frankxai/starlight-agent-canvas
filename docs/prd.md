@@ -24,6 +24,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - First run opens a user-owned blank canvas with templates nearby, not a pre-filled demo as the primary experience.
 - User can paste or drop URLs, YouTube links, image URLs/screenshots, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
 - The composer previews what it detected before mapping: YouTube source, non-YouTube video reference, image source, web source, source notes, text, PDF, or file.
+- Mixed paste blobs preserve local source context: labeled transcript, notes, timestamps, OCR, alt text, or visual observations that appear after a YouTube/video/image URL attach to that source instead of becoming duplicate loose notes.
 - After paste, drop, or upload mapping, the composer shows a latest intake receipt with created node kinds, artifact kinds, optional action output, and receipt-scoped `Context` / `Codex` copy actions.
 - Non-YouTube video links are captured as first-class `source_video` nodes with `video` artifacts, attached notes/transcripts, chunks, and `media: video_reference` provenance; full provider-specific transcription is deferred.
 - Image links and uploaded screenshots are captured as first-class `source_image` nodes with `image` artifacts, local preview metadata, optional visual notes/OCR text, chunks, and `media: image_reference` or `media: image_upload` provenance; first-class OCR/vision extraction is deferred.
@@ -122,13 +123,14 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - A user can identify what `Map` created after clicking it, inspect the latest mapped cluster, and copy a context/Codex handoff scoped to that intake.
+- A user can paste a mixed media research blob containing a YouTube URL, generic video URL, image URL, and nearby transcript/notes/OCR labels, then get typed media nodes with attached context and no duplicate stray note node.
 - A user can start from `Video`, `Image`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
 - A user can see which workflow stage is complete and trigger the next one from the first viewport.
 - A user can launch a workflow template and understand the ordered stages from the Workflow Map without reading docs.
 - A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
 - A user can add an image URL or uploaded screenshot, see a thumbnail in the graph/inspector, and preserve the image artifact/provenance in JSON/context export.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context/Codex handoff for the whole canvas or selected node ids, and import portable JSON through smoke tests.
-- An MCP client can mirror the human paste-anything flow with one `ingest_anything` call that detects YouTube, generic video, image, URL, and text context, optionally running an action on only the newly mapped nodes.
+- An MCP client can mirror the human paste-anything flow with one `ingest_anything` call that detects YouTube, generic video, image, URL, and text context, keeps nearby media notes/transcripts/OCR attached, and optionally runs an action on only the newly mapped nodes.
 - Contributors can identify the right issue template and local verification command without reading code.
 
 ## Roadmap

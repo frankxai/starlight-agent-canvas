@@ -106,7 +106,7 @@ For implementation continuation, prefer `export_canvas` with `format: "codex"` o
 - `get_latest_canvas`: resume the most recently updated human/agent canvas without requiring the user to name a canvas id.
 - `get_canvas`: inspect current graph state before editing.
 - `import_canvas`: rehydrate a portable JSON canvas export without overwriting an existing local canvas.
-- `ingest_anything`: paste-anything MCP intake that detects YouTube, generic video links, image links, web URLs, and raw notes; optionally run a local action over only the newly mapped nodes.
+- `ingest_anything`: paste-anything MCP intake that detects YouTube, generic video links, image links, web URLs, and raw notes; keeps nearby media transcript/notes/OCR blocks attached to the right YouTube/video/image source; optionally run a local action over only the newly mapped nodes.
 - `ingest_text_source`: add pasted research, transcripts, repo notes, or meeting notes.
 - `ingest_url`: add a public URL as source context.
 - `ingest_youtube`: add a YouTube URL plus optional manual transcript.

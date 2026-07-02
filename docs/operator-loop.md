@@ -22,7 +22,7 @@ flowchart LR
 2. Use `New` for a blank graph or `Demo` for a proof canvas.
 3. Use `Video`, `Image`, `Web`, `Note`, or `Ask` when the top composer is the fastest path.
 4. Use the graph command tray when attention is already on the canvas: `Source`, `Paste & Map`, `File`, `Note`, `Ask`, `Context`, `Codex`.
-5. Paste or drop YouTube, non-YouTube video links, image URLs/screenshots, web URLs, files, transcripts, rough notes, or mixed text. The clipboard button maps immediately when the browser allows it; when clipboard reads are blocked or empty, the composer stays focused for `Ctrl+V`, typing, or drop-to-canvas intake.
+5. Paste or drop YouTube, non-YouTube video links, image URLs/screenshots, web URLs, files, transcripts, rough notes, or mixed text. Labeled transcript, notes, timestamps, OCR, alt text, or visual observations after a YouTube/video/image URL stay attached to that media source. The clipboard button maps immediately when the browser allows it; when clipboard reads are blocked or empty, the composer stays focused for `Ctrl+V`, typing, or drop-to-canvas intake.
 6. Confirm the preview chips before mapping.
 7. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 8. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, and character count.
@@ -35,7 +35,7 @@ Agents should use the MCP server as a typed local operating surface, not as a ge
 
 1. `get_latest_canvas` when the human means the active/recent canvas, or `list_canvases` and `get_canvas` when a specific canvas matters.
 2. Read existing nodes/artifacts before writing.
-3. Use `ingest_anything` for messy pasted context so MCP mirrors the human canvas intake.
+3. Use `ingest_anything` for messy pasted context so MCP mirrors the human canvas intake, including nearby transcript/notes/OCR grouping for YouTube, video, and image sources.
 4. Use source-ingest tools when the source type is already known: `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, or `ingest_pdf`.
 5. Use `position` for generated nodes so the human opens a legible map.
 6. Use `connect_nodes` to make evidence relationships visible.

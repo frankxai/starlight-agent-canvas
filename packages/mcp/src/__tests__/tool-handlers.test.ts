@@ -207,4 +207,38 @@ describe('MCP tool handlers', () => {
     expect((latest.structuredContent?.canvas as { id: string }).id).toBe(canvasId);
     expect(JSON.stringify(latest.structuredContent)).toContain('Standalone pasted research note');
   });
+
+  it('keeps nearby mixed-media notes attached through ingest_anything', async () => {
+    const home = await mkdtemp(path.join(os.tmpdir(), 'agent-canvas-mcp-mixed-media-'));
+    const handlers = createToolHandlers(new FileCanvasStore(home));
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })));
+
+    const created = await handlers.create_canvas({ title: 'Mixed media intake', template: 'blank' });
+    const canvas = created.structuredContent?.canvas as { id: string };
+    const result = await handlers.ingest_anything({
+      canvasId: canvas.id,
+      content: [
+        'https://youtu.be/abcdefghijk',
+        'Manual transcript: the walkthrough shows context receipts and Codex handoff.',
+        'https://www.loom.com/share/starlight-proof',
+        'Notes: the Loom walkthrough shows how a human maps source context.',
+        'https://example.com/workflow.png',
+        'OCR: visible buttons include Inspect, Context, and Codex.',
+      ].join('\n'),
+      position: { x: 120, y: 160 },
+    });
+
+    const results = result.structuredContent?.results as Array<{ kind: string; artifact: { body: string; kind: string } }>;
+    expect(results.map((item) => item.kind)).toEqual(['youtube', 'video', 'image']);
+    expect(results.find((item) => item.kind === 'youtube')?.artifact.body).toContain('Manual transcript');
+    expect(results.find((item) => item.kind === 'video')?.artifact.body).toContain('Loom walkthrough');
+    expect(results.find((item) => item.kind === 'image')?.artifact.body).toContain('visible buttons');
+
+    const latest = await handlers.get_canvas({ canvasId: canvas.id });
+    const latestText = JSON.stringify(latest.structuredContent);
+    expect(latestText).toContain('source_youtube');
+    expect(latestText).toContain('source_video');
+    expect(latestText).toContain('source_image');
+    expect(latestText).not.toContain('kind":"note"');
+  });
 });
