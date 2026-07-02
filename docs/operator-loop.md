@@ -23,7 +23,7 @@ flowchart LR
 3. Use `Video`, `Image`, `Web`, `Note`, or `Ask` when the top composer is the fastest path.
 4. Use the graph command tray when attention is already on the canvas: `Source`, `Paste & Map`, `File`, `Note`, `Ask`, `Context`, `Codex`.
 5. Paste or drop YouTube, non-YouTube video links, image URLs/screenshots, web URLs, files, transcripts, rough notes, or mixed text. Labeled transcript, notes, timestamps, OCR, alt text, or visual observations after a YouTube/video/image URL stay attached to that media source. The clipboard button maps immediately when the browser allows it; when clipboard reads are blocked or empty, the composer stays focused for `Ctrl+V`, typing, or drop-to-canvas intake.
-6. Confirm the preview chips before mapping.
+6. Confirm the map preview before mapping: detected type, future node kind, artifact kind, readiness state, and whether the selected pass will add an output node.
 7. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 8. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, character count, and source readiness.
 9. If source readiness is reference-only or needs text, use the Action Drawer `Context gaps` lane or the inspector `Attach context` panel to add transcript, OCR, timestamp notes, visual observations, claims, or excerpts before expecting deep analysis.

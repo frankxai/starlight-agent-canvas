@@ -248,6 +248,17 @@ type IntakePlanItem = {
   active: boolean;
 };
 
+type IntakeMapPreviewItem = {
+  id: string;
+  kind: 'youtube' | 'video' | 'image' | 'url' | 'text';
+  title: string;
+  nodeKind: string;
+  artifactKind: string;
+  readiness: string;
+  nextAction: string;
+  source?: string;
+};
+
 type IntakeActionMode = 'map' | 'summarize' | 'claims' | 'ask';
 type ComposerMode = 'source' | 'note' | 'ask';
 type QuickStarterId = 'video' | 'image' | 'web' | 'note' | 'ask';
@@ -661,6 +672,83 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
   return plan.length ? plan : [{ id: 'url', label: `${detected.urls.length} source link${detected.urls.length === 1 ? '' : 's'}`, detail: 'reference node', active: true }];
 }
 
+function intakeMapPreviewFor(value: string): IntakeMapPreviewItem[] {
+  const detected = detectIntakeText(value);
+  return detected.items.map((item, index) => {
+    const hasAttachedText = Boolean(item.attachedText?.trim() || item.body.trim());
+    if (item.kind === 'youtube') {
+      return {
+        id: `${item.kind}-${index}`,
+        kind: item.kind,
+        title: item.title,
+        nodeKind: 'source_youtube',
+        artifactKind: 'youtube',
+        readiness: hasAttachedText ? 'Codex-ready transcript' : 'Transcript-first, then context gap if captions are unavailable',
+        nextAction: hasAttachedText ? 'Run Brief, Claims, Ask, or export to Codex' : 'Attach transcript, timestamps, or claims if fetch cannot supply captions',
+        source: item.url,
+      };
+    }
+    if (item.kind === 'video') {
+      return {
+        id: `${item.kind}-${index}`,
+        kind: item.kind,
+        title: item.title,
+        nodeKind: 'source_video',
+        artifactKind: 'video',
+        readiness: hasAttachedText ? 'Codex-ready video notes' : 'Video reference saved',
+        nextAction: hasAttachedText ? 'Ask selected or build a cited brief' : 'Attach transcript, timestamp notes, or takeaways',
+        source: item.url,
+      };
+    }
+    if (item.kind === 'image') {
+      return {
+        id: `${item.kind}-${index}`,
+        kind: item.kind,
+        title: item.title,
+        nodeKind: 'source_image',
+        artifactKind: 'image',
+        readiness: hasAttachedText ? 'Codex-ready visual notes' : 'Needs OCR or visual notes',
+        nextAction: hasAttachedText ? 'Ask selected or extract claims from the visual notes' : 'Attach OCR, alt text, observations, or claims',
+        source: item.url,
+      };
+    }
+    if (item.kind === 'url') {
+      return {
+        id: `${item.kind}-${index}`,
+        kind: item.kind,
+        title: item.title,
+        nodeKind: 'source_url',
+        artifactKind: 'url',
+        readiness: 'Fetch readable text, fallback to URL reference',
+        nextAction: 'Run Brief when chunks exist, or attach notes if the page blocks fetch',
+        source: item.url,
+      };
+    }
+    return {
+      id: `${item.kind}-${index}`,
+      kind: item.kind,
+      title: item.title,
+      nodeKind: 'note',
+      artifactKind: 'manual',
+      readiness: 'Codex-ready note',
+      nextAction: 'Use as human context, connect it to sources, or include it in handoff',
+    };
+  });
+}
+
+function actionPreviewFor(mode: IntakeActionMode): { label: string; detail: string } {
+  if (mode === 'summarize') {
+    return { label: 'output', detail: 'adds a linked summary node after mapping' };
+  }
+  if (mode === 'claims') {
+    return { label: 'output', detail: 'adds extracted claims linked to the mapped context' };
+  }
+  if (mode === 'ask') {
+    return { label: 'output', detail: 'asks a cited question over only the newly mapped nodes' };
+  }
+  return { label: 'none', detail: 'maps raw nodes only, ready for later actions' };
+}
+
 function intakePlanIcon(id: IntakePlanItem['id']) {
   if (id === 'youtube') return <Youtube className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'video') return <Film className="h-3.5 w-3.5" aria-hidden="true" />;
@@ -926,6 +1014,8 @@ function WorkspaceInner() {
   const baseFlow = useMemo(() => (canvas ? toFlow(canvas, compactCanvas) : { nodes: [], edges: [] }), [canvas, compactCanvas]);
   const canMutate = Boolean(canvas) && !busy;
   const intakePlan = useMemo(() => buildIntakePlan(intakeText), [intakeText]);
+  const intakeMapPreview = useMemo(() => intakeMapPreviewFor(intakeText), [intakeText]);
+  const intakeActionPreview = useMemo(() => actionPreviewFor(intakeAction), [intakeAction]);
   const composerText = composerMode === 'ask' ? askPrompt : intakeText;
   const composerActionDisabled = !canMutate;
   const setupChecks = useMemo(() => {
@@ -2552,6 +2642,19 @@ function WorkspaceInner() {
                   </button>
                 ))}
               </div>
+              {composerMode === 'source' && intakeMapPreview.length ? (
+                <div
+                  className="mt-2 flex flex-wrap items-center gap-1.5 rounded-md border border-starlight-accent/25 bg-starlight-accent/10 px-2.5 py-2 text-[11px]"
+                  data-testid="intake-map-preview-summary"
+                >
+                  <GitBranch className="h-3.5 w-3.5 text-starlight-accent" aria-hidden="true" />
+                  <span className="font-semibold text-starlight-ink">{intakeMapPreview.length} mapped node{intakeMapPreview.length === 1 ? '' : 's'}</span>
+                  <span className="rounded border border-starlight-accent/35 bg-starlight-bg/70 px-1.5 py-0.5 text-starlight-accent">{intakeMapPreview[0]?.nodeKind}</span>
+                  <span className="rounded border border-starlight-border bg-starlight-bg/70 px-1.5 py-0.5 text-starlight-ink">{intakeMapPreview[0]?.artifactKind}</span>
+                  <span className="min-w-0 truncate text-starlight-muted">{intakeMapPreview[0]?.readiness}</span>
+                  <span className="ml-auto rounded border border-starlight-border bg-starlight-surface px-1.5 py-0.5 uppercase text-starlight-muted">{intakeActionPreview.label}</span>
+                </div>
+              ) : null}
               <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-start">
                 <textarea
                   data-testid="intake-text"
@@ -2606,6 +2709,59 @@ function WorkspaceInner() {
                   Note
                 </button>
               </div>
+              {composerMode === 'source' && intakeMapPreview.length ? (
+                <div
+                  className="mt-2 rounded-md border border-starlight-accent/25 bg-starlight-bg/86 p-2.5"
+                  data-testid="intake-map-preview"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                      <GitBranch className="h-3.5 w-3.5 text-starlight-accent" aria-hidden="true" />
+                      <span>Map preview</span>
+                      <span className="rounded border border-starlight-border bg-starlight-surface px-1.5 py-0.5 text-[9px] uppercase text-starlight-muted">
+                        {intakeMapPreview.length} node{intakeMapPreview.length === 1 ? '' : 's'}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px] text-starlight-muted" data-testid="intake-map-action-preview">
+                      <span className="rounded border border-starlight-border bg-starlight-surface px-1.5 py-0.5 uppercase">{intakeActionPreview.label}</span>
+                      <span>{intakeActionPreview.detail}</span>
+                    </div>
+                  </div>
+                  <div className="mt-2 grid gap-1.5 lg:grid-cols-2" data-testid="intake-map-preview-items">
+                    {intakeMapPreview.slice(0, 4).map((item) => (
+                      <div
+                        key={item.id}
+                        className="min-w-0 rounded-md border border-starlight-border bg-starlight-surface/78 p-2"
+                        data-testid={`intake-map-preview-item-${item.kind}`}
+                      >
+                        <div className="flex min-w-0 items-center gap-1.5">
+                          <span className="shrink-0 text-starlight-accent">{intakePlanIcon(item.kind)}</span>
+                          <span className="truncate text-[11px] font-semibold text-starlight-ink">{item.title}</span>
+                          <span className="ml-auto shrink-0 rounded border border-starlight-accent/30 px-1.5 py-0.5 text-[9px] text-starlight-accent">
+                            {item.nodeKind}
+                          </span>
+                        </div>
+                        <div className="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-1 text-[10px] leading-4">
+                          <span className="text-starlight-muted">Artifact</span>
+                          <span className="truncate text-starlight-ink">{item.artifactKind}</span>
+                          <span className="text-starlight-muted">Readiness</span>
+                          <span className="truncate text-starlight-ink">{item.readiness}</span>
+                          <span className="text-starlight-muted">Next</span>
+                          <span className="truncate text-starlight-muted">{item.nextAction}</span>
+                        </div>
+                        {item.source ? (
+                          <div className="mt-1 truncate text-[10px] text-starlight-mint">{item.source}</div>
+                        ) : null}
+                      </div>
+                    ))}
+                    {intakeMapPreview.length > 4 ? (
+                      <div className="rounded-md border border-starlight-border bg-starlight-surface/78 p-2 text-[11px] text-starlight-muted">
+                        +{intakeMapPreview.length - 4} more mapped item{intakeMapPreview.length - 4 === 1 ? '' : 's'}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
               {clipboardFallback ? (
                 <div
                   className="mt-2 rounded-md border border-starlight-gold/35 bg-starlight-gold/10 px-3 py-2 text-xs leading-5 text-starlight-ink"

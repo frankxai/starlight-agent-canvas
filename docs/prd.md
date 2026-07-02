@@ -24,6 +24,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - First run opens a user-owned blank canvas with templates nearby, not a pre-filled demo as the primary experience.
 - User can paste or drop URLs, YouTube links, image URLs/screenshots, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
 - The composer previews what it detected before mapping: YouTube source, non-YouTube video reference, image source, web source, source notes, text, PDF, or file.
+- The composer shows an explicit map preview before committing input: future node kind, artifact kind, readiness label, next action, and whether the selected pass will create a linked output node.
 - Mixed paste blobs preserve local source context: labeled transcript, notes, timestamps, OCR, alt text, or visual observations that appear after a YouTube/video/image URL attach to that source instead of becoming duplicate loose notes.
 - After paste, drop, or upload mapping, the composer shows a latest intake receipt with created node kinds, artifact kinds, optional action output, and receipt-scoped `Context` / `Codex` copy actions.
 - Non-YouTube video links are captured as first-class `source_video` nodes with `video` artifacts, attached notes/transcripts, chunks, and `media: video_reference` provenance; full provider-specific transcription is deferred.

@@ -169,7 +169,15 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   const firstInputSurface = testInfo.project.name === 'mobile' ? page.getByTestId('intake-text') : page.getByTestId('empty-intake-text');
   await firstInputSurface.fill('https://example.com/demo.mp4\nManual video notes about workflow intake.');
   await expect(page.getByTestId('intake-preview')).toContainText('Video link');
+  await expect(page.getByTestId('intake-map-preview-summary')).toContainText('source_video');
+  await expect(page.getByTestId('intake-map-preview-summary')).toContainText('Codex-ready video notes');
+  await expect(page.getByTestId('intake-map-preview')).toContainText('Map preview');
+  await expect(page.getByTestId('intake-map-preview-item-video')).toContainText('source_video');
+  await expect(page.getByTestId('intake-map-preview-item-video')).toContainText('video');
+  await expect(page.getByTestId('intake-map-preview-item-video')).toContainText('Codex-ready video notes');
+  await expect(page.getByTestId('intake-map-action-preview')).toContainText('adds a linked summary node');
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();
+  await expect(page.getByTestId('intake-map-action-preview')).toContainText('maps raw nodes only');
   await page.getByTestId('intake-ingest').click();
   await expect(page.getByTestId('status')).toContainText('Mapped 1 item(s): Video link.');
   await expect(page.getByTestId('context-mapping-receipt')).toContainText('Mapped context receipt');
@@ -298,6 +306,9 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('intake-text').fill('https://youtu.be/abcdefghijk\nManual transcript: this video explains canvas intake, context extraction, and cited synthesis.');
   await expect(page.getByTestId('intake-preview')).toContainText('Video source');
   await expect(page.getByTestId('intake-preview')).toContainText('manual transcript attached');
+  await expect(page.getByTestId('intake-map-preview-item-youtube')).toContainText('source_youtube');
+  await expect(page.getByTestId('intake-map-preview-item-youtube')).toContainText('youtube');
+  await expect(page.getByTestId('intake-map-preview-item-youtube')).toContainText('Codex-ready transcript');
   await expect(page.getByTestId('intake-preview')).not.toContainText('Source notes');
   await page.getByTestId('intake-ingest').click();
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Manual transcript/);

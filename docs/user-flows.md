@@ -5,7 +5,7 @@
 ```mermaid
 flowchart LR
   open["Open blank canvas"] --> paste["Paste source into canvas composer"]
-  paste --> preview["Review detected source chips"]
+  paste --> preview["Review map preview"]
   preview --> map["Click Map + Brief or Map only"]
   map --> receipt["Review latest intake receipt"]
   receipt --> inspect["Inspect receipt and edit node"]
@@ -15,7 +15,7 @@ flowchart LR
   action --> export["Export JSON or Markdown"]
 ```
 
-Expected result: the user can use the top composer on every viewport, or the center empty-canvas capture box on desktop, as the first input surface. The live operator loop shows Capture, Map, Inspect, Ask, and Handoff state from real canvas data. The user sees what will be created before mapping, the composer shows a latest intake receipt after mapping, the Action Drawer persists an intake trace with readiness and scoped Inspect/Context/Codex controls, reference-only sources appear in `Context gaps`, the new typed source node is selected, the viewport frames the new source/action cluster, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
+Expected result: the user can use the top composer on every viewport, or the center empty-canvas capture box on desktop, as the first input surface. The live operator loop shows Capture, Map, Inspect, Ask, and Handoff state from real canvas data. The user sees the future node kind, artifact kind, readiness state, and output action before mapping; the composer shows a latest intake receipt after mapping; the Action Drawer persists an intake trace with readiness and scoped Inspect/Context/Codex controls; reference-only sources appear in `Context gaps`; the new typed source node is selected; the viewport frames the new source/action cluster; the inspector opens a context receipt with chunks/provenance; source-grounded actions run without leaving the first screen; and the handoff lane shows whether the canvas is ready for Codex.
 
 ## Flow 1A: Self-Serve Quick Starter
 
@@ -28,18 +28,19 @@ Expected result: the user can use the top composer on every viewport, or the cen
 7. If the primary `Map + Brief` action is clicked before adding context, confirm it focuses the composer instead of silently doing nothing.
 8. Paste or drop context.
 9. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
-10. Confirm the live operator loop advances from `Capture` to `Map` after source nodes exist.
-11. If the paste contains multiple media URLs with nearby labeled transcript, notes, timestamps, OCR, alt text, or visual observations, confirm those details stay attached to the matching media source.
-12. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-13. Confirm the latest intake receipt lists the created node kind(s), artifact kind(s), optional output, and `Codex-ready` state.
-14. Confirm the Action Drawer `Latest intake trace` persists detected kinds, readiness count, source chips, and scoped `Inspect`, `Context`, and `Codex` controls for the newly mapped material.
-15. Inspect a created source and confirm source readiness says whether it is Codex-ready or needs transcript, OCR, notes, or readable page text first.
-16. If `Context gaps` appears, click `Attach context` there to focus the source enrichment textarea without searching the graph.
-17. Use the receipt's or trace's `Inspect`, `Context`, or `Codex` controls when you want exactly the newly mapped material.
-18. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
-19. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
-20. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
-21. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. The exported packet includes an `Intake Trace Manifest`; with selected nodes, the manifest is recomputed to the selected evidence and unrelated trace text/metadata stays out.
+10. Confirm the map preview shows the future `source_*` or `note` node, artifact kind, readiness label, and output mode before mapping.
+11. Confirm the live operator loop advances from `Capture` to `Map` after source nodes exist.
+12. If the paste contains multiple media URLs with nearby labeled transcript, notes, timestamps, OCR, alt text, or visual observations, confirm those details stay attached to the matching media source.
+13. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+14. Confirm the latest intake receipt lists the created node kind(s), artifact kind(s), optional output, and `Codex-ready` state.
+15. Confirm the Action Drawer `Latest intake trace` persists detected kinds, readiness count, source chips, and scoped `Inspect`, `Context`, and `Codex` controls for the newly mapped material.
+16. Inspect a created source and confirm source readiness says whether it is Codex-ready or needs transcript, OCR, notes, or readable page text first.
+17. If `Context gaps` appears, click `Attach context` there to focus the source enrichment textarea without searching the graph.
+18. Use the receipt's or trace's `Inspect`, `Context`, or `Codex` controls when you want exactly the newly mapped material.
+19. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
+20. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
+21. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
+22. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. The exported packet includes an `Intake Trace Manifest`; with selected nodes, the manifest is recomputed to the selected evidence and unrelated trace text/metadata stays out.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts, and source-specific notes remain bound to the media they explain.
 
