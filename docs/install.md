@@ -11,7 +11,7 @@ This guide is for people trying Starlight Agent Canvas from GitHub and for local
 
 ## Requirements
 
-- Node.js 20.11 or newer.
+- Node.js 22.13 or newer.
 - pnpm 11.7 or compatible.
 - Git.
 - Optional: Playwright browsers for `pnpm test:e2e`.

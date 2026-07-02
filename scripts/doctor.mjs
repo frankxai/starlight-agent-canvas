@@ -9,7 +9,7 @@ import process from 'node:process';
 const execFileAsync = promisify(execFile);
 const execAsync = promisify(exec);
 const root = process.cwd();
-const minNode = [20, 11, 0];
+const minNode = [22, 13, 0];
 const jsonOutput = process.argv.includes('--json');
 const checks = [];
 

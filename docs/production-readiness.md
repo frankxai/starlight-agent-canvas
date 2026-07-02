@@ -43,7 +43,7 @@ The local CLI is part of the same boundary. `pnpm canvas -- demo`, `pnpm canvas 
 
 Required:
 
-- Node.js 20.11 or newer.
+- Node.js 22.13 or newer.
 - pnpm 11.7.0 or compatible.
 
 Optional:

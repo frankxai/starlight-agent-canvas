@@ -15,7 +15,7 @@
   "homepage": "https://github.com/frankxai/starlight-agent-canvas#readme",
   "packageManager": "pnpm@11.7.0",
   "engines": {
-    "node": ">=20.11.0"
+    "node": ">=22.13.0"
   },
   "scripts": {
     "dev": "pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/web dev",

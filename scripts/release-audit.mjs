@@ -120,7 +120,7 @@ function checkPackageScripts() {
 function checkCi() {
   const ci = readText('.github/workflows/ci.yml');
   const requiredSteps = [
-    'node-version: [20.11.0, 22]',
+    'node-version: [22.13.0, 24]',
     'node-version: ${{ matrix.node-version }}',
     'pnpm mcp:build',
     'pnpm doctor',
