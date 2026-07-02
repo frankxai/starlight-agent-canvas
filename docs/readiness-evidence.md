@@ -20,6 +20,7 @@ This matrix connects the product promises in `docs/prd.md` and `docs/user-flows.
 | MCP and web support graph positioning | Web drag persistence and MCP optional `position` inputs; MCP handler test asserts position | Proven locally |
 | New users have a one-command setup path | `scripts/setup.mjs`, `pnpm setup:local`, install docs, dry-run command verification | Proven locally |
 | Codex MCP can be installed safely | `scripts/install-codex-mcp.mjs`, `pnpm mcp:install:codex`, timestamped backup before `--write`, dry-run verification | Proven locally |
+| Setup and Codex status are visible in the app | `apps/web/app/api/setup/status/route.ts`, `Setup / MCP` panel in `apps/web/components/WorkspaceClient.tsx`, Playwright setup-panel assertion | Proven locally |
 | Local data remains outside Git | `.gitignore`, `AGENT_CANVAS_HOME`, `packages/core/src/home.ts`, `pnpm doctor` | Proven by repo structure and doctor |
 | Security scan is clean | `Invoke-RepoSecurityScan.ps1 -Path ...` passed on 2026-07-02 after generated cache cleanup | Proven locally |
 | Visual QA passes 26/30+ | `docs/design-loop-evidence.json` validates and scores 27/30 | Proven locally |

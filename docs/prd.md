@@ -27,6 +27,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
 - User can export portable JSON, readable Markdown, and agent context packets; user can re-import portable JSON.
+- User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
 - MCP clients can list, read, create, import, add/update positioned nodes, ingest text/URL/YouTube/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
 
@@ -49,6 +50,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 ## Acceptance Criteria
 
 - `pnpm doctor` explains local readiness and missing build steps.
+- The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
 - `pnpm verify`, `pnpm test:e2e`, and `pnpm mcp:smoke` pass.
 - README links to install, PRD, user flows, MCP setup, Codex integration, system design, and production readiness.
 - GitHub has issue templates, PR template, CI, and a readiness checklist.
@@ -62,6 +64,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Every durable source artifact gets chunk ids that answers and context exports can cite.
 - Every action output becomes inspectable context.
 - Every search result should help the user re-enter the graph, not become a detached list.
+- Every install/Codex claim shown in the UI should be backed by a local check or a copyable command.
 - Human edits are first-class, not an afterthought.
 - MCP tools are explicit, bounded, local, and non-destructive.
 - Portability beats lock-in.
@@ -69,6 +72,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 ## Success Metrics
 
 - A new local user can install, seed, and open the app in under 10 minutes.
+- A local operator can confirm data home, MCP build, Codex config, and Codex server wiring without leaving the workspace.
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.

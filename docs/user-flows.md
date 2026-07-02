@@ -54,6 +54,7 @@ sequenceDiagram
   participant Codex
   participant MCP
 
+  Human->>Canvas: Confirm Setup / MCP panel is wired
   Human->>Canvas: Paste notes, URLs, transcripts
   Canvas->>Canvas: Store nodes and artifacts locally
   Codex->>MCP: list_canvases
@@ -67,16 +68,27 @@ sequenceDiagram
 
 Expected result: human and agent work on the same local state with explicit, reviewable mutations.
 
-## Flow 6: Mobile Review
+## Flow 6: Setup And Codex Activation
+
+1. Open the app.
+2. Inspect the `Setup / MCP` panel.
+3. Confirm data home, MCP build, Codex config, and Codex server status.
+4. Copy `Setup`, `Codex`, or `Smoke` commands when a status needs action.
+5. Restart Codex after installing MCP config.
+6. Ask Codex to list canvases through MCP.
+
+Expected result: install and agent wiring status are visible inside the product surface, while the write path remains explicit and backed by local scripts.
+
+## Flow 7: Mobile Review
 
 1. Open the app on a mobile viewport.
 2. Use the top composer to map a short note or link.
 3. Review the graph below the composer.
-4. Scroll to rails and inspector for detailed editing/actions.
+4. Scroll to rails, setup status, and inspector for detailed editing/actions.
 
 Mobile is intended for review and light intake in v0.1, not dense graph authoring.
 
-## Flow 7: Export, Import, And Handoff
+## Flow 8: Export, Import, And Handoff
 
 1. Complete source mapping and actions.
 2. Click `Context` for an agent packet, `JSON` for portable state, or `MD` for readable handoff.

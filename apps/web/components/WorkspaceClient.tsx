@@ -23,7 +23,9 @@ import {
   Bot,
   Boxes,
   Braces,
+  CheckCircle2,
   ClipboardPaste,
+  Copy,
   Crosshair,
   Download,
   FileText,
@@ -36,9 +38,12 @@ import {
   Network,
   Play,
   Search,
+  Settings2,
   ShieldCheck,
   Sparkles,
+  Terminal,
   UploadCloud,
+  TriangleAlert,
   Youtube,
 } from 'lucide-react';
 import type { CanvasActionType, CanvasEdge, CanvasEdgeKind, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
@@ -90,6 +95,30 @@ type SearchResult = {
   chunkIndex?: number;
   source?: string;
   score?: number;
+};
+
+type SetupStatus = {
+  repoRoot: string;
+  canvasHome: string;
+  homeMode: 'custom' | 'default';
+  mcp: {
+    built: boolean;
+    cliPath: string;
+    smokeCommand: string;
+    buildCommand: string;
+  };
+  codex: {
+    configPath: string;
+    configExists: boolean;
+    serverConfigured: boolean;
+    installDryRunCommand: string;
+    installWriteCommand: string;
+  };
+  setup: {
+    localCommand: string;
+    verifyCommand: string;
+    docs: string[];
+  };
 };
 
 const KIND_STYLE: Record<CanvasNodeKind, { label: string; accent: string; bg: string }> = {
@@ -201,6 +230,11 @@ function formatKind(kind: string) {
   return kind.replace(/_/g, ' ');
 }
 
+function shortPath(value: string, max = 48): string {
+  if (value.length <= max) return value;
+  return `...${value.slice(-(max - 3))}`;
+}
+
 function metadataCitations(metadata: Record<string, unknown>): SourceCitation[] {
   const raw = metadata.citations;
   if (!Array.isArray(raw)) return [];
@@ -293,6 +327,7 @@ function WorkspaceInner() {
   const [editBody, setEditBody] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
   const compactCanvas = useCompactCanvas();
 
   const selectedNode = useMemo(() => canvas?.nodes.find((node) => node.id === selectedIds[0]) ?? null, [canvas, selectedIds]);
@@ -301,6 +336,36 @@ function WorkspaceInner() {
   const selectedCitations = useMemo(() => selectedNode ? metadataCitations(selectedNode.metadata) : [], [selectedNode]);
   const baseFlow = useMemo(() => (canvas ? toFlow(canvas, compactCanvas) : { nodes: [], edges: [] }), [canvas, compactCanvas]);
   const canMutate = Boolean(canvas) && !busy;
+  const setupChecks = useMemo(() => {
+    if (!setupStatus) return [];
+    return [
+      {
+        label: 'Data home',
+        ok: Boolean(setupStatus.canvasHome),
+        detail: setupStatus.homeMode === 'custom' ? 'custom' : 'default',
+      },
+      {
+        label: 'MCP build',
+        ok: setupStatus.mcp.built,
+        detail: setupStatus.mcp.built ? 'ready' : 'run build',
+      },
+      {
+        label: 'Codex config',
+        ok: setupStatus.codex.configExists,
+        detail: setupStatus.codex.configExists ? 'found' : 'missing',
+      },
+      {
+        label: 'Codex server',
+        ok: setupStatus.codex.serverConfigured,
+        detail: setupStatus.codex.serverConfigured ? 'wired' : 'not wired',
+      },
+    ];
+  }, [setupStatus]);
+  const setupCommands = useMemo(() => setupStatus ? [
+    { label: 'Setup', command: setupStatus.setup.localCommand },
+    { label: 'Codex', command: setupStatus.codex.installWriteCommand },
+    { label: 'Smoke', command: setupStatus.mcp.smokeCommand },
+  ] : [], [setupStatus]);
 
   useEffect(() => {
     setFlowNodes(baseFlow.nodes);
@@ -357,6 +422,24 @@ function WorkspaceInner() {
       cancelled = true;
     };
   }, [loadCanvas, refreshList]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadSetupStatus() {
+      try {
+        const data = await api<SetupStatus>('/api/setup/status');
+        if (!cancelled) setSetupStatus(data);
+      } catch {
+        if (!cancelled) setSetupStatus(null);
+      }
+    }
+    void loadSetupStatus();
+    const interval = window.setInterval(loadSetupStatus, 30000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
+  }, []);
 
   const mutateCanvas = useCallback(async (
     work: () => Promise<CanvasMutationResponse>,
@@ -633,6 +716,15 @@ function WorkspaceInner() {
       setBusy(false);
     }
   }, [canvas]);
+
+  const copyCommand = useCallback(async (command: string, label: string) => {
+    try {
+      await navigator.clipboard.writeText(command);
+      setStatus(`Copied ${label}.`);
+    } catch (error) {
+      setStatus((error as Error).message);
+    }
+  }, []);
 
   useEffect(() => {
     const onPaste = (event: ClipboardEvent) => {
@@ -1188,6 +1280,59 @@ function WorkspaceInner() {
                   </button>
                 ))}
               </div>
+            </section>
+
+            <section className="mt-4 rounded-lg border border-starlight-border bg-starlight-panel/70 p-4" data-testid="setup-panel">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Settings2 className="h-4 w-4 text-starlight-mint" aria-hidden="true" />
+                  Setup / MCP
+                </div>
+                <span className="rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[10px] uppercase tracking-[0.08em] text-starlight-muted">
+                  local
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {setupChecks.length ? setupChecks.map((check) => (
+                  <div key={check.label} className="rounded-md border border-starlight-border bg-starlight-surface p-2">
+                    <div className="flex items-center gap-1.5">
+                      {check.ok ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
+                      ) : (
+                        <TriangleAlert className="h-3.5 w-3.5 text-starlight-gold" aria-hidden="true" />
+                      )}
+                      <span className="truncate text-[11px] font-semibold text-starlight-ink">{check.label}</span>
+                    </div>
+                    <div className="mt-1 text-[10px] text-starlight-muted">{check.detail}</div>
+                  </div>
+                )) : (
+                  <div className="col-span-2 rounded-md border border-starlight-border bg-starlight-surface p-3 text-xs text-starlight-muted">
+                    Loading setup status...
+                  </div>
+                )}
+              </div>
+              {setupStatus ? (
+                <>
+                  <div className="mt-3 space-y-1.5 rounded-md border border-starlight-border bg-starlight-bg p-3 text-[11px] leading-5 text-starlight-muted">
+                    <div className="truncate">Home: {shortPath(setupStatus.canvasHome)}</div>
+                    <div className="truncate">MCP: {shortPath(setupStatus.mcp.cliPath)}</div>
+                    <div className="truncate">Codex: {shortPath(setupStatus.codex.configPath)}</div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {setupCommands.map((item) => (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => copyCommand(item.command, `${item.label} command`)}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-mint/35 bg-starlight-mint/10 px-2 py-2 text-[11px] font-semibold text-starlight-mint transition hover:border-starlight-mint"
+                      >
+                        {item.label === 'Smoke' ? <Terminal className="h-3.5 w-3.5" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : null}
             </section>
 
             <section className="mt-4 rounded-lg border border-starlight-border bg-starlight-panel/70 p-4" data-testid="inspector">

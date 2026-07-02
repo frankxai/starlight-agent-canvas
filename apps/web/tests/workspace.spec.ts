@@ -10,9 +10,17 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.goto('/');
   await expect(page.getByTestId('workspace')).toBeVisible();
   await expect(page.getByText('Starlight Agent Canvas')).toBeVisible();
+  const setupStatus = await page.request.get('/api/setup/status');
+  await expect(setupStatus).toBeOK();
+  const setupJson = await setupStatus.json() as { canvasHome: string; mcp: { smokeCommand: string }; codex: { installWriteCommand: string } };
+  expect(setupJson.canvasHome).toBeTruthy();
+  expect(setupJson.mcp.smokeCommand).toBe('pnpm mcp:smoke');
+  expect(setupJson.codex.installWriteCommand).toBe('pnpm mcp:install:codex -- --write');
   await page.getByRole('button', { name: new RegExp(title) }).click();
   await expect(page.getByTestId('intake-text')).toBeVisible();
   await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
+  await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
+  await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
 
   await page.getByTestId('intake-text').fill('My canvas note: collect the product gaps and turn them into a brief.');
   await expect(page.getByTestId('quick-note')).toBeEnabled();

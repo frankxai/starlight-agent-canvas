@@ -20,6 +20,7 @@ Most AI canvases make research visible for a human but awkward for local agents.
 - Ingest YouTube links with title lookup, best-effort public captions, and manual transcript fallback.
 - Run local actions: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions with citation metadata.
 - Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect source bodies, copy/export an agent-ready context packet, export the result, and re-import portable canvas JSON.
+- Inspect local setup, data home, MCP build, and Codex MCP wiring from the in-app `Setup / MCP` panel.
 - Auto-open newly created sources and action answers in the inspector so the captured context is immediately usable.
 - Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
 - Keep runtime data outside the repo by default.

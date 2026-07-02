@@ -88,17 +88,18 @@ pnpm dev
 ## First Ten Minutes
 
 1. Open the web app.
-2. Paste a YouTube link, URL, transcript, or raw note into the top canvas composer.
-3. Click `Map`.
-4. Select the new node and edit its title/body in the inspector if needed.
-5. Run `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
-6. Click `Context` when you want a clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
-7. Export JSON or Markdown from the canvas toolbar.
-8. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
-9. Build the MCP server with `pnpm mcp:build`.
-10. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
-11. Ask the agent to list canvases and add a source node.
-12. Keep building with the same shared canvas context.
+2. Check the `Setup / MCP` panel for data home, MCP build, and Codex wiring status.
+3. Paste a YouTube link, URL, transcript, or raw note into the top canvas composer.
+4. Click `Map`.
+5. Select the new node and edit its title/body in the inspector if needed.
+6. Run `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
+7. Click `Context` when you want a clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
+8. Export JSON or Markdown from the canvas toolbar.
+9. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
+10. Build the MCP server with `pnpm mcp:build`.
+11. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
+12. Ask the agent to list canvases and add a source node.
+13. Keep building with the same shared canvas context.
 
 ## Production Local Preview
 
