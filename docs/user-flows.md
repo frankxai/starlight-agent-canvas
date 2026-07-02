@@ -15,6 +15,18 @@ flowchart LR
 
 Expected result: the user sees what will be created before mapping, the new typed source node is selected, the inspector opens a context receipt with chunks/provenance, and source-grounded actions run without leaving the first screen.
 
+## Flow 1A: Self-Serve Quick Starter
+
+1. Open any canvas.
+2. Click `Video`, `Web`, `Note`, or `Ask` in the first-viewport composer.
+3. Confirm the composer focuses and the status explains the selected mode.
+4. Paste or drop context.
+5. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
+6. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+7. Inspect the created nodes and use `Context` or MCP `export_canvas` for handoff.
+
+Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
+
 ## Flow 2: YouTube Research
 
 1. Paste a YouTube URL into the canvas composer.
@@ -30,6 +42,17 @@ Expected result: the user sees what will be created before mapping, the new type
 11. Export the output node as part of the canvas.
 
 Design note: YouTube ingestion is transcript-first. The app tries title lookup and captions, but manual transcript fallback is part of the core product path.
+
+## Flow 2A: Non-YouTube Video Reference
+
+1. Click `Video`.
+2. Paste a Loom, Vimeo, Wistia, TikTok, Drive, Dropbox, or direct video URL.
+3. Paste notes or a manual transcript beneath the URL when available.
+4. Confirm the intake preview shows `Video link` plus `Source notes` when notes are present.
+5. Click `Map only` when you want the raw reference and notes as separate nodes, or `Map + Brief` when you want an immediate output.
+6. Export JSON/context and confirm the source keeps `media: video_reference` provenance.
+
+Expected result: the canvas accepts arbitrary video links as local context references without claiming unsupported video download or platform transcription.
 
 ## Flow 3: Competitor Teardown
 

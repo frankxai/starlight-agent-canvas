@@ -4,6 +4,8 @@ Last local verification: 2026-07-02.
 
 This matrix connects the product promises in `docs/prd.md` and `docs/user-flows.md` to current evidence. It is intentionally practical: if a row cannot point to a command, screenshot, test, or file, it is not considered proven.
 
+Latest local proof commit: `a1537ca feat: clarify self-serve canvas intake`.
+
 | Promise | Current Evidence | Status |
 | --- | --- | --- |
 | First screen is the usable workspace | `apps/web/components/WorkspaceClient.tsx`, `docs/scene-brief.md`, `docs/visual-qa/desktop-live-composer-modes.png`, `docs/visual-qa/mobile-live-composer-modes.png` | Proven locally |
@@ -11,6 +13,8 @@ This matrix connects the product promises in `docs/prd.md` and `docs/user-flows.
 | Intake preview shows what will be mapped | `intake-preview` and `rail-intake-preview` in `apps/web/components/WorkspaceClient.tsx`; Playwright preview chip assertions | Proven locally |
 | User can paste/drop links, transcripts, files, and notes | Playwright `apps/web/tests/workspace.spec.ts`; web routes under `apps/web/app/api/canvases/[id]/ingest`; `pnpm test:e2e` passed | Proven for text, URL+notes, YouTube manual transcript, Markdown file upload, paste-anywhere, and text drop-to-canvas happy paths; broader PDF browser cases still needed |
 | YouTube is transcript-first with manual fallback | `packages/core/src/ingest.ts`, `docs/user-flows.md`, core ingest tests, Playwright YouTube manual transcript path | Proven locally |
+| Non-YouTube video links can be captured as context references | `apps/web/components/WorkspaceClient.tsx`, `apps/web/app/api/canvases/[id]/nodes/route.ts`, Playwright video-reference assertion, `docs/visual-qa/desktop-self-serve-video-intake.png`, `docs/visual-qa/desktop-self-serve-video-mapped.png` | Proven locally for safe reference plus attached notes and exported `media: video_reference`; provider transcription remains future work |
+| First-viewport quick starters make intake self-serve | `canvas-quick-start` and `context-loop` in `apps/web/components/WorkspaceClient.tsx`; Playwright desktop/mobile assertions; visual captures in `docs/visual-qa/desktop-self-serve-video-intake.png` and `docs/visual-qa/mobile-self-serve-note-intake.png` | Proven locally |
 | User can run local actions and inspect outputs | `packages/core/src/actions.ts`, `packages/core/src/__tests__/actions.test.ts`, Playwright `ask-canvas` path | Proven locally |
 | JSON import/export is portable and non-destructive | `packages/core/src/store.ts`, `apps/web/app/api/canvases/import/route.ts`, `packages/core/src/__tests__/store.test.ts`, Playwright import path | Proven locally |
 | Agent context packet is available | `packages/core/src/exporters.ts`, web `format=context` route, MCP `export_canvas` with `format: "context"`, live preview API check on 2026-07-02 | Proven locally |
@@ -33,6 +37,7 @@ This matrix connects the product promises in `docs/prd.md` and `docs/user-flows.
 
 - Citation chunks and answer metadata are visible in the inspector; deeper citation-to-node/chunk navigation remains future work.
 - Browser tests still need broader coverage for PDF upload, edge creation, clipboard permission button behavior, and import conflict UX.
+- Non-YouTube video links are safe references plus notes in v0.1; provider-specific transcript adapters are not implemented yet.
 - Import preview/diff and selected-subgraph export are not yet implemented.
 - Mac/Linux install screenshots are not yet captured.
 - Public release still needs the final GitHub remote URL inserted after the repository is created or connected.

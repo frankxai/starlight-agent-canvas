@@ -43,6 +43,24 @@ function registerGuideResources(server: McpServer) {
       file: 'docs/mcp-setup.md',
     },
     {
+      name: 'install',
+      uri: 'starlight-agent-canvas://docs/install',
+      title: 'Install And First Run',
+      file: 'docs/install.md',
+    },
+    {
+      name: 'prd',
+      uri: 'starlight-agent-canvas://docs/prd',
+      title: 'Product Requirements',
+      file: 'docs/prd.md',
+    },
+    {
+      name: 'user-flows',
+      uri: 'starlight-agent-canvas://docs/user-flows',
+      title: 'User Flows',
+      file: 'docs/user-flows.md',
+    },
+    {
       name: 'codex-integration',
       uri: 'starlight-agent-canvas://docs/codex-integration',
       title: 'Codex Integration',
@@ -65,6 +83,12 @@ function registerGuideResources(server: McpServer) {
       uri: 'starlight-agent-canvas://docs/production-readiness',
       title: 'Production Readiness',
       file: 'docs/production-readiness.md',
+    },
+    {
+      name: 'readiness-evidence',
+      uri: 'starlight-agent-canvas://docs/readiness-evidence',
+      title: 'Readiness Evidence',
+      file: 'docs/readiness-evidence.md',
     },
   ];
 

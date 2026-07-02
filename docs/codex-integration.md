@@ -82,15 +82,18 @@ For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Us
 ## Human Interaction Pattern
 
 1. Human drops messy context into the canvas.
-2. Codex reads the canvas and proposes the next action.
-3. Human approves or edits nodes directly.
-4. Codex runs an action and creates an output node.
-5. Human exports or asks Codex to continue implementation from the output.
-6. Later, either side can import the JSON export to resume the same graph as durable context.
+2. Human uses `Video`, `Web`, `Note`, or `Ask` quick starters to map the context into visible nodes.
+3. Codex reads the canvas and proposes the next action.
+4. Human approves or edits nodes directly.
+5. Codex runs an action and creates an output node.
+6. Human exports or asks Codex to continue implementation from the output.
+7. Later, either side can import the JSON export to resume the same graph as durable context.
 
 When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`. That packet includes a source chunk manifest; cite those chunk ids when making claims.
 
 When the human clicks `Copy source` in a selected node receipt, Codex should treat that as a narrower source-only packet. Use it when the task is about one YouTube video, PDF, page, or note instead of the whole canvas.
+
+For non-YouTube video links, Codex should treat the node as a video reference unless transcript text or notes were provided. The web app preserves `media: video_reference` provenance so agents do not overstate what was extracted.
 
 ## Happy Path Transcript
 
@@ -105,6 +108,19 @@ Run answer_question on source-youtube-nodeflow:
 "What should we build next to make this canvas feel closer to Poppy AI or Nodeflow while staying MCP-native?"
 Export the canvas with format "context".
 Return the node ids, artifact ids, and chunk ids you used.
+```
+
+## Human-Populated Canvas Prompt
+
+After the human has pasted or dropped sources in the UI, use:
+
+```text
+Use starlight-agent-canvas.
+Find the most recently updated canvas.
+Read the canvas before writing.
+Identify the source nodes and artifacts that look most relevant.
+Run one useful action over the selected evidence.
+Export format "context" and summarize the node ids, artifact ids, chunk ids, and changes you made.
 ```
 
 ## Safety Notes

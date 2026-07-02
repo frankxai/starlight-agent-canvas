@@ -7,9 +7,18 @@ This repo is prepared for public OSS work when the local and GitHub-side checkli
 Recommended GitHub metadata:
 
 - Description: `OSS-first, MCP-native research/workflow canvas for humans and agents.`
-- Website: local/preview URL once hosted docs or demo exists.
+- Website: hosted docs/demo URL once connected; do not use a localhost URL in public metadata.
 - Topics: `mcp`, `agents`, `research`, `workflow`, `canvas`, `nextjs`, `react-flow`, `local-first`, `codex`, `claude`, `gemini`.
 - Visibility: public only after secrets scan and product boundary review pass.
+
+README first-read requirements before public announcement:
+
+- Shows the real app, not a mockup: `docs/visual-qa/desktop-self-serve-video-mapped.png`.
+- States the local-first/MCP-native wedge in the first paragraph.
+- Includes a concrete input behavior matrix.
+- Explains that non-YouTube video links are references plus notes in v0.1, not automatic full transcription.
+- Links to install, PRD, user flows, Codex integration, MCP setup, and readiness evidence.
+- Avoids comparing itself as a clone of Poppy, Nodeflow, or another closed product.
 
 ## Branch Protection
 
@@ -57,6 +66,19 @@ Use labels:
 10. Confirm `.env` and private canvas exports are not staged.
 11. Update README links and docs index.
 12. Tag release only after GitHub CI passes.
+
+Public install proof to keep current:
+
+```powershell
+git clone <repo-url>
+cd starlight-agent-canvas
+corepack enable
+corepack prepare pnpm@11.7.0 --activate
+node scripts/setup.mjs
+pnpm dev
+```
+
+The setup script must remain explicit about what it does: dependency install, doctor, MCP build, MCP smoke, seed, and Codex config dry-run unless `--codex-write` is supplied.
 
 Use `docs/readiness-evidence.md` as the current proof matrix before tagging or announcing a release.
 

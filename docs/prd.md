@@ -23,7 +23,9 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - The first screen is the usable workspace, not a landing page.
 - First run opens a user-owned blank canvas with templates nearby, not a pre-filled demo as the primary experience.
 - User can paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
-- The composer previews what it detected before mapping: video source, web source, source notes, text, PDF, or file.
+- The composer previews what it detected before mapping: YouTube source, non-YouTube video reference, web source, source notes, text, PDF, or file.
+- Non-YouTube video links are captured as safe source references with attached notes and `media: video_reference` provenance; full provider-specific transcription is deferred.
+- The first-viewport composer exposes quick starters for `Video`, `Web`, `Note`, and `Ask`, plus a visible `Drop -> Map -> Ask -> Handoff` loop.
 - User can create notes directly on the canvas and edit selected node title/body.
 - Empty canvas, composer, toolbar, and inspector all expose direct add/map actions.
 - Newly created source, note, file, and action nodes become selected and open in the inspector.
@@ -47,7 +49,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 ## Core Workflows
 
-1. Human source mapping: paste a video URL and transcript, map it into nodes, inspect the source receipt, run a selected-source question, edit the node, export the brief.
+1. Human source mapping: paste a video URL and transcript/notes, map it into nodes, inspect the source receipt, run a selected-source question, edit the node, export the brief.
 2. Agent-assisted research: ask Codex to read the current canvas, add a source, run an action, and export Markdown.
 3. Competitor teardown: collect pages/videos/notes for Poppy, Nodeflow, AI Flow Chat, and Superly, compare capabilities, and generate a build wedge.
 4. Repo/product planning: map local repo estate notes into product candidates and implementation briefs.
@@ -83,6 +85,8 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
+- A user can start from `Video`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
+- A user can add a non-YouTube video reference plus notes and preserve the media provenance in JSON/context export.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.
 

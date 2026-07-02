@@ -122,11 +122,15 @@ Use the same stdio shape when the host supports MCP servers:
 
 The server also exposes local guide resources:
 
+- `starlight-agent-canvas://docs/install`
+- `starlight-agent-canvas://docs/prd`
+- `starlight-agent-canvas://docs/user-flows`
 - `starlight-agent-canvas://docs/mcp-setup`
 - `starlight-agent-canvas://docs/codex-integration`
 - `starlight-agent-canvas://docs/demo-walkthrough`
 - `starlight-agent-canvas://docs/technology-stack`
 - `starlight-agent-canvas://docs/production-readiness`
+- `starlight-agent-canvas://docs/readiness-evidence`
 
 Prompt:
 

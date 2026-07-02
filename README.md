@@ -4,11 +4,45 @@ OSS-first, MCP-native research and workflow canvas for Codex, Claude, Gemini, cr
 
 This is not a Poppy or Nodeflow clone. It is a local-first agent context layer: sources, prompts, MCP tools, agent runs, and outputs become typed nodes on a portable canvas.
 
-![Starlight Agent Canvas Source Note Ask composer](docs/visual-qa/desktop-live-composer-modes.png)
+![Starlight Agent Canvas self-serve video intake](docs/visual-qa/desktop-self-serve-video-mapped.png)
 
 ## Why It Exists
 
 Most AI canvases make research visible for a human but awkward for local agents. Starlight Agent Canvas is built as a shared context surface: you can paste/drop material visually, and Codex/Claude/Gemini can use the same canvas through safe MCP tools.
+
+## How It Works
+
+```mermaid
+flowchart LR
+  human["Human drops context"] --> map["Canvas maps typed nodes"]
+  map --> artifacts["Local artifacts + chunks"]
+  artifacts --> actions["Brief / Claims / Ask / Matrix"]
+  actions --> outputs["Inspectable output nodes"]
+  outputs --> mcp["MCP export for Codex / Claude / Gemini"]
+```
+
+The web app and MCP server operate over the same local data home. A source added by you in the canvas is visible to an agent through MCP; a node added by Codex appears back in the same graph.
+
+## What You Can Drop
+
+| Input | v0.1 behavior | Notes |
+| --- | --- | --- |
+| YouTube URL | Title/captions when available, manual transcript fallback, `source_youtube` node, chunks, citations | Transcript-first; no video download |
+| Loom/Vimeo/Wistia/TikTok/Drive/Dropbox/direct video URL | Safe video reference plus attached notes, provenance metadata, chunks | Use notes/transcripts for analysis until provider transcript adapters land |
+| Public web URL | Bounded fetch into a URL artifact, or safe reference fallback | Private/localhost targets blocked by default |
+| PDF upload | Local text extraction into a PDF artifact | File size capped |
+| Markdown/text/JSON/CSV/log | Local source artifact with chunks | Works without model keys |
+| Human note | Editable graph node and source context | First-class, not just annotation |
+
+## First Ten Minutes
+
+1. Run `node scripts/setup.mjs`.
+2. Open `http://localhost:3000`.
+3. Confirm the in-app `Setup / MCP` panel.
+4. Click `Video`, `Web`, `Note`, or `Ask` in the first-viewport composer.
+5. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+6. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
+7. Click `Context` or use MCP `export_canvas` with `format: "context"` for agent handoff.
 
 ## What v0.1 Does
 
@@ -16,6 +50,7 @@ Most AI canvases make research visible for a human but awkward for local agents.
 - Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
 - Preview detected intake types before mapping, including video source, web source, source notes, text source, PDF, and file paths.
+- Treat non-YouTube video links as safe video references with attached notes and preserved `media: video_reference` provenance.
 - Choose the first pass before capture: `Map + Brief` by default, or `Claims`, `Ask`, and `Map only` when you want raw source nodes first.
 - Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata, source chunks, and citation-ready ids.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
@@ -38,6 +73,14 @@ cd starlight-agent-canvas
 corepack enable
 corepack prepare pnpm@11.7.0 --activate
 node scripts/setup.mjs
+pnpm dev
+```
+
+For a cautious first run that skips dependency install because you already ran it:
+
+```powershell
+pnpm install
+node scripts/setup.mjs --skip-install
 pnpm dev
 ```
 
@@ -152,6 +195,14 @@ pnpm test:e2e
 See `docs/technology-stack.md`, `docs/mcp-setup.md`, and `docs/production-readiness.md`.
 
 Client examples and workflow prompts live in `examples/mcp`.
+
+## Current Proof
+
+- Last local verification date: `2026-07-02`.
+- Latest committed product slice: `a1537ca feat: clarify self-serve canvas intake`.
+- Visual QA score: `28/30` in `docs/design-loop-evidence.json`.
+- Evidence matrix: `docs/readiness-evidence.md`.
+- Real UI captures: `docs/visual-qa/desktop-self-serve-video-intake.png`, `docs/visual-qa/desktop-self-serve-video-mapped.png`, `docs/visual-qa/mobile-self-serve-note-intake.png`.
 
 ## Docs
 
