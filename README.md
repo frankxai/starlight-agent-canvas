@@ -48,7 +48,7 @@ The web app and MCP server operate over the same local data home. A source added
 5. Click `New` for a fresh blank graph, `Demo` for a working proof canvas, or `Video`, `Image`, `Web`, `Note`, or `Ask` to start from your own material.
 6. Use the live `Capture -> Map -> Inspect -> Ask -> Handoff` loop in the first viewport to see what is ready and trigger the next move.
 7. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-8. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars. If it is reference-only, use `Attach context` to add transcript, OCR, visual notes, claims, or excerpts; chunks and readiness update immediately.
+8. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars. If it is reference-only, the Action Drawer `Context gaps` lane points at the source; use `Attach context` to add transcript, OCR, visual notes, claims, or excerpts; chunks and readiness update immediately.
 9. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP. These packets include an intake trace manifest, and when nodes are selected the manifest is recomputed so unrelated canvas material stays out.
 
 For the maintained first-success contract, run `pnpm first-success` or `pnpm first-success:json`.
@@ -64,6 +64,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 - Confirm every paste/drop/upload mapping with the latest intake receipt: created node kinds, artifact kinds, optional action output, and exact `Context` / `Codex` copy actions for the newly mapped material.
 - Persist every paste/drop/upload mapping as an intake trace on the canvas: detected input kinds, source URLs, created node ids, artifact ids, readiness labels, optional run/output id, and scoped `Inspect`, `Context`, and `Codex` actions remain visible after refresh, through MCP `get_canvas`, and inside Context/Codex exports.
 - Inspect source readiness on every selected source: `Codex-ready transcript`, `Codex-ready video notes`, `Codex-ready visual notes`, `Codex-ready PDF`, `URL reference saved`, or `Needs visual text`, with usable chars, chunks, ingest mode, and the next best action.
+- See context gaps without hunting through nodes: the Action Drawer lists reference-only or needs-context sources and jumps straight to the `Attach context` panel.
 - Attach context to an existing source from the inspector: paste transcript, timestamps, OCR, visual notes, claims, or excerpts into `Attach context` and the linked artifact chunks, source readiness, search, Ask, exports, and intake trace all update together.
 - Follow a live operator loop in the first viewport: `Capture`, `Map`, `Inspect`, `Ask`, and `Handoff` update from actual canvas state and expose direct actions.
 - Create a fresh blank canvas from the first viewport, and click an empty primary intake action to focus the composer instead of hitting a dead disabled state.

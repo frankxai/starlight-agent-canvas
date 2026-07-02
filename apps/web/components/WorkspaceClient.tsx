@@ -895,6 +895,27 @@ function WorkspaceInner() {
     selectedNode ? describeSourceReadiness(selectedNode, selectedArtifact ?? undefined) : null
   ), [selectedArtifact, selectedNode]);
   const canEnrichSelectedSource = Boolean(selectedNode && (selectedNode.kind.startsWith('source_') || selectedArtifact));
+  const contextGaps = useMemo(() => {
+    if (!canvas) return [];
+    const artifactsById = new Map(canvas.artifacts.map((artifact) => [artifact.id, artifact]));
+    return canvas.nodes
+      .filter((node) => node.kind.startsWith('source_'))
+      .map((node) => {
+        const artifactId = metadataString(node.metadata, 'artifactId');
+        const artifact = artifactId ? artifactsById.get(artifactId) : undefined;
+        return {
+          node,
+          readiness: describeSourceReadiness(node, artifact),
+        };
+      })
+      .filter(({ readiness }) => readiness.status !== 'ready')
+      .sort((left, right) => {
+        const leftPriority = left.readiness.status === 'needs_context' ? 0 : 1;
+        const rightPriority = right.readiness.status === 'needs_context' ? 0 : 1;
+        return leftPriority - rightPriority || left.node.title.localeCompare(right.node.title);
+      })
+      .slice(0, 5);
+  }, [canvas]);
   const selectedChunkPreviews = useMemo(() => {
     const chunks = selectedArtifact?.chunks ?? [];
     if (!focusedChunkId) return chunks.slice(0, 2);
@@ -1167,6 +1188,17 @@ function WorkspaceInner() {
     setStatus('Note mode captures your own thinking as a movable canvas node.');
     focusComposer();
   }, [focusComposer]);
+
+  const focusContextGap = useCallback((node: CanvasNode) => {
+    setEnrichmentKind(defaultEnrichmentKind(node));
+    focusNode(node);
+    setStatus(`Selected ${node.title}. Attach transcript, OCR, notes, claims, or excerpts to make it action-ready.`);
+    window.setTimeout(() => {
+      const input = document.querySelector<HTMLTextAreaElement>('[data-testid="source-enrichment-body"]');
+      input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      input?.focus();
+    }, 160);
+  }, [focusNode]);
 
   useEffect(() => {
     setFlowNodes(baseFlow.nodes);
@@ -3218,6 +3250,63 @@ function WorkspaceInner() {
               <p className="mt-2 text-xs leading-5 text-starlight-muted">
                 Runs are local and deterministic in v0.1. Select nodes to scope an action, or leave empty to use the canvas.
               </p>
+              {contextGaps.length ? (
+                <div className="mt-3 rounded-md border border-starlight-gold/35 bg-starlight-gold/10 p-3" data-testid="context-gaps">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                        <TriangleAlert className="h-3.5 w-3.5 text-starlight-gold" aria-hidden="true" />
+                        Context gaps
+                      </div>
+                      <p className="mt-1 text-[11px] leading-5 text-starlight-muted">
+                        These sources are saved, but need transcript, OCR, notes, claims, or excerpts before deep Ask/Codex work.
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-md border border-starlight-gold/35 bg-starlight-bg px-2 py-1 text-[10px] font-semibold text-starlight-gold">
+                      {contextGaps.length} open
+                    </span>
+                  </div>
+                  <div className="mt-3 space-y-1.5">
+                    {contextGaps.map(({ node, readiness }) => (
+                      <div
+                        key={node.id}
+                        className="grid gap-2 rounded-md border border-starlight-border bg-starlight-bg/80 p-2"
+                        data-testid="context-gap-item"
+                      >
+                        <button
+                          type="button"
+                          onClick={() => focusContextGap(node)}
+                          className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)] gap-2 text-left transition hover:text-starlight-ink"
+                          title={readiness.nextAction}
+                        >
+                          <span className={`mt-0.5 h-1.5 w-1.5 rounded-full ${readiness.status === 'needs_context' ? 'bg-starlight-gold' : 'bg-starlight-muted'}`} aria-hidden="true" />
+                          <span className="min-w-0">
+                            <span className="block truncate text-[11px] font-semibold text-starlight-ink">{node.title}</span>
+                            <span className="mt-0.5 block truncate text-[10px] text-starlight-muted">{readiness.label}</span>
+                          </span>
+                        </button>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[10px] text-starlight-muted">
+                            {readiness.evidence.chunks} chunks
+                          </span>
+                          <span className="rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[10px] text-starlight-muted">
+                            {formatKind(readiness.evidence.ingest)}
+                          </span>
+                          <button
+                            type="button"
+                            data-testid="context-gap-attach"
+                            onClick={() => focusContextGap(node)}
+                            className="ml-auto inline-flex items-center gap-1.5 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-1 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-gold"
+                          >
+                            <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />
+                            Attach context
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               {contextScope ? (
                 <div className="mt-3 rounded-md border border-starlight-gold/35 bg-starlight-gold/10 p-3" data-testid="codex-export-preview">
                   <div className="flex items-center justify-between gap-3">

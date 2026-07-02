@@ -15,7 +15,7 @@ flowchart LR
   action --> export["Export JSON or Markdown"]
 ```
 
-Expected result: the user can use the top composer on every viewport, or the center empty-canvas capture box on desktop, as the first input surface. The live operator loop shows Capture, Map, Inspect, Ask, and Handoff state from real canvas data. The user sees what will be created before mapping, the composer shows a latest intake receipt after mapping, the Action Drawer persists an intake trace with readiness and scoped Inspect/Context/Codex controls, the new typed source node is selected, the viewport frames the new source/action cluster, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
+Expected result: the user can use the top composer on every viewport, or the center empty-canvas capture box on desktop, as the first input surface. The live operator loop shows Capture, Map, Inspect, Ask, and Handoff state from real canvas data. The user sees what will be created before mapping, the composer shows a latest intake receipt after mapping, the Action Drawer persists an intake trace with readiness and scoped Inspect/Context/Codex controls, reference-only sources appear in `Context gaps`, the new typed source node is selected, the viewport frames the new source/action cluster, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
 
 ## Flow 1A: Self-Serve Quick Starter
 
@@ -34,11 +34,12 @@ Expected result: the user can use the top composer on every viewport, or the cen
 13. Confirm the latest intake receipt lists the created node kind(s), artifact kind(s), optional output, and `Codex-ready` state.
 14. Confirm the Action Drawer `Latest intake trace` persists detected kinds, readiness count, source chips, and scoped `Inspect`, `Context`, and `Codex` controls for the newly mapped material.
 15. Inspect a created source and confirm source readiness says whether it is Codex-ready or needs transcript, OCR, notes, or readable page text first.
-16. Use the receipt's or trace's `Inspect`, `Context`, or `Codex` controls when you want exactly the newly mapped material.
-17. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
-18. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
-19. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
-20. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. The exported packet includes an `Intake Trace Manifest`; with selected nodes, the manifest is recomputed to the selected evidence and unrelated trace text/metadata stays out.
+16. If `Context gaps` appears, click `Attach context` there to focus the source enrichment textarea without searching the graph.
+17. Use the receipt's or trace's `Inspect`, `Context`, or `Codex` controls when you want exactly the newly mapped material.
+18. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
+19. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
+20. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
+21. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. The exported packet includes an `Intake Trace Manifest`; with selected nodes, the manifest is recomputed to the selected evidence and unrelated trace text/metadata stays out.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts, and source-specific notes remain bound to the media they explain.
 
@@ -87,7 +88,7 @@ If no transcript or notes are present, source readiness says `Video reference sa
 1. Paste a video URL, image URL, web URL, or other source without notes and click `Map only`.
 2. Select the created source node.
 3. Confirm source readiness says `Video reference saved`, `URL reference saved`, `Needs visual text`, or another needs-context state.
-4. In the inspector, use `Attach context`.
+4. In the Action Drawer `Context gaps` lane, click `Attach context`; or select the source and use the inspector `Attach context` panel.
 5. Choose `Transcript`, `Timestamps`, `OCR`, `Visual notes`, `Claims`, or `Notes`.
 6. Paste the transcript, OCR text, timestamp notes, observations, claims, excerpts, or human notes.
 7. Click `Attach Context`.

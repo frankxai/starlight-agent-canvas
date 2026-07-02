@@ -454,6 +454,21 @@
       "inspected": true
     },
     {
+      "path_or_url": "docs/visual-qa/desktop-context-gaps-reference.png",
+      "kind": "desktop context gaps lane screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-context-gaps-reference.png",
+      "kind": "mobile context gaps lane screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-context-gaps-reference-reduced-motion.png",
+      "kind": "desktop reduced-motion context gaps lane screenshot",
+      "inspected": true
+    },
+    {
       "path_or_url": "docs/visual-qa/mobile-codex-export-preview.png",
       "kind": "mobile selected Codex export preview screenshot",
       "inspected": true
@@ -691,6 +706,11 @@
       "notes": "Reference-only sources now expose an Attach context panel for transcript, timestamp notes, OCR, visual notes, claims, and notes; attaching context flips readiness to Codex-ready and rebuilds chunks. Desktop, mobile, and reduced-motion screenshots were inspected."
     },
     {
+      "name": "context-gaps-lane",
+      "status": "pass",
+      "notes": "The Action Drawer now lists reference-only or needs-context sources before the user searches the graph; each gap jumps to source enrichment. Desktop, mobile, and reduced-motion screenshots were inspected."
+    },
+    {
       "id": "first-success-contract",
       "status": "pass",
       "evidence": "Setup / MCP exposes install, open, capture, inspect, handoff, and Codex phases with contract/proof copy controls.",
@@ -727,7 +747,7 @@
     "desktopInspected": true,
     "mobileInspected": true,
     "reducedMotionInspected": true,
-    "server": "local Next preview/dev verification on 127.0.0.1:3102 and production previews on 127.0.0.1:3114/3115 during QA; stopped before handoff unless Frank explicitly asks to keep it running",
+    "server": "local Next preview/dev verification on 127.0.0.1:3102 and production previews on 127.0.0.1:3114/3115/3128 during QA; stopped before handoff unless Frank explicitly asks to keep it running",
     "screenshots": [
       "docs/visual-qa/desktop-production-os.png",
       "docs/visual-qa/mobile-production-os.png",
@@ -826,7 +846,10 @@
       "docs/visual-qa/mobile-source-enrichment-reference.png",
       "docs/visual-qa/mobile-source-enrichment-ready.png",
       "docs/visual-qa/desktop-source-enrichment-reference-reduced-motion.png",
-      "docs/visual-qa/desktop-source-enrichment-ready-reduced-motion.png"
+      "docs/visual-qa/desktop-source-enrichment-ready-reduced-motion.png",
+      "docs/visual-qa/desktop-context-gaps-reference.png",
+      "docs/visual-qa/mobile-context-gaps-reference.png",
+      "docs/visual-qa/desktop-context-gaps-reference-reduced-motion.png"
     ],
     "productionMetrics": {
       "desktop": {
@@ -906,6 +929,7 @@
       "supportedInputContract": true,
       "latestIntakeReceipt": true,
       "sourceReadinessReceipts": true,
+      "contextGapsLane": true,
       "persistentIntakeTrace": true,
       "scopedIntakeTraceExport": true
     },
@@ -929,6 +953,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Paste / Drop Anything, Source / Note / Ask composer controls, a supported-input contract strip for YouTube, any video, image, web, PDF, text, and note mappings, a live Capture / Map / Inspect / Ask / Handoff operator loop, guided workflow templates with clickable stages, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste with blocked/empty clipboard fallback, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, persistent intake trace with readiness labels and scoped Inspect/Context/Codex actions, selected Codex export preview with visible scope rules and exact included/excluded material, selected-source context receipts, source-readiness receipts with action-ready or needs-context state, source Attach context enrichment for transcript/OCR/notes/claims with rebuilt chunks and readiness updates, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, clickable answer/run-log citations with highlighted source chunks, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, reviewable JSON import preview with fresh duplicate-id detection and source-evidence focus after confirmation, in-app Setup/MCP status for local home, MCP build, Codex wiring, first-success input contracts, and the five-step activation runway from install health to proof canvas, source mapping, context export, and Codex MCP wiring; mobile loads the graph below the composer before rails with a compact bottom toolbar, the first-viewport composer is bounded on mobile so it does not collide with the command tray, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present, and source readiness plus intake trace receipts are visible to both humans and MCP clients."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Paste / Drop Anything, Source / Note / Ask composer controls, a supported-input contract strip for YouTube, any video, image, web, PDF, text, and note mappings, a live Capture / Map / Inspect / Ask / Handoff operator loop, guided workflow templates with clickable stages, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste with blocked/empty clipboard fallback, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, persistent intake trace with readiness labels and scoped Inspect/Context/Codex actions, Context gaps lane for reference-only or needs-context sources, selected Codex export preview with visible scope rules and exact included/excluded material, selected-source context receipts, source-readiness receipts with action-ready or needs-context state, source Attach context enrichment for transcript/OCR/notes/claims with rebuilt chunks and readiness updates, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, clickable answer/run-log citations with highlighted source chunks, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, reviewable JSON import preview with fresh duplicate-id detection and source-evidence focus after confirmation, in-app Setup/MCP status for local home, MCP build, Codex wiring, first-success input contracts, and the five-step activation runway from install health to proof canvas, source mapping, context export, and Codex MCP wiring; mobile loads the graph below the composer before rails with a compact bottom toolbar, the first-viewport composer is bounded on mobile so it does not collide with the command tray, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present, and source readiness, context gaps, plus intake trace receipts are visible to both humans and MCP clients."
   }
 }

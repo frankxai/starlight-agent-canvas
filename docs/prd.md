@@ -38,6 +38,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Newly created source, note, file, and action nodes become selected and open in the inspector.
 - Selected source nodes show a context receipt with artifact kind, ingest method, chunk count, source path/URL, and character count.
 - Selected source nodes show source readiness: whether the source is Codex-ready, reference-only, or needs transcript/OCR/text before deep analysis, plus usable chars, chunks, ingest mode, and a next action.
+- The Action Drawer shows a `Context gaps` lane when mapped sources are saved but not yet action-ready, with a direct path to inspect the source and attach transcript, OCR, notes, claims, or excerpts.
 - Selected source nodes expose immediate source-scoped actions: summary, claims, cited ask, and selected context copy.
 - User can see the active selected context before running actions.
 - User can see the supported-input contract in the first viewport: YouTube, any video link, image, web, PDF, text, and note, with each one mapped to the node/artifact type Codex will later receive.
@@ -127,6 +128,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can identify what `Map` created after clicking it, inspect the latest mapped cluster, and copy a context/Codex handoff scoped to that intake.
 - A user can paste a mixed media research blob containing a YouTube URL, generic video URL, image URL, and nearby transcript/notes/OCR labels, then get typed media nodes with attached context and no duplicate stray note node.
 - A user can select any mapped source and know whether it is Codex-ready now or needs transcript, OCR, page text, or notes first.
+- A user can see all reference-only or needs-context sources from the Action Drawer and jump directly into the enrichment textarea instead of searching the graph.
 - A user can select a reference-only source, attach transcript/OCR/notes in the inspector, and immediately run selected-source actions without recreating the source.
 - A user can start from `Video`, `Image`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
 - A user can see which workflow stage is complete and trigger the next one from the first viewport.

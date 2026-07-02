@@ -219,6 +219,11 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('status')).toContainText('Mapped 1 item(s): Video link.');
   await expect(page.getByTestId('source-readiness-label')).toContainText('Video reference saved');
   await expect(page.getByTestId('source-readiness-state')).toContainText('Needs context');
+  await expect(page.getByTestId('context-gaps')).toContainText('Context gaps');
+  await expect(page.getByTestId('context-gaps')).toContainText('Video reference saved');
+  await expect(page.getByTestId('context-gaps')).toContainText('1 open');
+  await page.getByTestId('context-gap-attach').first().click();
+  await expect(page.getByTestId('source-enrichment-body')).toBeFocused();
   await expect(page.getByTestId('source-enrichment')).toContainText('Attach context');
   await expect(page.getByTestId('source-enrichment-kind')).toContainText('Transcript');
   await expect(page.getByTestId('source-enrichment-attach')).toBeDisabled();
@@ -231,6 +236,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('source-chunk-preview')).toContainText('reference-only video explains');
   await expect(page.getByTestId('intake-trace-panel')).toContainText('Latest intake trace');
   await expect(page.getByTestId('intake-trace-stats')).toContainText('1 / 1');
+  await expect(page.getByTestId('context-gaps')).toHaveCount(0);
   {
     const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
     expect(exportHref).toBeTruthy();

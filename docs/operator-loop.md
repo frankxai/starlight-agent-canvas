@@ -26,7 +26,7 @@ flowchart LR
 6. Confirm the preview chips before mapping.
 7. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 8. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, character count, and source readiness.
-9. If source readiness is reference-only or needs text, use `Attach context` to add transcript, OCR, timestamp notes, visual observations, claims, or excerpts before expecting deep analysis.
+9. If source readiness is reference-only or needs text, use the Action Drawer `Context gaps` lane or the inspector `Attach context` panel to add transcript, OCR, timestamp notes, visual observations, claims, or excerpts before expecting deep analysis.
 10. Run source-scoped actions when one source matters, or canvas actions when synthesis matters.
 11. Export `Context` for general agent packets, `Codex` for ready-to-paste Codex continuation prompts, `Markdown` for people, or `JSON` for portable rehydration. If nodes are selected, those exports stay scoped to the selected evidence.
 
