@@ -19,6 +19,7 @@ const expectedTools = [
   'ingest_text_source',
   'ingest_url',
   'ingest_youtube',
+  'ingest_pdf',
   'connect_nodes',
   'run_node_action',
   'search_artifacts',
@@ -65,12 +66,23 @@ try {
       canvasId,
       title: 'Smoke note',
       body: 'The MCP stdio path can create a canvas, add a node, run an action, and export markdown.',
+      position: { x: 180, y: 160 },
     },
   });
   const nodeId = ingested.structuredContent?.node?.id;
   if (typeof nodeId !== 'string') {
     throw new Error('ingest_text_source did not return a node id.');
   }
+
+  await client.callTool({
+    name: 'ingest_pdf',
+    arguments: {
+      canvasId,
+      filename: 'smoke.pdf',
+      dataBase64: Buffer.from('%PDF-1.4\nSmoke PDF source for MCP parity.\n%%EOF').toString('base64'),
+      position: { x: 520, y: 160 },
+    },
+  });
 
   await client.callTool({
     name: 'update_node',
@@ -101,6 +113,18 @@ try {
   const body = exported.structuredContent?.body;
   if (typeof body !== 'string' || !body.includes('MCP smoke')) {
     throw new Error('export_canvas did not return markdown for the smoke canvas.');
+  }
+
+  const exportedContext = await client.callTool({
+    name: 'export_canvas',
+    arguments: {
+      canvasId,
+      format: 'context',
+    },
+  });
+  const contextBody = exportedContext.structuredContent?.body;
+  if (typeof contextBody !== 'string' || !contextBody.includes('Agent Context Packet')) {
+    throw new Error('export_canvas did not return an agent context packet for the smoke canvas.');
   }
 
   const exportedJson = await client.callTool({

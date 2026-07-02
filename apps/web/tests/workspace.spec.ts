@@ -55,6 +55,11 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   const exportedCanvas = await exportResponse.json() as { id: string; title: string };
   expect(JSON.stringify(exportedCanvas)).toContain('Edited canvas note');
 
+  const contextResponse = await page.request.get(exportHref!.replace('format=json', 'format=context'));
+  await expect(contextResponse).toBeOK();
+  expect(contextResponse.headers()['content-type']).toContain('text/markdown');
+  expect(await contextResponse.text()).toContain('Agent Context Packet');
+
   const importTitle = `imported ${testInfo.project.name} ${Date.now()}`;
   exportedCanvas.id = `canvas-${importTitle.replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase()}`;
   exportedCanvas.title = importTitle;

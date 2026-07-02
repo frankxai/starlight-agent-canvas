@@ -47,6 +47,11 @@ describe('FileCanvasStore', () => {
     expect(markdown).toContain('# Planning');
     expect(markdown).toContain('MCP note');
 
+    const context = await store.exportCanvas(canvas.id, 'context');
+    expect(context).toContain('# Agent Context Packet: Planning');
+    expect(context).toContain('## Operating Contract');
+    expect(context).toContain('MCP-native');
+
     const portable = JSON.parse(await store.exportCanvas(canvas.id, 'json')) as typeof canvas;
     portable.id = 'canvas-imported-planning';
     portable.title = 'Imported planning';

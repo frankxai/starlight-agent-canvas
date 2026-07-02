@@ -5,6 +5,7 @@ import {
   createCanvasInputSchema,
   FileCanvasStore,
   ingestSourceInputSchema,
+  ingestPdf,
   ingestUrl,
   ingestYoutube,
   runActionInputSchema,
@@ -84,18 +85,19 @@ export function createToolHandlers(store = new FileCanvasStore()) {
       return ok(`Updated node ${result.node.title} (${result.node.id})`, result);
     },
 
-    async ingest_text_source(args: { canvasId: string; title: string; body: string; source?: string; metadata?: Record<string, unknown> }): Promise<ToolResult> {
-      const { canvasId, ...input } = args;
+    async ingest_text_source(args: { canvasId: string; title: string; body: string; source?: string; metadata?: Record<string, unknown>; position?: { x: number; y: number } }): Promise<ToolResult> {
+      const { canvasId, position, ...input } = args;
       const result = await store.ingestSource(canvasId, ingestSourceInputSchema.parse({
         ...input,
         kind: 'note',
         artifactKind: 'manual',
         metadata: { ingest: 'mcp_text_source', ...(input.metadata ?? {}) },
+        position,
       }));
       return ok(`Ingested text source ${result.node.title} (${result.node.id})`, result);
     },
 
-    async ingest_url(args: { canvasId: string; url: string; useFirecrawl?: boolean; title?: string }): Promise<ToolResult> {
+    async ingest_url(args: { canvasId: string; url: string; useFirecrawl?: boolean; title?: string; position?: { x: number; y: number } }): Promise<ToolResult> {
       const source = await ingestUrl(args.url, { useFirecrawl: args.useFirecrawl === true }).catch((error) => sourceFallback('source_url', args.url, error));
       const result = await store.ingestSource(args.canvasId, ingestSourceInputSchema.parse({
         kind: 'source_url',
@@ -103,11 +105,12 @@ export function createToolHandlers(store = new FileCanvasStore()) {
         body: source.body,
         source: source.source,
         metadata: source.metadata,
+        position: args.position,
       }));
       return ok(`Ingested URL source ${result.node.title} (${result.node.id})`, result);
     },
 
-    async ingest_youtube(args: { canvasId: string; url: string; manualTranscript?: string; title?: string }): Promise<ToolResult> {
+    async ingest_youtube(args: { canvasId: string; url: string; manualTranscript?: string; title?: string; position?: { x: number; y: number } }): Promise<ToolResult> {
       const source = await ingestYoutube(args.url, args.manualTranscript ?? '').catch((error) => sourceFallback('source_youtube', args.url, error));
       const result = await store.ingestSource(args.canvasId, ingestSourceInputSchema.parse({
         kind: 'source_youtube',
@@ -115,8 +118,23 @@ export function createToolHandlers(store = new FileCanvasStore()) {
         body: source.body,
         source: source.source,
         metadata: source.metadata,
+        position: args.position,
       }));
       return ok(`Ingested video source ${result.node.title} (${result.node.id})`, result);
+    },
+
+    async ingest_pdf(args: { canvasId: string; filename: string; dataBase64: string; position?: { x: number; y: number } }): Promise<ToolResult> {
+      const bytes = Buffer.from(args.dataBase64, 'base64');
+      const source = await ingestPdf(bytes, args.filename);
+      const result = await store.ingestSource(args.canvasId, ingestSourceInputSchema.parse({
+        kind: 'source_pdf',
+        title: source.title,
+        body: source.body,
+        source: source.source,
+        metadata: { ...source.metadata, ingest: 'mcp_pdf_upload' },
+        position: args.position,
+      }));
+      return ok(`Ingested PDF source ${result.node.title} (${result.node.id})`, result);
     },
 
     async connect_nodes(args: { canvasId: string } & ConnectNodesInput): Promise<ToolResult> {
@@ -136,7 +154,7 @@ export function createToolHandlers(store = new FileCanvasStore()) {
       return ok(jsonText(results), { results });
     },
 
-    async export_canvas(args: { canvasId: string; format?: 'json' | 'markdown' }): Promise<ToolResult> {
+    async export_canvas(args: { canvasId: string; format?: 'json' | 'markdown' | 'context' }): Promise<ToolResult> {
       const format = args.format ?? 'json';
       const body = await store.exportCanvas(args.canvasId, format);
       return ok(body, { canvasId: args.canvasId, format, body });

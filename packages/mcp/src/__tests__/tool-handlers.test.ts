@@ -19,9 +19,19 @@ describe('MCP tool handlers', () => {
       title: 'Local node',
       body: 'MCP-native local workflow.',
       metadata: {},
+      position: { x: 140, y: 160 },
     });
-    const node = added.structuredContent?.node as { id: string };
+    const node = added.structuredContent?.node as { id: string; position: { x: number; y: number } };
     expect(node.id).toBeTruthy();
+    expect(node.position).toEqual({ x: 140, y: 160 });
+
+    const pdf = await handlers.ingest_pdf({
+      canvasId: canvas.id,
+      filename: 'local.pdf',
+      dataBase64: Buffer.from('%PDF-1.4\nPDF text about MCP-native local workflow.\n%%EOF').toString('base64'),
+      position: { x: 520, y: 160 },
+    });
+    expect(pdf.content[0].text).toContain('Ingested PDF source');
 
     const run = await handlers.run_node_action({
       canvasId: canvas.id,
@@ -40,9 +50,14 @@ describe('MCP tool handlers', () => {
 
     const search = await handlers.search_artifacts({ query: 'MCP-native' });
     expect(JSON.stringify(search.structuredContent)).toContain('Local node');
+    expect(JSON.stringify(search.structuredContent)).toContain('artifactId');
 
     const exported = await handlers.export_canvas({ canvasId: canvas.id, format: 'markdown' });
     expect(exported.content[0].text).toContain('# MCP smoke');
+
+    const context = await handlers.export_canvas({ canvasId: canvas.id, format: 'context' });
+    expect(context.content[0].text).toContain('# Agent Context Packet: MCP smoke');
+    expect(context.structuredContent?.format).toBe('context');
 
     const exportedJson = await handlers.export_canvas({ canvasId: canvas.id, format: 'json' });
     const portable = JSON.parse(exportedJson.content[0].text) as { id: string; title: string };

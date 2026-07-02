@@ -5,34 +5,48 @@ Starlight Agent Canvas exposes one local stdio MCP server. It gives agents a typ
 ## Build First
 
 ```powershell
-cd C:\Users\frank\starlight\repos\starlight-agent-canvas
+cd path\to\starlight-agent-canvas
 pnpm mcp:build
+pnpm mcp:config -- --client codex
+pnpm mcp:config -- --client json
 pnpm mcp:smoke
 ```
 
-The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests a text source, updates node position, runs an action, exports Markdown/JSON, and imports the portable JSON back as local context.
+The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests text and PDF sources, updates node position, runs an action, exports Markdown/JSON/context, and imports the portable JSON back as local context.
 
 ## Codex
 
-Frank's local Codex config can use this block:
+Generate a Codex config block for your machine:
+
+```powershell
+pnpm mcp:config -- --client codex
+```
+
+The output shape is:
 
 ```toml
 [mcp_servers.starlight-agent-canvas]
-command = 'C:\Program Files\nodejs\node.exe'
-args = ["C:/Users/frank/starlight/repos/starlight-agent-canvas/packages/mcp/dist/cli.js"]
+command = 'path\to\node.exe'
+args = ["/absolute/path/to/starlight-agent-canvas/packages/mcp/dist/cli.js"]
 startup_timeout_sec = 60
 
 [mcp_servers.starlight-agent-canvas.env]
-AGENT_CANVAS_HOME = "C:/Users/frank/.starlight/agent-canvas"
+AGENT_CANVAS_HOME = "/absolute/path/to/.starlight/agent-canvas"
 ```
 
-This keeps canvas data under `C:\Users\frank\.starlight\agent-canvas`.
+Frank's local home is `C:\Users\frank\.starlight\agent-canvas`; other users default to `<home>/.starlight/agent-canvas` unless `AGENT_CANVAS_HOME` is set.
 
 See `docs/codex-integration.md` for the recommended Codex operating contract, prompts, and shared human/agent workflow.
 
 ## Claude Desktop / MCP-Compatible Clients
 
-The repo includes `.mcp.json` with the same local server entry:
+Generate a JSON config block for your machine:
+
+```powershell
+pnpm mcp:config -- --client json
+```
+
+The output shape is:
 
 ```json
 {
@@ -40,10 +54,10 @@ The repo includes `.mcp.json` with the same local server entry:
     "starlight-agent-canvas": {
       "command": "C:/Program Files/nodejs/node.exe",
       "args": [
-        "C:/Users/frank/starlight/repos/starlight-agent-canvas/packages/mcp/dist/cli.js"
+        "/absolute/path/to/starlight-agent-canvas/packages/mcp/dist/cli.js"
       ],
       "env": {
-        "AGENT_CANVAS_HOME": "C:/Users/frank/.starlight/agent-canvas"
+        "AGENT_CANVAS_HOME": "/absolute/path/to/.starlight/agent-canvas"
       }
     }
   }
@@ -56,9 +70,9 @@ For Claude Desktop, merge the `mcpServers.starlight-agent-canvas` entry into `C:
 
 Use the same stdio shape when the host supports MCP servers:
 
-- command: `C:/Program Files/nodejs/node.exe`
-- args: `C:/Users/frank/starlight/repos/starlight-agent-canvas/packages/mcp/dist/cli.js`
-- env: `AGENT_CANVAS_HOME=C:/Users/frank/.starlight/agent-canvas`
+- command: the Node executable printed by `pnpm mcp:config`.
+- args: the built `packages/mcp/dist/cli.js` path printed by `pnpm mcp:config`.
+- env: `AGENT_CANVAS_HOME=<home>/.starlight/agent-canvas` or your chosen local data path.
 
 ## Tools
 
@@ -71,12 +85,23 @@ Use the same stdio shape when the host supports MCP servers:
 - `ingest_text_source`
 - `ingest_url`
 - `ingest_youtube`
+- `ingest_pdf`
 - `connect_nodes`
 - `run_node_action`
 - `search_artifacts`
 - `export_canvas`
 
 `import_canvas` is intentionally non-destructive by default: if the incoming JSON uses an id that already exists in the local home, the server saves it as a copy with a fresh id.
+
+`export_canvas` supports:
+
+- `json`: portable state for import.
+- `markdown`: readable handoff.
+- `context`: agent context packet with operating contract, node index, evidence corpus, recent runs, and continuation prompt.
+
+`add_node`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
+
+`search_artifacts` searches node text and durable source artifacts. Results include artifact ids and source metadata when available.
 
 ## Resources And Prompt
 

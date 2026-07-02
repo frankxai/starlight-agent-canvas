@@ -174,6 +174,7 @@ export function createAgentCanvasMcpServer() {
         kind: z.enum(['note', 'source_url', 'source_pdf', 'source_youtube', 'prompt', 'mcp_tool', 'agent_run', 'output']),
         title: z.string().min(1),
         body: z.string().optional(),
+        position: z.object({ x: z.number(), y: z.number() }).optional(),
         metadata: z.record(z.unknown()).optional(),
       },
       annotations: SAFE_LOCAL_WRITE,
@@ -209,6 +210,7 @@ export function createAgentCanvasMcpServer() {
         title: z.string().min(1),
         body: z.string().min(1),
         source: z.string().optional(),
+        position: z.object({ x: z.number(), y: z.number() }).optional(),
         metadata: z.record(z.unknown()).optional(),
       },
       annotations: SAFE_LOCAL_WRITE,
@@ -226,6 +228,7 @@ export function createAgentCanvasMcpServer() {
         url: z.string().url(),
         title: z.string().min(1).optional(),
         useFirecrawl: z.boolean().optional(),
+        position: z.object({ x: z.number(), y: z.number() }).optional(),
       },
       annotations: SAFE_NETWORK_SOURCE_INTAKE,
     },
@@ -242,10 +245,27 @@ export function createAgentCanvasMcpServer() {
         url: z.string().url(),
         title: z.string().min(1).optional(),
         manualTranscript: z.string().optional(),
+        position: z.object({ x: z.number(), y: z.number() }).optional(),
       },
       annotations: SAFE_NETWORK_SOURCE_INTAKE,
     },
     async (args) => handlers.ingest_youtube(args),
+  );
+
+  server.registerTool(
+    'ingest_pdf',
+    {
+      title: 'Ingest PDF',
+      description: 'Ingest a PDF file supplied as base64 into a durable local source artifact and typed canvas node.',
+      inputSchema: {
+        canvasId: canvasIdSchema,
+        filename: z.string().min(1),
+        dataBase64: z.string().min(1),
+        position: z.object({ x: z.number(), y: z.number() }).optional(),
+      },
+      annotations: SAFE_LOCAL_WRITE,
+    },
+    async (args) => handlers.ingest_pdf(args),
   );
 
   server.registerTool(
@@ -297,10 +317,10 @@ export function createAgentCanvasMcpServer() {
     'export_canvas',
     {
       title: 'Export Canvas',
-      description: 'Export a canvas as JSON or Markdown.',
+      description: 'Export a canvas as portable JSON, readable Markdown, or an agent context packet.',
       inputSchema: {
         canvasId: canvasIdSchema,
-        format: z.enum(['json', 'markdown']).optional(),
+        format: z.enum(['json', 'markdown', 'context']).optional(),
       },
       annotations: READ_ONLY_LOCAL,
     },

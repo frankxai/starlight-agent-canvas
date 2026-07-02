@@ -12,16 +12,16 @@ Most AI canvases make research visible for a human but awkward for local agents.
 
 ## What v0.1 Does
 
-- Create local canvases with portable JSON import/export and Markdown handoff exports.
+- Create local canvases with portable JSON import/export, Markdown handoff exports, and agent context packets.
 - Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
 - Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
 - Ingest YouTube links with title lookup, best-effort public captions, and manual transcript fallback.
 - Run local actions: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions.
-- Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect source bodies, copy an agent-ready context packet, export the result, and re-import portable canvas JSON.
+- Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect source bodies, copy/export an agent-ready context packet, export the result, and re-import portable canvas JSON.
 - Auto-open newly created sources and action answers in the inspector so the captured context is immediately usable.
-- Expose safe stdio MCP tools so coding agents can ingest sources, update nodes, run actions, import portable context, and export canvas state.
+- Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
 - Keep runtime data outside the repo by default.
 
 ## Quick Start
@@ -29,13 +29,15 @@ Most AI canvases make research visible for a human but awkward for local agents.
 From a GitHub clone:
 
 ```powershell
-git clone <repo-url>
+# Use the clone URL from the GitHub Code button.
+git clone https://github.com/<owner>/starlight-agent-canvas.git
 cd starlight-agent-canvas
 pnpm install
 pnpm doctor
-pnpm seed:starlight
 pnpm dev
 ```
+
+`pnpm seed:starlight` is optional sample data. It creates or refreshes the local `Starlight Agent Canvas OS` canvas under `AGENT_CANVAS_HOME`.
 
 From Frank's local estate:
 
@@ -74,6 +76,8 @@ The production preview uses `http://127.0.0.1:3101`.
 
 ```powershell
 pnpm mcp:build
+pnpm mcp:config -- --client codex
+pnpm mcp:config -- --client json
 pnpm mcp:smoke
 pnpm mcp:start
 ```
@@ -86,17 +90,19 @@ Example MCP client entry:
 {
   "mcpServers": {
     "starlight-agent-canvas": {
-        "command": "node",
-        "args": [
-          "C:/Users/frank/starlight/repos/starlight-agent-canvas/packages/mcp/dist/cli.js"
-        ],
+      "command": "node",
+      "args": [
+        "/absolute/path/to/starlight-agent-canvas/packages/mcp/dist/cli.js"
+      ],
       "env": {
-        "AGENT_CANVAS_HOME": "C:/Users/frank/.starlight/agent-canvas"
+        "AGENT_CANVAS_HOME": "/absolute/path/to/.starlight/agent-canvas"
       }
     }
   }
 }
 ```
+
+Run `pnpm mcp:config -- --client json` to print this block with paths for your machine.
 
 ## Verify
 
@@ -107,7 +113,7 @@ pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 
@@ -133,12 +139,13 @@ Client examples live in `examples/mcp`.
 - System design: `docs/system-design.md`
 - Technology stack: `docs/technology-stack.md`
 - GitHub readiness: `docs/github-readiness.md`
+- Readiness evidence: `docs/readiness-evidence.md`
 - Production readiness: `docs/production-readiness.md`
 
 ## Repo Layout
 
 - `apps/web`: Next.js workspace UI.
-- `packages/core`: schemas, file store, ingestion, actions, import/export.
+- `packages/core`: schemas, file store, ingestion, actions, import/export, and agent context packet generation.
 - `packages/mcp`: safe stdio MCP server.
 - `docs`: product brief, architecture, scene brief, evidence.
 - `examples`: portable sample canvases.

@@ -582,11 +582,11 @@ function WorkspaceInner() {
     if (!canvas) return;
     setBusy(true);
     try {
-      const response = await fetch(`/api/canvases/${canvas.id}/export?format=markdown`);
+      const response = await fetch(`/api/canvases/${canvas.id}/export?format=context`);
       if (!response.ok) throw new Error(await response.text());
       const text = await response.text();
       await navigator.clipboard.writeText(text);
-      setStatus('Copied Markdown context packet.');
+      setStatus('Copied agent context packet.');
     } catch (error) {
       setStatus((error as Error).message);
     } finally {

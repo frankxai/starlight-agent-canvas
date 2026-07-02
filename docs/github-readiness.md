@@ -55,6 +55,8 @@ Use labels:
 9. Update README links and docs index.
 10. Tag release only after GitHub CI passes.
 
+Use `docs/readiness-evidence.md` as the current proof matrix before tagging or announcing a release.
+
 ## First Good Issues
 
 - Add richer empty/error states to the canvas.
@@ -73,4 +75,3 @@ Use this framing:
 Avoid this framing:
 
 > A clone of Poppy, Nodeflow, or another closed-source AI canvas.
-

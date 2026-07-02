@@ -3,7 +3,7 @@ import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { canvasIdSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, ingestSourceInputSchema, updateNodeInputSchema, type AddNodeInput, type CanvasArtifact, type CanvasEdge, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type IngestSourceInput, type RunActionInput, type UpdateNodeInput } from './schemas.js';
 import { createCanvasRecord } from './templates.js';
-import { exportCanvasAsMarkdown } from './exporters.js';
+import { exportCanvasAsAgentContext, exportCanvasAsMarkdown } from './exporters.js';
 import { makeId, nowIso } from './ids.js';
 import { runCanvasAction } from './actions.js';
 import { getAgentCanvasHome } from './home.js';
@@ -306,18 +306,18 @@ export class FileCanvasStore {
     });
   }
 
-  async exportCanvas(canvasId: string, format: 'json' | 'markdown' = 'json'): Promise<string> {
+  async exportCanvas(canvasId: string, format: 'json' | 'markdown' | 'context' = 'json'): Promise<string> {
     const canvas = await this.getCanvas(canvasId);
-    return format === 'markdown'
-      ? exportCanvasAsMarkdown(canvas)
-      : JSON.stringify(canvas, null, 2);
+    if (format === 'markdown') return exportCanvasAsMarkdown(canvas);
+    if (format === 'context') return exportCanvasAsAgentContext(canvas);
+    return JSON.stringify(canvas, null, 2);
   }
 
-  async searchArtifacts(query: string): Promise<Array<{ canvasId: string; nodeId: string; title: string; kind: string; excerpt: string }>> {
+  async searchArtifacts(query: string): Promise<Array<{ canvasId: string; nodeId: string; artifactId?: string; title: string; kind: string; excerpt: string; source?: string; score: number }>> {
     const lower = query.trim().toLowerCase();
     if (!lower) return [];
     const summaries = await this.listCanvases();
-    const results: Array<{ canvasId: string; nodeId: string; title: string; kind: string; excerpt: string }> = [];
+    const results: Array<{ canvasId: string; nodeId: string; artifactId?: string; title: string; kind: string; excerpt: string; source?: string; score: number }> = [];
     for (const summary of summaries) {
       const canvas = await this.getCanvas(summary.id);
       for (const node of canvas.nodes) {
@@ -329,10 +329,30 @@ export class FileCanvasStore {
             title: node.title,
             kind: node.kind,
             excerpt: node.body.slice(0, 240),
+            source: typeof node.metadata.source === 'string' ? node.metadata.source : typeof node.metadata.url === 'string' ? node.metadata.url : undefined,
+            score: node.title.toLowerCase().includes(lower) ? 3 : 1,
+          });
+        }
+      }
+      for (const artifact of canvas.artifacts) {
+        const haystack = `${artifact.title}\n${artifact.body}\n${artifact.source ?? ''}\n${JSON.stringify(artifact.metadata)}`.toLowerCase();
+        if (haystack.includes(lower)) {
+          const node = canvas.nodes.find((candidate) => candidate.metadata.artifactId === artifact.id);
+          results.push({
+            canvasId: canvas.id,
+            nodeId: node?.id ?? '',
+            artifactId: artifact.id,
+            title: artifact.title,
+            kind: artifact.kind,
+            excerpt: artifact.body.slice(0, 240),
+            source: artifact.source,
+            score: artifact.title.toLowerCase().includes(lower) ? 4 : 2,
           });
         }
       }
     }
-    return results.slice(0, 25);
+    return results
+      .sort((a, b) => b.score - a.score || a.title.localeCompare(b.title))
+      .slice(0, 25);
   }
 }

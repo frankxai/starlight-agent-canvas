@@ -1,0 +1,27 @@
+# Readiness Evidence Matrix
+
+Last local verification: 2026-07-02.
+
+This matrix connects the product promises in `docs/prd.md` and `docs/user-flows.md` to current evidence. It is intentionally practical: if a row cannot point to a command, screenshot, test, or file, it is not considered proven.
+
+| Promise | Current Evidence | Status |
+| --- | --- | --- |
+| First screen is the usable workspace | `apps/web/components/WorkspaceClient.tsx`, `docs/scene-brief.md`, `docs/visual-qa/desktop-context-import-toolbar.png`, `docs/visual-qa/mobile-context-import-toolbar.png` | Proven locally |
+| User can paste/drop links, transcripts, files, and notes | Playwright `apps/web/tests/workspace.spec.ts`; web routes under `apps/web/app/api/canvases/[id]/ingest`; `pnpm test:e2e` passed | Proven for happy path; more drag/drop/PDF browser cases needed |
+| YouTube is transcript-first with manual fallback | `packages/core/src/ingest.ts`, `docs/user-flows.md`, core ingest tests | Proven at adapter level |
+| User can run local actions and inspect outputs | `packages/core/src/actions.ts`, `packages/core/src/__tests__/actions.test.ts`, Playwright `ask-canvas` path | Proven locally |
+| JSON import/export is portable and non-destructive | `packages/core/src/store.ts`, `apps/web/app/api/canvases/import/route.ts`, `packages/core/src/__tests__/store.test.ts`, Playwright import path | Proven locally |
+| Agent context packet is available | `packages/core/src/exporters.ts`, web `format=context` route, MCP `export_canvas` with `format: "context"`, live preview API check on 2026-07-02 | Proven locally |
+| MCP can read/write canvas state safely | `packages/mcp/src/index.ts`, `packages/mcp/src/tool-handlers.ts`, `pnpm mcp:smoke` passed with 14 tools | Proven locally |
+| MCP can ingest text, URL, YouTube, and PDF sources | MCP tool schemas and smoke test include text/PDF; URL/YouTube handlers share core adapters | Proven for text/PDF smoke; URL/YouTube live network remains best-effort |
+| MCP and web support graph positioning | Web drag persistence and MCP optional `position` inputs; MCP handler test asserts position | Proven locally |
+| Local data remains outside Git | `.gitignore`, `AGENT_CANVAS_HOME`, `packages/core/src/home.ts`, `pnpm doctor` | Proven by repo structure and doctor |
+| Security scan is clean | `Invoke-RepoSecurityScan.ps1 -Path ...` passed on 2026-07-02 after generated cache cleanup | Proven locally |
+| Visual QA passes 26/30+ | `docs/design-loop-evidence.json` validates and scores 27/30 | Proven locally |
+
+## Current Known Gaps
+
+- Citation-grade chunks/spans are not implemented yet; source-grounded actions cite node titles and evidence sentences.
+- Browser tests still need broader coverage for PDF upload, drag/drop positioning, edge creation, search navigation, and import conflict UX.
+- Import preview/diff and selected-subgraph export are not yet implemented.
+- Hosted deployment, auth, collaboration, billing, marketplace, and provider-backed AI actions remain v0.2+ decisions.

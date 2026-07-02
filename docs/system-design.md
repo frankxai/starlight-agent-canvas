@@ -32,6 +32,8 @@ Source ingestion writes both an artifact record and a typed node. The node is wh
 
 Portable JSON import validates the same canvas record schema used by exports. Imports preserve the incoming id when it is new to the local home; when that id already exists, the store creates a non-destructive copy with a fresh canvas id and updated timestamps.
 
+Exports have three roles: JSON is portable state, Markdown is a readable handoff, and context is an agent packet with operating contract, node index, evidence corpus, recent runs, and continuation prompt.
+
 ## Node Kinds
 
 `note`, `source_url`, `source_pdf`, `source_youtube`, `prompt`, `mcp_tool`, `agent_run`, `output`
@@ -46,7 +48,7 @@ v0.1 ships deterministic local actions: summarize, extract claims, compare sourc
 
 ## MCP Boundary
 
-The MCP server exposes safe local tools only. It can list/get/create/import canvases, add/update/ingest nodes, connect nodes, run actions, search artifacts, and export. It never posts, pays, scrapes social platforms, or deletes data.
+The MCP server exposes safe local tools only. It can list/get/create/import canvases, add/update/ingest positioned nodes, ingest text/URL/YouTube/PDF sources, connect nodes, run actions, search node/artifact evidence, and export. It never posts, pays, scrapes social platforms, or deletes data.
 
 ## Network Boundary
 

@@ -75,9 +75,9 @@ Mobile is intended for review and light intake in v0.1, not dense graph authorin
 ## Flow 7: Export, Import, And Handoff
 
 1. Complete source mapping and actions.
-2. Click `Context` for clipboard-ready Markdown, `JSON` for portable state, or `MD` for readable handoff.
+2. Click `Context` for an agent packet, `JSON` for portable state, or `MD` for readable handoff.
 3. Attach the export to a PR, issue, Codex task, or project brief.
 4. Re-import the JSON from the canvas toolbar or through MCP when you want to rehydrate the exact graph later.
 5. If the canvas id already exists locally, import creates a non-destructive copy instead of overwriting active work.
 
-Expected result: a canvas can move between human review, repo artifacts, Codex/Claude/Gemini MCP sessions, and later local rehydration without becoming a dead screenshot.
+Expected result: a canvas can move between human review, repo artifacts, Codex/Claude/Gemini MCP sessions, and later local rehydration without becoming a dead screenshot. The context packet gives agents metadata, a node index, evidence corpus, recent runs, and a continuation prompt.

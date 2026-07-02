@@ -6,7 +6,7 @@ This guide is for people trying Starlight Agent Canvas from GitHub and for local
 
 - A local web canvas for notes, URLs, YouTube transcripts, PDFs, text files, and agent outputs.
 - A file-backed data home outside the repo.
-- A safe stdio MCP server so agents can read, add to, run actions on, import, and export the same canvas.
+- A safe stdio MCP server so agents can read, add to, run actions on, import, and export the same canvas as JSON, Markdown, or an agent context packet.
 - Deterministic local actions that work without model provider keys.
 
 ## Requirements
@@ -26,15 +26,23 @@ corepack prepare pnpm@11.7.0 --activate
 ## Install From GitHub
 
 ```powershell
-git clone <repo-url>
+# Use the clone URL from the GitHub Code button.
+git clone https://github.com/<owner>/starlight-agent-canvas.git
 cd starlight-agent-canvas
 pnpm install
 pnpm doctor
-pnpm seed:starlight
 pnpm dev
 ```
 
 The app starts on `http://localhost:3000` unless Next.js chooses another port.
+
+Optional sample data:
+
+```powershell
+pnpm seed:starlight
+```
+
+This creates or refreshes `canvas-starlight-agent-canvas-os` in your configured `AGENT_CANVAS_HOME`.
 
 ## Install From Frank's Local Estate
 
@@ -66,7 +74,7 @@ pnpm dev
 3. Click `Map`.
 4. Select the new node and edit its title/body in the inspector if needed.
 5. Run `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
-6. Click `Context` when you want a clipboard-ready Markdown packet for an agent prompt.
+6. Click `Context` when you want a clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
 7. Export JSON or Markdown from the canvas toolbar.
 8. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
 9. Build the MCP server with `pnpm mcp:build`.
@@ -86,6 +94,8 @@ This builds the monorepo and starts the production Next.js server on `http://127
 
 ```powershell
 pnpm mcp:build
+pnpm mcp:config -- --client codex
+pnpm mcp:config -- --client json
 pnpm mcp:smoke
 ```
 
@@ -97,6 +107,12 @@ Then copy the relevant config from:
 - `examples/mcp/gemini.md`
 
 See `docs/mcp-setup.md` and `docs/codex-integration.md` for the operating workflow.
+
+## Export Modes
+
+- `JSON`: portable canvas state for import/re-hydration.
+- `MD`: readable human handoff.
+- `Context`: agent packet with metadata, operating contract, node index, evidence corpus, recent runs, and a continuation prompt.
 
 ## Troubleshooting
 
