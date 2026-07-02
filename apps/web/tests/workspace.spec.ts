@@ -134,6 +134,15 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('selected-source-ask').click();
   await expect(page.getByTestId('inspector-title')).toHaveValue('answer question output');
   await expect(page.getByTestId('inspector')).toContainText('Citations');
+  await expect(page.getByTestId('citation-focus').first()).toContainText('Focus source');
+  await page.getByTestId('citation-focus').first().click();
+  await expect(page.getByTestId('status')).toContainText('Focused citation');
+  await expect(page.getByTestId('inspector-body')).toHaveValue(/Manual transcript/);
+  await expect(page.getByTestId('source-receipt-kind')).toContainText('youtube');
+  await expect(page.getByTestId('source-chunk-preview')).toContainText('focused');
+  await expect(page.getByTestId('run-citation-focus').first()).toBeVisible();
+  await page.getByTestId('run-citation-focus').first().click();
+  await expect(page.getByTestId('source-chunk-preview')).toContainText('Manual transcript');
   await expect(page.getByTestId('quick-note')).toBeEnabled();
 
   const markdownPath = testInfo.outputPath(`uploaded-${testInfo.project.name}.md`);

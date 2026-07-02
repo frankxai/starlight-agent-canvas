@@ -35,6 +35,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can see handoff readiness before leaving the browser: evidence captured, synthesis/output present, selected scope, and whether Codex is MCP-wired or should use a handoff prompt.
 - User can export selected evidence as JSON, Markdown, agent context, or Codex handoff without exporting unrelated canvas material.
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
+- User can click answer citations in the inspector or run log to refocus the source node and highlighted chunk that grounded the output.
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
 - User can export portable JSON, readable Markdown, general agent context packets, and Codex-ready continuation prompts; user can re-import portable JSON.
 - User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
@@ -79,6 +80,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Every durable source artifact gets chunk ids that answers and context exports can cite.
 - Every action output becomes inspectable context.
 - Every search result should help the user re-enter the graph, not become a detached list.
+- Every citation should help the user re-enter the source graph, not remain a static footnote.
 - Every install/Codex claim shown in the UI should be backed by a local check or a copyable command.
 - Every handoff claim shown in the UI should be backed by live canvas state, not generic progress copy.
 - Human edits are first-class, not an afterthought.
@@ -91,6 +93,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A local operator can confirm data home, MCP build, Codex config, and Codex server wiring without leaving the workspace.
 - An agent or CI job can parse `pnpm doctor:json` and distinguish required failures from optional wiring warnings.
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
+- A user can click a citation from an answer or run log and land back on the cited source/chunk.
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - A user can start from `Video`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
@@ -112,7 +115,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Optional SQLite local store.
 - Freeform sketch mode after typed workflow nodes are stable.
 - Provider-backed AI actions behind explicit adapters.
-- Chunk-level citations and retrieval.
+- Richer retrieval controls and citation filtering.
 - Hosted preview path with explicit auth/storage model.
 
 ## Risks

@@ -252,6 +252,21 @@
       "path_or_url": "docs/visual-qa/mobile-handoff-readiness.png",
       "kind": "mobile handoff readiness lane screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-citation-focus.png",
+      "kind": "desktop clickable answer citation screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-citation-source-focused.png",
+      "kind": "desktop citation source focused chunk screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-citation-focus.png",
+      "kind": "mobile citation source focused chunk screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -309,6 +324,11 @@
       "name": "handoff-readiness-lane",
       "status": "pass",
       "notes": "The action drawer now exposes evidence, synthesis, scope, and Codex/MCP readiness from live canvas/setup state; desktop and mobile screenshots were inspected."
+    },
+    {
+      "name": "citation-focus-loop",
+      "status": "pass",
+      "notes": "Answer citation cards and run-log citation chips now refocus the cited source node and highlighted chunk; desktop and mobile screenshots were inspected from the production preview."
     }
   ],
   "score": {
@@ -373,7 +393,10 @@
       "docs/visual-qa/desktop-source-video-reduced-motion.png",
       "docs/visual-qa/desktop-codex-handoff-command.png",
       "docs/visual-qa/mobile-codex-handoff-command.png",
-      "docs/visual-qa/desktop-codex-handoff-reduced-motion.png"
+      "docs/visual-qa/desktop-codex-handoff-reduced-motion.png",
+      "docs/visual-qa/desktop-citation-focus.png",
+      "docs/visual-qa/desktop-citation-source-focused.png",
+      "docs/visual-qa/mobile-citation-focus.png"
     ],
     "productionMetrics": {
       "desktop": {
@@ -434,7 +457,8 @@
       "codexHandoffCommandTray": true,
       "codexHandoffApiExport": true,
       "codexHandoffMcpExport": true,
-      "codexHandoffCliExport": true
+      "codexHandoffCliExport": true,
+      "citationFocusLoop": true
     },
     "metrics": {
       "desktop": {
@@ -456,6 +480,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, clickable answer/run-log citations with highlighted source chunks, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

@@ -52,9 +52,10 @@ Expected result: a first-time user can see the complete product loop in seconds 
 6. Confirm the context receipt shows `youtube`, `manual transcript`, source URL, chunks, and character count.
 7. Run `Ask selected`, `Source summary`, or `Extract claims`.
 8. Copy selected source context when Codex/Claude/Gemini should use only that source.
-9. Inspect the cited node/chunk ids in the output inspector.
-10. Search a claim or transcript phrase and jump back to the source node.
-11. Export the output node as part of the canvas.
+9. Click a citation in the output inspector and confirm the source node refocuses with the cited chunk highlighted.
+10. Click the same citation from the run log when re-entering older answers.
+11. Search a claim or transcript phrase and jump back to the source node.
+12. Export the output node as part of the canvas.
 
 Design note: YouTube ingestion is transcript-first. The app tries title lookup and captions, but manual transcript fallback is part of the core product path.
 

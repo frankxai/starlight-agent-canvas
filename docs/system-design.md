@@ -34,6 +34,8 @@ Artifacts include deterministic source chunks with ids, index, text, and body of
 
 The web inspector resolves a selected node back to its artifact to show a context receipt: artifact kind, ingest method, chunk count, source, character count, chunk preview, selected-source actions, and a selected context copy packet. The main action drawer can still use whole-canvas or multi-selected context.
 
+Action outputs and run logs preserve citation metadata with node, artifact, and chunk ids. The web UI resolves those citations back into the current canvas so a user can click an answer citation, refocus the cited source node, and bring the cited chunk to the top of the receipt preview.
+
 Portable JSON import validates the same canvas record schema used by exports. Imports preserve the incoming id when it is new to the local home; when that id already exists, the store creates a non-destructive copy with a fresh canvas id and updated timestamps.
 
 Exports have three roles: JSON is portable state, Markdown is a readable handoff, and context is an agent packet with operating contract, node index, source chunk manifest, evidence corpus, recent runs, and continuation prompt.

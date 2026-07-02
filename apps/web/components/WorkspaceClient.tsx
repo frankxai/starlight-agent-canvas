@@ -581,6 +581,7 @@ function WorkspaceInner() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
+  const [focusedChunkId, setFocusedChunkId] = useState<string | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const compactCanvas = useCompactCanvas();
 
@@ -601,6 +602,13 @@ function WorkspaceInner() {
   const selectedArtifactChars = selectedArtifact?.body.length ?? selectedNode?.body.length ?? 0;
   const selectedChunkCount = selectedArtifact?.chunks.length ?? 0;
   const selectedPageCount = metadataNumber(selectedArtifact?.metadata, 'pages') ?? metadataNumber(selectedNode?.metadata, 'pages');
+  const selectedChunkPreviews = useMemo(() => {
+    const chunks = selectedArtifact?.chunks ?? [];
+    if (!focusedChunkId) return chunks.slice(0, 2);
+    const focused = chunks.find((chunk) => chunk.id === focusedChunkId);
+    if (!focused) return chunks.slice(0, 2);
+    return [focused, ...chunks.filter((chunk) => chunk.id !== focusedChunkId).slice(0, 1)];
+  }, [focusedChunkId, selectedArtifact?.chunks]);
   const baseFlow = useMemo(() => (canvas ? toFlow(canvas, compactCanvas) : { nodes: [], edges: [] }), [canvas, compactCanvas]);
   const canMutate = Boolean(canvas) && !busy;
   const intakePlan = useMemo(() => buildIntakePlan(intakeText), [intakeText]);
@@ -676,6 +684,22 @@ function WorkspaceInner() {
     }, 0);
   }, [compactCanvas, setCenter]);
 
+  const focusCitation = useCallback((citation: SourceCitation) => {
+    if (!canvas) return;
+    const node = canvas.nodes.find((candidate) => candidate.id === citation.nodeId)
+      ?? (citation.artifactId
+        ? canvas.nodes.find((candidate) => metadataString(candidate.metadata, 'artifactId') === citation.artifactId)
+        : undefined);
+    if (!node) {
+      setStatus('Citation source is not available anymore.');
+      return;
+    }
+    setFocusedChunkId(citation.chunkId ?? null);
+    focusNode(node);
+    const target = citation.chunkId ?? citation.artifactId ?? node.id;
+    setStatus(`Focused citation ${citation.id}: ${node.title}${target ? ` (${target})` : ''}.`);
+  }, [canvas, focusNode]);
+
   const focusComposer = useCallback(() => {
     window.setTimeout(() => composerRef.current?.focus(), 0);
   }, []);
@@ -726,6 +750,13 @@ function WorkspaceInner() {
     setEditTitle(selectedNode?.title ?? '');
     setEditBody(selectedNode?.body ?? '');
   }, [selectedNode?.id, selectedNode?.title, selectedNode?.body]);
+
+  useEffect(() => {
+    if (!focusedChunkId) return;
+    if (!selectedArtifact?.chunks.some((chunk) => chunk.id === focusedChunkId)) {
+      setFocusedChunkId(null);
+    }
+  }, [focusedChunkId, selectedArtifact]);
 
   const loadCanvas = useCallback(async (id: string) => {
     const data = await api<{ canvas: CanvasRecord }>(`/api/canvases/${id}`);
@@ -1300,6 +1331,7 @@ function WorkspaceInner() {
       const targetCanvas = canvas?.id === result.canvasId ? canvas : await loadCanvas(result.canvasId);
       const node = targetCanvas.nodes.find((candidate) => candidate.id === result.nodeId);
       if (!node) throw new Error('Search result node is not available anymore.');
+      setFocusedChunkId(result.chunkId ?? null);
       setSelectedIds([node.id]);
       setCenter(node.position.x + 130, node.position.y + 80, { zoom: compactCanvas ? 0.72 : 1, duration: 450 });
       setStatus(result.chunkId ? `Focused ${node.title} at ${result.chunkId}.` : `Focused ${node.title}.`);
@@ -2213,11 +2245,21 @@ function WorkspaceInner() {
                         {selectedSource}
                       </div>
                     ) : null}
-                    {selectedArtifact?.chunks.length ? (
+                    {selectedChunkPreviews.length ? (
                       <div className="mt-2 space-y-1.5" data-testid="source-chunk-preview">
-                        {selectedArtifact.chunks.slice(0, 2).map((chunk) => (
-                          <div key={chunk.id} className="rounded-md border border-starlight-border bg-starlight-bg p-2">
-                            <div className="text-[10px] font-semibold text-starlight-mint">{chunk.id}</div>
+                        {selectedChunkPreviews.map((chunk) => (
+                          <div
+                            key={chunk.id}
+                            className={`rounded-md border p-2 ${
+                              chunk.id === focusedChunkId
+                                ? 'border-starlight-mint/60 bg-starlight-mint/10'
+                                : 'border-starlight-border bg-starlight-bg'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between gap-2 text-[10px] font-semibold text-starlight-mint">
+                              <span className="truncate">{chunk.id}</span>
+                              {chunk.id === focusedChunkId ? <span className="shrink-0 text-starlight-ink">focused</span> : null}
+                            </div>
                             <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-starlight-muted">{chunk.text}</p>
                           </div>
                         ))}
@@ -2291,14 +2333,24 @@ function WorkspaceInner() {
                       <div className="text-xs font-semibold text-starlight-mint">Citations</div>
                       <div className="mt-2 space-y-2">
                         {selectedCitations.slice(0, 6).map((citation) => (
-                          <div key={citation.id} className="rounded-md border border-starlight-border bg-starlight-surface p-2">
-                            <div className="flex items-center justify-between gap-2 text-[11px]">
+                          <button
+                            key={citation.id}
+                            data-testid="citation-focus"
+                            type="button"
+                            onClick={() => focusCitation(citation)}
+                            className="block w-full rounded-md border border-starlight-border bg-starlight-surface p-2 text-left transition hover:border-starlight-mint/70 hover:bg-starlight-mint/5"
+                          >
+                            <span className="flex items-center justify-between gap-2 text-[11px]">
                               <span className="font-semibold text-starlight-ink">{citation.id}</span>
-                              <span className="truncate text-starlight-muted">{citation.chunkId ?? citation.artifactId ?? citation.nodeId}</span>
-                            </div>
-                            {citation.source ? <p className="mt-1 truncate text-[11px] text-starlight-mint">{citation.source}</p> : null}
-                            <p className="mt-1 line-clamp-3 text-xs leading-5 text-starlight-muted">{citation.quote}</p>
-                          </div>
+                              <span className="inline-flex shrink-0 items-center gap-1 text-starlight-mint">
+                                <Crosshair className="h-3 w-3" aria-hidden="true" />
+                                Focus source
+                              </span>
+                            </span>
+                            <span className="mt-1 block truncate text-[11px] text-starlight-muted">{citation.chunkId ?? citation.artifactId ?? citation.nodeId}</span>
+                            {citation.source ? <span className="mt-1 block truncate text-[11px] text-starlight-mint">{citation.source}</span> : null}
+                            <span className="mt-1 block line-clamp-3 text-xs leading-5 text-starlight-muted">{citation.quote}</span>
+                          </button>
                         ))}
                       </div>
                     </div>
@@ -2441,9 +2493,15 @@ function WorkspaceInner() {
                       {citations.length ? (
                         <div className="mt-2 flex flex-wrap gap-1">
                           {citations.slice(0, 5).map((citation) => (
-                            <span key={citation.id} className="rounded-md border border-starlight-mint/30 bg-starlight-mint/10 px-1.5 py-0.5 text-[10px] text-starlight-mint">
+                            <button
+                              key={citation.id}
+                              data-testid="run-citation-focus"
+                              type="button"
+                              onClick={() => focusCitation(citation)}
+                              className="rounded-md border border-starlight-mint/30 bg-starlight-mint/10 px-1.5 py-0.5 text-[10px] text-starlight-mint transition hover:border-starlight-mint hover:bg-starlight-mint/15"
+                            >
                               {citation.id}{citation.chunkId ? ` ${citation.chunkId}` : ''}
-                            </span>
+                            </button>
                           ))}
                         </div>
                       ) : null}

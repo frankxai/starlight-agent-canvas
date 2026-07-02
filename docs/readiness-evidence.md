@@ -22,6 +22,7 @@ Latest local proof commit: use `git log --oneline -1`; this matrix tracks eviden
 | Codex-ready handoff prompt is available | `packages/core/src/exporters.ts`, web `format=codex` route, `Codex` workspace button, CLI `--format codex`, MCP `export_canvas` with `format: "codex"`, Playwright/API and smoke assertions | Proven locally |
 | Selected evidence can be exported without unrelated canvas material | `scopeCanvasToNodes` in `packages/core/src/exporters.ts`, API `nodeIds` query, CLI `--nodes`, MCP `export_canvas.nodeIds`, Playwright selected/full export assertions, core/MCP/CLI smoke assertions | Proven locally |
 | Source chunks and citations are available | `packages/core/src/chunks.ts`, `packages/core/src/actions.ts`, `packages/core/src/__tests__/actions.test.ts`, `packages/core/src/__tests__/store.test.ts`, inspector citation UI in `apps/web/components/WorkspaceClient.tsx` | Proven at core/UI level |
+| Citations navigate back to evidence | Inspector `citation-focus`, run-log `run-citation-focus`, focused chunk preview in `apps/web/components/WorkspaceClient.tsx`; Playwright citation focus assertions | Proven locally for selected-source ask citations and run-log citation chips |
 | Selected sources expose a usable context receipt | `source-receipt`, `source-chunk-preview`, `selected-source-ask`, and `selected-source-copy` in `apps/web/components/WorkspaceClient.tsx`; Playwright assertions for YouTube/manual transcript receipt and selected-source ask | Proven locally |
 | Search results navigate back to graph evidence | Web search UI in `apps/web/components/WorkspaceClient.tsx`; Playwright search-focus assertion | Proven locally |
 | Selected context is visible before actions | `selected-context` tray in `apps/web/components/WorkspaceClient.tsx`; Playwright assertion | Proven locally |
@@ -45,7 +46,6 @@ Latest local proof commit: use `git log --oneline -1`; this matrix tracks eviden
 
 ## Current Known Gaps
 
-- Citation chunks and answer metadata are visible in the inspector; deeper citation-to-node/chunk navigation remains future work.
 - Browser tests still need broader coverage for PDF upload, edge creation, clipboard permission button behavior, and import conflict UX.
 - Non-YouTube video links are safe references plus notes in v0.1; provider-specific transcript adapters are not implemented yet.
 - Import preview/diff and richer selected-subgraph visualization are not yet implemented.
