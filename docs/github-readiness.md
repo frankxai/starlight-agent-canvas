@@ -67,17 +67,18 @@ Use labels:
 4. Run `pnpm verify`.
 5. Run `pnpm canvas:smoke`.
 6. Run `pnpm mcp:smoke`.
-7. Run `pnpm test:e2e`.
-8. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
-9. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
-10. Run the Starlight staged/full security scan.
-11. Confirm visual QA screenshots are current.
-12. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
-13. Confirm `.env` and private canvas exports are not staged.
-14. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
-15. Update README links and docs index.
-16. Replace CODEOWNERS placeholder comments with real GitHub usernames or teams before enforcing owner review.
-17. Tag release only after GitHub CI passes.
+7. Run `pnpm first-run:check` to prove a fresh production preview can boot, import the demo canvas, and export context from a temporary data home.
+8. Run `pnpm test:e2e`.
+9. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
+10. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
+11. Run the Starlight staged/full security scan.
+12. Confirm visual QA screenshots are current.
+13. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
+14. Confirm `.env` and private canvas exports are not staged.
+15. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
+16. Update README links and docs index.
+17. Replace CODEOWNERS placeholder comments with real GitHub usernames or teams before enforcing owner review.
+18. Tag release only after GitHub CI passes.
 
 Public install proof to keep current:
 

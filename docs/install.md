@@ -53,6 +53,14 @@ Need the full verification path after setup:
 node scripts/setup.mjs --verify
 ```
 
+Need a non-interactive proof that the app can actually start after install:
+
+```powershell
+pnpm first-run:check
+```
+
+This builds the production app, starts it on a temporary localhost port with a temporary `AGENT_CANVAS_HOME`, checks `/api/setup/status`, imports the bundled demo canvas, verifies context export, stops the preview, and removes the temporary data home. Use `pnpm first-run:check -- --skip-build` after an existing `pnpm build`.
+
 The setup script:
 
 1. Runs `pnpm install`.
@@ -144,12 +152,12 @@ pnpm dev
 15. Click `Copy source` for selected-source context, or `Context` when you want the full canvas packet.
 16. Export JSON or Markdown from the canvas toolbar.
 17. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
-17. Manual import of `examples/demo-canvas.json` remains available when you want to test portable JSON import directly.
-18. Build the MCP server with `pnpm mcp:build`.
-19. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
-20. Run `pnpm doctor` to confirm Codex points at this MCP server.
-21. Ask the agent to list canvases and add a source node.
-22. Keep building with the same shared canvas context.
+18. Manual import of `examples/demo-canvas.json` remains available when you want to test portable JSON import directly.
+19. Build the MCP server with `pnpm mcp:build`.
+20. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
+21. Run `pnpm doctor` to confirm Codex points at this MCP server.
+22. Ask the agent to list canvases and add a source node.
+23. Keep building with the same shared canvas context.
 
 ## Input Behavior
 

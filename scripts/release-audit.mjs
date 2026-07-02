@@ -97,6 +97,7 @@ function checkPackageScripts() {
     'setup:local',
     'doctor',
     'doctor:json',
+    'first-run:check',
     'release:audit',
     'canvas',
     'canvas:smoke',
@@ -123,6 +124,7 @@ function checkCi() {
     'pnpm canvas:smoke',
     'pnpm mcp:smoke',
     'pnpm build',
+    'pnpm first-run:check',
     'pnpm test:e2e',
   ];
   const missing = requiredSteps.filter((step) => !ci.includes(step));

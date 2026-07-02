@@ -8,7 +8,7 @@
 - GitHub surface: CI workflow, Dependabot, CODEOWNERS, issue templates, and pull request template.
 - Product docs: install, CLI, PRD, user flows, Codex integration, operator loop, MCP setup, readiness evidence, production readiness, GitHub readiness, system design, technology stack, product brief, scene brief, demo walkthrough, and design evidence.
 - Examples: demo canvas and MCP client examples for Codex, Claude Desktop, and Gemini.
-- Package scripts and CI gates for doctor, doctor JSON, typecheck, tests, build, CLI smoke, MCP smoke, and Playwright.
+- Package scripts and CI gates for doctor, doctor JSON, first-run check, typecheck, tests, build, CLI smoke, MCP smoke, and Playwright.
 - Doctor JSON contract: executes `scripts/doctor.mjs --json` and verifies the required machine-readable shape.
 - Demo canvas proof: nodes, artifacts, runs, chunked sources, citations, and source/output node kinds.
 - Visual QA proof: 26/30+ score, inspected evidence artifacts, and critical desktop/mobile screenshots.

@@ -198,12 +198,13 @@ pnpm doctor
 pnpm doctor:json
 pnpm release:audit
 pnpm verify
+pnpm first-run:check
 pnpm canvas:smoke
 pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health; `pnpm doctor:json` emits the same health contract for agents, CI, and setup automation. `pnpm canvas:smoke` proves terminal demo import, list, search, context export, and Codex handoff export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context/Codex export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health; `pnpm doctor:json` emits the same health contract for agents, CI, and setup automation. `pnpm first-run:check` builds the production app, uses a temporary data home, starts a local preview, verifies setup status, imports the demo canvas, checks context export, and shuts the preview down. `pnpm canvas:smoke` proves terminal demo import, list, search, context export, and Codex handoff export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context/Codex export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 

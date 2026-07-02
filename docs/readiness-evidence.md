@@ -29,6 +29,7 @@ Latest local proof commit: use `git log --oneline -1`; this matrix tracks eviden
 | MCP can ingest text, URL, YouTube, generic video, and PDF sources | MCP tool schemas; handler tests; smoke test includes text, URL fallback, YouTube/manual transcript, generic video reference, PDF, connected nodes, chunk-aware search, and context chunk manifest assertions | Proven locally for text, URL fallback, YouTube/manual transcript, generic video reference, and PDF; live URL quality remains best-effort |
 | MCP and web support graph positioning | Web drag persistence and MCP optional `position` inputs; MCP handler test asserts position | Proven locally |
 | New users have a one-command setup path | `scripts/setup.mjs`, `pnpm setup:local`, install docs, dry-run command verification | Proven locally |
+| GitHub users have a non-interactive first-run proof | `scripts/first-run-check.mjs`, `pnpm first-run:check`, install docs, CI `first-run:check -- --skip-build` step | Verifies production preview boot, temporary data home, setup status, demo import, canvas listing, context export, and clean server/data cleanup |
 | Terminal users can operate local canvases without browser or MCP restart | `scripts/canvas.mjs`, `scripts/canvas-smoke.mjs`, `pnpm canvas:smoke`, `docs/cli.md`, CI `canvas:smoke` step | Proven locally for demo import, list, search, context export, full Codex handoff export, and selected-node Codex handoff export against a throwaway local home |
 | Local install readiness is machine-readable | `scripts/doctor.mjs`, `pnpm doctor:json`, `docs/operator-loop.md`, `docs/install.md`, CI `doctor:json` step | Proven locally for pass/warn/fail health output with repo root, data home, MCP CLI path, Codex config path, checks, and next steps |
 | GitHub/release readiness is machine-checkable | `scripts/release-audit.mjs`, `pnpm release:audit`, `docs/release-audit.md`, CI `release:audit` step | Proven locally for required OSS/community files, docs, examples, scripts, CI gates, demo proof, visual evidence, env hygiene, tracked/staged public files, and runtime-data safety |
@@ -46,7 +47,7 @@ Latest local proof commit: use `git log --oneline -1`; this matrix tracks eviden
 - Citation chunks and answer metadata are visible in the inspector; deeper citation-to-node/chunk navigation remains future work.
 - Browser tests still need broader coverage for PDF upload, edge creation, clipboard permission button behavior, and import conflict UX.
 - Non-YouTube video links are safe references plus notes in v0.1; provider-specific transcript adapters are not implemented yet.
-- Import preview/diff and selected-subgraph export are not yet implemented.
+- Import preview/diff and richer selected-subgraph visualization are not yet implemented.
 - Mac/Linux install screenshots are not yet captured.
 - Public release still needs the final GitHub remote URL inserted after the repository is created or connected.
 - Hosted deployment, auth, collaboration, billing, marketplace, and provider-backed AI actions remain v0.2+ decisions.
