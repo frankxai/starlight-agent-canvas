@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs';
 import { access, readFile } from 'node:fs/promises';
 import { exec, execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import os from 'node:os';
 import path from 'node:path';
 import process from 'node:process';
 
@@ -51,6 +52,72 @@ async function canRead(file) {
   }
 }
 
+function slash(value) {
+  return value.replace(/\\/g, '/');
+}
+
+function section(raw, name) {
+  const lines = raw.split(/\r?\n/);
+  const collected = [];
+  let inSection = false;
+  for (const line of lines) {
+    const match = line.match(/^\s*\[([^\]]+)\]\s*$/);
+    if (match) {
+      if (inSection) break;
+      inSection = match[1].trim() === name;
+      continue;
+    }
+    if (inSection) collected.push(line);
+  }
+  return collected.join('\n');
+}
+
+function parseTomlString(block, key) {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = block.match(new RegExp(`^\\s*${escaped}\\s*=\\s*(['"])([\\s\\S]*?)\\1\\s*$`, 'm'));
+  return match?.[2];
+}
+
+function parseTomlFirstArrayString(block, key) {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = block.match(new RegExp(`^\\s*${escaped}\\s*=\\s*\\[\\s*(['"])([\\s\\S]*?)\\1`, 'm'));
+  return match?.[2];
+}
+
+async function codexConfigStatus(configPath, expectedCliPath, expectedHome) {
+  if (!(await canRead(configPath))) {
+    return {
+      exists: false,
+      hasServer: false,
+      hasEnv: false,
+      cliPath: '',
+      home: '',
+      pointsAtCurrentCli: false,
+      usesExpectedHome: false,
+    };
+  }
+
+  const raw = await readFile(configPath, 'utf8');
+  const server = section(raw, 'mcp_servers.starlight-agent-canvas');
+  const env = section(raw, 'mcp_servers.starlight-agent-canvas.env');
+  const cliPath = parseTomlFirstArrayString(server, 'args') ?? '';
+  const home = parseTomlString(env, 'AGENT_CANVAS_HOME') ?? '';
+  const normalizedCli = slash(path.resolve(cliPath));
+  const normalizedExpectedCli = slash(path.resolve(expectedCliPath));
+  const normalizedHome = home ? slash(path.resolve(home)) : '';
+  const normalizedExpectedHome = slash(path.resolve(expectedHome));
+
+  return {
+    exists: true,
+    hasServer: Boolean(server.trim()),
+    hasEnv: Boolean(env.trim()),
+    cliPath,
+    home,
+    pointsAtCurrentCli: Boolean(cliPath) && normalizedCli === normalizedExpectedCli,
+    usesExpectedHome: Boolean(home) && normalizedHome === normalizedExpectedHome,
+  };
+}
+
 function status(ok, label, detail = '') {
   const mark = ok ? '[ok]' : '[warn]';
   console.log(`${mark} ${label}${detail ? ` - ${detail}` : ''}`);
@@ -69,6 +136,7 @@ const mcpCliPath = path.join(root, 'packages', 'mcp', 'dist', 'cli.js');
 const webAppPath = path.join(root, 'apps', 'web', 'package.json');
 const corePackagePath = path.join(root, 'packages', 'core', 'package.json');
 const mcpPackagePath = path.join(root, 'packages', 'mcp', 'package.json');
+const codexConfigPath = path.join(os.homedir(), '.codex', 'config.toml');
 
 status(await canRead(packageJsonPath), 'package.json');
 status(await canRead(workspacePath), 'pnpm workspace');
@@ -89,14 +157,23 @@ if (await canRead(path.join(root, '.mcp.json'))) {
   const server = config.mcpServers?.['starlight-agent-canvas'];
   status(Boolean(server?.command), '.mcp.json command', server?.command ?? 'missing');
   status(Boolean(server?.args?.length), '.mcp.json args', server?.args?.join(' ') ?? 'missing');
+  const firstArg = typeof server?.args?.[0] === 'string' ? server.args[0] : '';
+  status(Boolean(firstArg) && slash(path.resolve(firstArg)) === slash(path.resolve(mcpCliPath)), '.mcp.json points at this MCP build', firstArg || 'missing');
 }
+
+const codex = await codexConfigStatus(codexConfigPath, mcpCliPath, home);
+status(codex.exists, 'Codex config', codex.exists ? codexConfigPath : 'run pnpm mcp:install:codex -- --write');
+status(codex.hasServer && codex.hasEnv, 'Codex MCP block', codex.hasServer && codex.hasEnv ? 'starlight-agent-canvas configured' : 'missing server/env sections');
+status(codex.pointsAtCurrentCli, 'Codex MCP CLI path', codex.cliPath || 'missing');
+status(codex.usesExpectedHome, 'Codex canvas home env', codex.home || 'missing');
 
 console.log('');
 console.log('Next steps:');
 console.log('1. pnpm install');
 console.log('2. pnpm mcp:build && pnpm mcp:smoke');
 console.log('3. pnpm seed:starlight');
-console.log('4. pnpm dev');
+console.log('4. pnpm mcp:install:codex -- --write   # optional, then restart Codex');
+console.log('5. pnpm dev');
 
 if (!nodeOk || !pnpmVersion) {
   process.exitCode = 1;

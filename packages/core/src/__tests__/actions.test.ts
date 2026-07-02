@@ -9,12 +9,12 @@ describe('action runner', () => {
     const result = runCanvasAction(canvas, { action: 'decision_matrix', inputNodeIds: [] });
     expect(result.outputNode.kind).toBe('output');
     expect(result.outputNode.body).toContain('Decision Matrix');
+    expect(result.outputNode.position.x).toBeGreaterThan(canvas.nodes[0]?.position.x ?? 0);
     expect(result.canvas.runs).toHaveLength(1);
   });
 
   it('answers a question from selected source text', () => {
     const canvas = createCanvasRecord({ title: 'Answers', template: 'blank' });
-    const [source] = canvas.nodes;
     const createdAt = new Date().toISOString();
     const artifact = {
       id: 'artifact-video-benchmark',
@@ -29,11 +29,14 @@ describe('action runner', () => {
     const result = runCanvasAction({
       ...canvas,
       nodes: [{
-        ...source,
+        id: 'node-video-canvas-benchmark',
         kind: 'source_url',
         title: 'Video canvas benchmark',
         body: artifact.body,
+        position: { x: 120, y: 160 },
         metadata: { artifactId: artifact.id },
+        createdAt,
+        updatedAt: createdAt,
       }],
       artifacts: [artifact],
     }, {

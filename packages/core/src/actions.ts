@@ -257,6 +257,18 @@ function buildActionResult(action: RunActionInput['action'], nodes: CanvasNode[]
   }
 }
 
+function outputPositionFor(nodes: CanvasNode[], runIndex: number): { x: number; y: number } {
+  if (!nodes.length) {
+    return { x: 720, y: 120 + runIndex * 180 };
+  }
+  const maxX = Math.max(...nodes.map((node) => node.position.x));
+  const averageY = nodes.reduce((total, node) => total + node.position.y, 0) / nodes.length;
+  return {
+    x: maxX + 340,
+    y: Math.max(80, averageY),
+  };
+}
+
 export function buildActionOutput(action: RunActionInput['action'], nodes: CanvasNode[], prompt = ''): string {
   return buildActionResult(action, nodes, prompt).body;
 }
@@ -271,10 +283,7 @@ export function runCanvasAction(canvas: CanvasRecord, rawInput: RunActionInput):
     kind: 'output',
     title: `${input.action.replace(/_/g, ' ')} output`,
     body: output.body,
-    position: {
-      x: 720,
-      y: 120 + canvas.runs.length * 180,
-    },
+    position: outputPositionFor(nodes, canvas.runs.length),
     metadata: {
       action: input.action,
       inputNodeIds: input.inputNodeIds,

@@ -16,10 +16,11 @@ Most AI canvases make research visible for a human but awkward for local agents.
 - Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
 - Preview detected intake types before mapping, including video source, web source, source notes, text source, PDF, and file paths.
+- Choose the first pass before capture: `Map + Brief` by default, or `Claims`, `Ask`, and `Map only` when you want raw source nodes first.
 - Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata, source chunks, and citation-ready ids.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
 - Ingest YouTube links with title lookup, best-effort public captions, and manual transcript fallback.
-- Run local actions: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions with citation metadata.
+- Run local actions from intake, selected sources, selected nodes, or the whole canvas: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions with citation metadata.
 - Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect a selected source receipt with ingest mode/chunks/provenance, run source-scoped actions, copy selected source context, export an agent-ready context packet, export the result, and re-import portable canvas JSON.
 - Inspect local setup, data home, MCP build, and Codex MCP wiring from the in-app `Setup / MCP` panel.
 - Auto-select and open newly created sources, notes, files, and action answers in the inspector so the captured context is immediately usable.
@@ -31,7 +32,7 @@ Most AI canvases make research visible for a human but awkward for local agents.
 From a GitHub clone:
 
 ```powershell
-# Use the clone URL from the GitHub Code button.
+# Use the clone URL from this repository's GitHub Code button.
 git clone https://github.com/<owner>/starlight-agent-canvas.git
 cd starlight-agent-canvas
 corepack enable
@@ -41,6 +42,8 @@ pnpm dev
 ```
 
 `node scripts/setup.mjs` runs dependency install, doctor, MCP build, MCP smoke, Starlight OS canvas seed, and a dry-run Codex MCP config print. Use `node scripts/setup.mjs --codex-write` when you want it to update `~/.codex/config.toml` with a timestamped backup.
+
+`pnpm doctor` now verifies local prerequisites, workspace files, the built MCP server, `.mcp.json`, and whether Codex is wired to this exact MCP CLI path and `AGENT_CANVAS_HOME`.
 
 Manual setup remains available:
 
@@ -127,7 +130,7 @@ pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 

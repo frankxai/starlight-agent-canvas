@@ -25,7 +25,7 @@ describe('FileCanvasStore', () => {
     ]);
     expect(added.node.kind).toBe('note');
     const afterConcurrentWrites = await store.getCanvas(canvas.id);
-    expect(afterConcurrentWrites.nodes).toHaveLength(3);
+    expect(afterConcurrentWrites.nodes).toHaveLength(2);
 
     const ingested = await store.ingestSource(canvas.id, {
       kind: 'source_youtube',
@@ -85,7 +85,7 @@ describe('FileCanvasStore', () => {
     }));
 
     const saved = await first.getCanvas(canvas.id);
-    expect(saved.nodes).toHaveLength(11);
+    expect(saved.nodes).toHaveLength(10);
     expect(saved.nodes.map((node) => node.title)).toContain('Concurrent note 9');
   });
 

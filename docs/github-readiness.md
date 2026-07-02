@@ -44,12 +44,12 @@ Use labels:
 
 ## Release Checklist
 
-1. Run `pnpm doctor`.
+1. Run `pnpm doctor` and confirm it reports Node/pnpm, workspaces, built MCP server, `.mcp.json`, and Codex MCP path/home checks.
 2. Run `pnpm verify`.
 3. Run `pnpm mcp:smoke`.
 4. Run `pnpm test:e2e`.
 5. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
-6. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server.
+6. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
 7. Run the Starlight staged/full security scan.
 8. Confirm visual QA screenshots are current.
 9. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.

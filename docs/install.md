@@ -26,7 +26,7 @@ corepack prepare pnpm@11.7.0 --activate
 ## Install From GitHub
 
 ```powershell
-# Use the clone URL from the GitHub Code button.
+# Use the clone URL from this repository's GitHub Code button.
 git clone https://github.com/<owner>/starlight-agent-canvas.git
 cd starlight-agent-canvas
 corepack enable
@@ -55,6 +55,8 @@ node scripts/setup.mjs --codex-write
 ```
 
 `--codex-write` updates `~/.codex/config.toml` and creates a timestamped backup first.
+
+`pnpm doctor` verifies the local prerequisites, workspace files, built MCP server, `.mcp.json`, and Codex wiring. The Codex check only reports fully wired when the installed config points at this repository's current `packages/mcp/dist/cli.js` and the active `AGENT_CANVAS_HOME`.
 
 Manual sample data:
 
@@ -90,16 +92,19 @@ pnpm dev
 1. Open the web app.
 2. Check the `Setup / MCP` panel for data home, MCP build, and Codex wiring status.
 3. Paste a YouTube link, URL, transcript, or raw note into the top canvas composer.
-4. Click `Map`.
-5. Select the new node and edit its title/body in the inspector if needed.
-6. Run `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
-7. Click `Context` when you want a clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
-8. Export JSON or Markdown from the canvas toolbar.
-9. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
-10. Build the MCP server with `pnpm mcp:build`.
-11. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
-12. Ask the agent to list canvases and add a source node.
-13. Keep building with the same shared canvas context.
+4. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
+5. Inspect the new source/output pair on the canvas and the selected node in the inspector.
+6. Select a source node and inspect the context receipt: source kind, ingest method, chunks, URL/file, and character count.
+7. Run `Source summary`, `Extract claims`, or `Ask selected` when you want the action scoped to only that source.
+8. Use the action drawer for multi-node or whole-canvas `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
+9. Click `Copy source` for selected-source context, or `Context` when you want a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
+10. Export JSON or Markdown from the canvas toolbar.
+11. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
+12. Build the MCP server with `pnpm mcp:build`.
+13. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
+14. Run `pnpm doctor` to confirm Codex points at this MCP server.
+15. Ask the agent to list canvases and add a source node.
+16. Keep building with the same shared canvas context.
 
 ## Production Local Preview
 
@@ -140,6 +145,7 @@ See `docs/mcp-setup.md` and `docs/codex-integration.md` for the operating workfl
 ## Troubleshooting
 
 - `pnpm doctor` warns that the MCP server is not built: run `pnpm mcp:build`.
+- `pnpm doctor` says Codex has a path/home mismatch: run `pnpm mcp:install:codex -- --write`, restart Codex, then run `pnpm doctor` again.
 - The app cannot find canvases: check `AGENT_CANVAS_HOME`.
 - Import creates a duplicate title: this is intentional when a JSON export has the same canvas id as an existing local canvas.
 - Browser says the API is blocked from a remote host: this is intentional. Set `AGENT_CANVAS_ALLOW_REMOTE=1` only for a protected deployment.

@@ -110,7 +110,13 @@ type SetupStatus = {
   codex: {
     configPath: string;
     configExists: boolean;
+    serverBlockExists: boolean;
+    envBlockExists: boolean;
     serverConfigured: boolean;
+    serverPathMatches: boolean;
+    homeMatches: boolean;
+    configuredCliPath: string;
+    configuredHome: string;
     installDryRunCommand: string;
     installWriteCommand: string;
   };
@@ -127,6 +133,15 @@ type IntakePlanItem = {
   detail: string;
   active: boolean;
 };
+
+type IntakeActionMode = 'map' | 'summarize' | 'claims' | 'ask';
+
+const INTAKE_ACTIONS: Array<{ id: IntakeActionMode; label: string; detail: string }> = [
+  { id: 'summarize', label: 'Brief', detail: 'summary output' },
+  { id: 'claims', label: 'Claims', detail: 'extract claims' },
+  { id: 'ask', label: 'Ask', detail: 'answer with citations' },
+  { id: 'map', label: 'Map only', detail: 'source nodes' },
+];
 
 const KIND_STYLE: Record<CanvasNodeKind, { label: string; accent: string; bg: string }> = {
   note: { label: 'Note', accent: '#F5C36A', bg: 'rgba(245,195,106,0.08)' },
@@ -384,6 +399,32 @@ function intakePlanIcon(id: IntakePlanItem['id']) {
   return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
 }
 
+function intakeActionIcon(id: IntakeActionMode) {
+  if (id === 'summarize') return <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'claims') return <Braces className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'ask') return <Search className="h-3.5 w-3.5" aria-hidden="true" />;
+  return <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />;
+}
+
+function intakeButtonLabel(mode: IntakeActionMode): string {
+  if (mode === 'summarize') return 'Map + Brief';
+  if (mode === 'claims') return 'Map + Claims';
+  if (mode === 'ask') return 'Map + Ask';
+  return 'Map';
+}
+
+function intakeActionInput(mode: IntakeActionMode): { action?: CanvasActionType; prompt?: string } {
+  if (mode === 'summarize') return { action: 'summarize' };
+  if (mode === 'claims') return { action: 'extract_claims' };
+  if (mode === 'ask') {
+    return {
+      action: 'answer_question',
+      prompt: 'Using only the newly mapped source context, extract the most useful takeaways, contradictions, gaps, and next actions. Cite chunks when available.',
+    };
+  }
+  return {};
+}
+
 function hostTitle(value: string): string {
   try {
     return new URL(value).hostname.replace(/^www\./, '');
@@ -437,6 +478,7 @@ function WorkspaceInner() {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [transcript, setTranscript] = useState('');
   const [intakeText, setIntakeText] = useState('');
+  const [intakeAction, setIntakeAction] = useState<IntakeActionMode>('summarize');
   const [askPrompt, setAskPrompt] = useState('What capabilities, gaps, and next build moves does this canvas show?');
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
@@ -483,7 +525,11 @@ function WorkspaceInner() {
       {
         label: 'Codex server',
         ok: setupStatus.codex.serverConfigured,
-        detail: setupStatus.codex.serverConfigured ? 'wired' : 'not wired',
+        detail: setupStatus.codex.serverConfigured
+          ? 'wired'
+          : setupStatus.codex.serverBlockExists && setupStatus.codex.envBlockExists
+            ? 'path/home mismatch'
+            : 'not wired',
       },
     ];
   }, [setupStatus]);
@@ -493,9 +539,9 @@ function WorkspaceInner() {
     { label: 'Smoke', command: setupStatus.mcp.smokeCommand },
   ] : [], [setupStatus]);
 
-  const focusNode = useCallback((node?: CanvasNode) => {
+  const focusNode = useCallback((node?: CanvasNode, selectedOverride?: string[]) => {
     if (!node) return;
-    setSelectedIds([node.id]);
+    setSelectedIds(selectedOverride?.length ? selectedOverride : [node.id]);
     window.setTimeout(() => {
       setCenter(node.position.x + 130, node.position.y + 80, { zoom: compactCanvas ? 0.72 : 1, duration: 350 });
     }, 0);
@@ -689,10 +735,48 @@ function WorkspaceInner() {
     );
   }, [canvas, focusNode, mutateCanvas, transcript, youtubeUrl]);
 
-  const ingestFiles = useCallback(async (files: File[], position?: FlowPosition) => {
+  const finishIntake = useCallback(async (
+    createdNodeIds: string[],
+    latest: CanvasMutationResponse | null,
+    actionMode: IntakeActionMode,
+    mappedStatus: string,
+  ) => {
+    const mappedCanvas = latest?.canvas;
+    const createdNodeIdSet = new Set(createdNodeIds);
+    const createdNodes = mappedCanvas?.nodes.filter((node) => createdNodeIdSet.has(node.id)) ?? (latest?.node ? [latest.node] : []);
+    const createdIds = createdNodes.map((node) => node.id);
+    const lastCreated = createdNodes[createdNodes.length - 1] ?? latest?.node;
+
+    if (mappedCanvas) setCanvas(mappedCanvas);
+    focusNode(lastCreated, createdIds);
+
+    const actionInput = intakeActionInput(actionMode);
+    if (canvas && actionInput.action && createdIds.length) {
+      const result = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/actions`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          action: actionInput.action,
+          inputNodeIds: createdIds,
+          prompt: actionInput.prompt ?? '',
+        }),
+      });
+      if (result.canvas) setCanvas(result.canvas);
+      focusNode(result.outputNode);
+      await refreshList();
+      setStatus(`${mappedStatus} Ran ${actionInput.action.replace(/_/g, ' ')} on ${createdIds.length} new item(s).`);
+      return;
+    }
+
+    await refreshList();
+    setStatus(mappedStatus);
+  }, [canvas, focusNode, refreshList]);
+
+  const ingestFiles = useCallback(async (files: File[], position?: FlowPosition, actionMode: IntakeActionMode = intakeAction) => {
     if (!canvas || !files.length) return;
     setBusy(true);
     try {
+      const createdNodeIds: string[] = [];
       let last: CanvasMutationResponse | null = null;
       let count = 0;
       for (const file of files) {
@@ -705,6 +789,7 @@ function WorkspaceInner() {
             form.append('positionY', String(nodePosition.y));
           }
           last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/pdf`, { method: 'POST', body: form });
+          if (last.node?.id) createdNodeIds.push(last.node.id);
           count += 1;
           continue;
         }
@@ -726,6 +811,7 @@ function WorkspaceInner() {
               position: nodePosition,
             }),
           });
+          if (last.node?.id) createdNodeIds.push(last.node.id);
           count += 1;
           continue;
         }
@@ -741,20 +827,18 @@ function WorkspaceInner() {
             position: nodePosition,
           }),
         });
+        if (last.node?.id) createdNodeIds.push(last.node.id);
         count += 1;
       }
-      if (last?.canvas) setCanvas(last.canvas);
-      focusNode(last?.node);
-      await refreshList();
-      setStatus(`Ingested ${count} file source(s).`);
+      await finishIntake(createdNodeIds, last, actionMode, `Ingested ${count} file source(s).`);
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
       setBusy(false);
     }
-  }, [canvas, focusNode, refreshList]);
+  }, [canvas, finishIntake, intakeAction]);
 
-  const intakeAnything = useCallback(async (value: string, position?: FlowPosition) => {
+  const intakeAnything = useCallback(async (value: string, position?: FlowPosition, actionMode: IntakeActionMode = intakeAction) => {
     if (!canvas || !value.trim()) return;
     const trimmedValue = value.trim();
     const directYoutubeId = isYoutubeVideoId(trimmedValue);
@@ -762,6 +846,7 @@ function WorkspaceInner() {
     const remaining = directYoutubeId ? '' : removeUrls(value, urls);
     setBusy(true);
     try {
+      const createdNodeIds: string[] = [];
       let last: CanvasMutationResponse | null = null;
       let count = 0;
       for (const sourceUrl of urls) {
@@ -777,6 +862,7 @@ function WorkspaceInner() {
             metadata: { url: sourceUrl },
           }),
         });
+        if (last.node?.id) createdNodeIds.push(last.node.id);
         count += 1;
       }
 
@@ -793,20 +879,18 @@ function WorkspaceInner() {
             position: nodePosition,
           }),
         });
+        if (last.node?.id) createdNodeIds.push(last.node.id);
         count += 1;
       }
 
-      if (last?.canvas) setCanvas(last.canvas);
-      focusNode(last?.node);
-      await refreshList();
       const summary = buildIntakePlan(value).filter((item) => item.active).map((item) => item.label).join(', ');
-      setStatus(summary ? `Mapped ${count} item(s): ${summary}.` : `Mapped ${count} source item(s).`);
+      await finishIntake(createdNodeIds, last, actionMode, summary ? `Mapped ${count} item(s): ${summary}.` : `Mapped ${count} source item(s).`);
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
       setBusy(false);
     }
-  }, [canvas, focusNode, refreshList]);
+  }, [canvas, finishIntake, intakeAction]);
 
   const submitCanvasIntake = useCallback(async () => {
     const text = intakeText.trim();
@@ -1092,6 +1176,25 @@ function WorkspaceInner() {
                   </span>
                 ))}
               </div>
+              <div className="grid grid-cols-2 gap-1.5" data-testid="rail-intake-action">
+                {INTAKE_ACTIONS.map((action) => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    aria-pressed={intakeAction === action.id}
+                    onClick={() => setIntakeAction(action.id)}
+                    className={`flex items-center justify-center gap-1.5 rounded-md border px-2 py-1.5 text-[11px] font-semibold transition ${
+                      intakeAction === action.id
+                        ? 'border-starlight-accent bg-starlight-accent/15 text-starlight-ink'
+                        : 'border-starlight-border bg-starlight-surface text-starlight-muted hover:border-starlight-accent/60 hover:text-starlight-ink'
+                    }`}
+                    title={action.detail}
+                  >
+                    {intakeActionIcon(action.id)}
+                    {action.label}
+                  </button>
+                ))}
+              </div>
               <div className="grid grid-cols-[auto_1fr_auto] gap-2">
                 <button
                   data-testid="rail-intake-paste"
@@ -1110,8 +1213,8 @@ function WorkspaceInner() {
                   onClick={submitCanvasIntake}
                   className="flex items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 py-2 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  <UploadCloud className="h-4 w-4" aria-hidden="true" />
-                  Map
+                  {intakeActionIcon(intakeAction)}
+                  {intakeButtonLabel(intakeAction)}
                 </button>
                 <label className="flex cursor-pointer items-center justify-center rounded-md border border-starlight-border px-3 py-2 text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink">
                   <FileUp className="h-4 w-4" aria-hidden="true" />
@@ -1305,8 +1408,8 @@ function WorkspaceInner() {
                   onClick={submitCanvasIntake}
                   className="flex h-10 items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  <UploadCloud className="h-4 w-4" aria-hidden="true" />
-                  Map
+                  {intakeActionIcon(intakeAction)}
+                  {intakeButtonLabel(intakeAction)}
                 </button>
                 <button
                   data-testid="quick-note"
@@ -1331,6 +1434,23 @@ function WorkspaceInner() {
                     <span className="truncate font-medium">{item.label}</span>
                     <span className="hidden text-starlight-muted sm:inline">{item.detail}</span>
                   </span>
+                ))}
+                {INTAKE_ACTIONS.map((action) => (
+                  <button
+                    key={action.id}
+                    type="button"
+                    aria-pressed={intakeAction === action.id}
+                    onClick={() => setIntakeAction(action.id)}
+                    className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-semibold transition ${
+                      intakeAction === action.id
+                        ? 'border-starlight-accent bg-starlight-accent/15 text-starlight-ink'
+                        : 'border-starlight-border bg-starlight-bg/80 text-starlight-muted hover:border-starlight-accent/60 hover:text-starlight-ink'
+                    }`}
+                    title={action.detail}
+                  >
+                    {intakeActionIcon(action.id)}
+                    <span>{action.label}</span>
+                  </button>
                 ))}
                 <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink">
                   <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1412,8 +1532,8 @@ function WorkspaceInner() {
                       onClick={submitCanvasIntake}
                       className="flex items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 py-2 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
                     >
-                      <UploadCloud className="h-4 w-4" aria-hidden="true" />
-                      Map
+                      {intakeActionIcon(intakeAction)}
+                      {intakeButtonLabel(intakeAction)}
                     </button>
                     <button
                       type="button"

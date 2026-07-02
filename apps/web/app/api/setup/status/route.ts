@@ -2,56 +2,98 @@ import { access, readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { NextResponse } from 'next/server';
-import { getAgentCanvasHome } from '@starlight-agent-canvas/core';
 
 export const runtime = 'nodejs';
 
+function getAgentCanvasHome(): string {
+  return process.env.AGENT_CANVAS_HOME?.trim() || path.join(os.homedir(), '.starlight', 'agent-canvas');
+}
+
 async function exists(filePath: string): Promise<boolean> {
   try {
-    await access(filePath);
+    await access(/*turbopackIgnore: true*/ filePath);
     return true;
   } catch {
     return false;
   }
 }
 
-async function findRepoRoot(start: string): Promise<string> {
-  let current = path.resolve(start);
-  for (let depth = 0; depth < 8; depth += 1) {
-    const packagePath = path.join(current, 'package.json');
-    if (await exists(packagePath)) {
-      try {
-        const pkg = JSON.parse(await readFile(packagePath, 'utf8')) as { name?: string };
-        if (pkg.name === 'starlight-agent-canvas') return current;
-      } catch {
-        // Continue walking; this endpoint should degrade instead of failing on a bad package file.
-      }
-    }
-    const parent = path.dirname(current);
-    if (parent === current) break;
-    current = parent;
+function repoRootFromCwd(cwd: string): string {
+  const resolved = path.resolve(/*turbopackIgnore: true*/ process.env.AGENT_CANVAS_REPO_ROOT || cwd);
+  if (path.basename(resolved) === 'web' && path.basename(path.dirname(resolved)) === 'apps') {
+    return path.resolve(resolved, '..', '..');
   }
-  return path.resolve(start);
+  return resolved;
+}
+
+function slash(value: string): string {
+  return value.replace(/\\/g, '/');
+}
+
+function section(raw: string, name: string): string {
+  const lines = raw.split(/\r?\n/);
+  const collected: string[] = [];
+  let inSection = false;
+  for (const line of lines) {
+    const match = line.match(/^\s*\[([^\]]+)\]\s*$/);
+    if (match) {
+      if (inSection) break;
+      inSection = match[1].trim() === name;
+      continue;
+    }
+    if (inSection) collected.push(line);
+  }
+  return collected.join('\n');
+}
+
+function parseTomlString(block: string, key: string): string | undefined {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = block.match(new RegExp(`^\\s*${escaped}\\s*=\\s*(['"])([\\s\\S]*?)\\1\\s*$`, 'm'));
+  return match?.[2];
+}
+
+function parseTomlFirstArrayString(block: string, key: string): string | undefined {
+  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = block.match(new RegExp(`^\\s*${escaped}\\s*=\\s*\\[\\s*(['"])([\\s\\S]*?)\\1`, 'm'));
+  return match?.[2];
 }
 
 async function codexConfigStatus(configPath: string) {
   if (!(await exists(configPath))) {
-    return { exists: false, hasServer: false, hasEnv: false };
+    return {
+      exists: false,
+      hasServer: false,
+      hasEnv: false,
+      configuredCliPath: '',
+      configuredHome: '',
+      serverPathMatches: false,
+      homeMatches: false,
+    };
   }
-  const raw = await readFile(configPath, 'utf8');
+  const raw = await readFile(/*turbopackIgnore: true*/ configPath, 'utf8');
+  const server = section(raw, 'mcp_servers.starlight-agent-canvas');
+  const env = section(raw, 'mcp_servers.starlight-agent-canvas.env');
   return {
     exists: true,
-    hasServer: /^\s*\[mcp_servers\.starlight-agent-canvas\]\s*$/m.test(raw),
-    hasEnv: /^\s*\[mcp_servers\.starlight-agent-canvas\.env\]\s*$/m.test(raw),
+    hasServer: Boolean(server.trim()),
+    hasEnv: Boolean(env.trim()),
+    configuredCliPath: parseTomlFirstArrayString(server, 'args') ?? '',
+    configuredHome: parseTomlString(env, 'AGENT_CANVAS_HOME') ?? '',
+    serverPathMatches: false,
+    homeMatches: false,
   };
 }
 
 export async function GET() {
-  const repoRoot = await findRepoRoot(process.cwd());
+  const repoRoot = repoRootFromCwd(/*turbopackIgnore: true*/ process.cwd());
   const mcpCliPath = path.join(repoRoot, 'packages', 'mcp', 'dist', 'cli.js');
   const codexConfigPath = path.join(os.homedir(), '.codex', 'config.toml');
   const codex = await codexConfigStatus(codexConfigPath);
   const canvasHome = getAgentCanvasHome();
+  const serverPathMatches = Boolean(codex.configuredCliPath)
+    && slash(path.resolve(codex.configuredCliPath)) === slash(path.resolve(mcpCliPath));
+  const homeMatches = Boolean(codex.configuredHome)
+    && slash(path.resolve(codex.configuredHome)) === slash(path.resolve(canvasHome));
 
   return NextResponse.json({
     repoRoot,
@@ -66,7 +108,13 @@ export async function GET() {
     codex: {
       configPath: codexConfigPath,
       configExists: codex.exists,
-      serverConfigured: codex.hasServer && codex.hasEnv,
+      serverBlockExists: codex.hasServer,
+      envBlockExists: codex.hasEnv,
+      serverConfigured: codex.hasServer && codex.hasEnv && serverPathMatches && homeMatches,
+      serverPathMatches,
+      homeMatches,
+      configuredCliPath: codex.configuredCliPath,
+      configuredHome: codex.configuredHome,
       installDryRunCommand: 'pnpm mcp:install:codex',
       installWriteCommand: 'pnpm mcp:install:codex -- --write',
     },

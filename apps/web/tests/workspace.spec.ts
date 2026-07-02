@@ -21,6 +21,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
+  await expect(page.getByTestId('intake-ingest')).toContainText('Map + Brief');
 
   await page.getByTestId('intake-text').fill('My canvas note: collect the product gaps and turn them into a brief.');
   await expect(page.getByTestId('quick-note')).toBeEnabled();
@@ -36,9 +37,13 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('intake-text').fill('Nodeflow connects YouTube, PDFs, websites, and transcripts into visual AI workflows.');
   await expect(page.getByTestId('intake-ingest')).toBeEnabled();
   await page.getByTestId('intake-ingest').click();
+  await expect(page.getByTestId('inspector-title')).toHaveValue('summarize output');
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Nodeflow connects YouTube/);
+  await expect(page.getByTestId('status')).toContainText('Ran summarize on 1 new item');
   await expect(page.getByTestId('intake-ingest')).toBeDisabled();
   await expect(page.getByTestId('quick-note')).toBeEnabled();
+  await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();
+  await expect(page.getByTestId('intake-ingest')).toContainText('Map');
 
   await page.getByTestId('intake-text').fill('https://example.com/research\nExample source notes about workflow mapping and source context.');
   await expect(page.getByTestId('intake-preview')).toContainText('Web source');

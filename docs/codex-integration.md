@@ -35,6 +35,7 @@ AGENT_CANVAS_HOME = "/absolute/path/to/.starlight/agent-canvas"
 ```
 
 Run `pnpm doctor` any time the local setup feels uncertain.
+It verifies that Codex has the `starlight-agent-canvas` server/env blocks and that they point at this repo's current built MCP CLI plus the active `AGENT_CANVAS_HOME`.
 
 ## Agent Operating Contract
 
@@ -86,6 +87,8 @@ For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Us
 6. Later, either side can import the JSON export to resume the same graph as durable context.
 
 When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`. That packet includes a source chunk manifest; cite those chunk ids when making claims.
+
+When the human clicks `Copy source` in a selected node receipt, Codex should treat that as a narrower source-only packet. Use it when the task is about one YouTube video, PDF, page, or note instead of the whole canvas.
 
 ## Safety Notes
 

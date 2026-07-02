@@ -12,15 +12,7 @@ const TEMPLATE_SEEDS: Record<NonNullable<CreateCanvasInput['template']>, Templat
   blank: {
     title: 'Blank canvas',
     description: 'Start with notes, sources, prompts, and agent outputs.',
-    nodes: [
-      {
-        kind: 'note',
-        title: 'North star',
-        body: 'Drop sources, run actions, connect outputs, and export agent-ready context.',
-        position: { x: 80, y: 120 },
-        metadata: { role: 'orientation' },
-      },
-    ],
+    nodes: [],
     edges: [],
   },
   competitor_teardown: {
