@@ -21,14 +21,26 @@ flowchart LR
 1. Start from the first viewport, not a docs page.
 2. Use `New` for a blank graph or `Demo` for a proof canvas.
 3. Use `Video`, `Image`, `Web`, `Note`, or `Ask` when the top composer is the fastest path.
-4. Use the graph command tray when attention is already on the canvas: `Source`, `Paste & Map`, `File`, `Note`, `Ask`, `Context`, `Codex`.
-5. Paste or drop YouTube, non-YouTube video links, image URLs/screenshots, web URLs, files, transcripts, rough notes, or mixed text. Labeled transcript, notes, timestamps, OCR, alt text, or visual observations after a YouTube/video/image URL stay attached to that media source. The clipboard button maps immediately when the browser allows it; when clipboard reads are blocked or empty, the composer stays focused for `Ctrl+V`, typing, or drop-to-canvas intake.
-6. Confirm the map preview before mapping: detected type, future node kind, artifact kind, readiness state, and whether the selected pass will add an output node.
-7. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-8. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, character count, and source readiness.
-9. If source readiness is reference-only or needs text, use the Action Drawer `Context gaps` lane or the inspector `Attach context` panel to add transcript, OCR, timestamp notes, visual observations, claims, or excerpts before expecting deep analysis.
-10. Run source-scoped actions when one source matters, or canvas actions when synthesis matters.
-11. Export `Context` for general agent packets, `Codex` for ready-to-paste Codex continuation prompts, `Markdown` for people, or `JSON` for portable rehydration. If nodes are selected, those exports stay scoped to the selected evidence.
+4. Inspect `Shared context contract` when the question is "can I populate this, can Codex populate this, and what will handoff include?"
+5. Use the graph command tray when attention is already on the canvas: `Source`, `Paste & Map`, `File`, `Note`, `Ask`, `Context`, `Codex`.
+6. Paste or drop YouTube, non-YouTube video links, image URLs/screenshots, web URLs, files, transcripts, rough notes, or mixed text. Labeled transcript, notes, timestamps, OCR, alt text, or visual observations after a YouTube/video/image URL stay attached to that media source. The clipboard button maps immediately when the browser allows it; when clipboard reads are blocked or empty, the composer stays focused for `Ctrl+V`, typing, or drop-to-canvas intake.
+7. Confirm the map preview before mapping: detected type, future node kind, artifact kind, readiness state, and whether the selected pass will add an output node.
+8. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+9. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, character count, and source readiness.
+10. If source readiness is reference-only or needs text, use the Action Drawer `Context gaps` lane or the inspector `Attach context` panel to add transcript, OCR, timestamp notes, visual observations, claims, or excerpts before expecting deep analysis.
+11. Run source-scoped actions when one source matters, or canvas actions when synthesis matters.
+12. Export `Context` for general agent packets, `Codex` for ready-to-paste Codex continuation prompts, `Markdown` for people, or `JSON` for portable rehydration. If nodes are selected, those exports stay scoped to the selected evidence.
+
+## Shared Context Contract
+
+The first viewport contract band is the compact answer to Frank's "how does it actually work?" question:
+
+- `You populate`: browser-side source/note/node state.
+- `Canvas maps`: artifacts, chunks, and readiness, including open context gaps.
+- `Codex reads/writes`: MCP tool path and whether the current install is wired to the same data home.
+- `Handoff stays scoped`: selected evidence export when nodes are selected, whole-canvas export otherwise.
+
+The detailed browser/CLI/MCP contract lives in `docs/interaction-model.md`.
 
 ## Agent Interaction Loop
 

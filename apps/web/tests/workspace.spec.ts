@@ -83,6 +83,16 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('operator-loop')).toContainText('Inspect');
   await expect(page.getByTestId('operator-loop')).toContainText('Ask');
   await expect(page.getByTestId('operator-loop')).toContainText('Handoff');
+  await expect(page.getByTestId('shared-context-contract')).toContainText('Shared context contract');
+  await expect(page.getByTestId('shared-context-contract')).toContainText('You populate');
+  await expect(page.getByTestId('shared-context-contract')).toContainText('Canvas maps');
+  await expect(page.getByTestId('shared-context-contract')).toContainText('Codex reads/writes');
+  await expect(page.getByTestId('shared-context-contract')).toContainText('Handoff stays scoped');
+  await expect(page.getByTestId('shared-context-contract')).toContainText('paste/drop/note');
+  await expect(page.getByTestId('shared-context-contract')).toContainText('MCP tools');
+  await expect(page.getByTestId('shared-context-add')).toBeEnabled();
+  await expect(page.getByTestId('shared-context-ask')).toBeDisabled();
+  await expect(page.getByTestId('shared-context-codex')).toBeEnabled();
   await expect(page.getByTestId('operator-loop-capture')).toContainText('empty');
   await expect(page.getByTestId('operator-loop-map')).toContainText('no source');
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
@@ -199,6 +209,9 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('context-receipt-codex-ready')).toContainText('Codex-ready');
   await expect(page.getByTestId('context-receipt-items')).toContainText('source video');
   await expect(page.getByTestId('context-receipt-items')).toContainText('Video example.com');
+  await expect(page.getByTestId('shared-context-contract')).toContainText('1 source');
+  await expect(page.getByTestId('shared-context-contract')).toContainText('1 artifact');
+  await expect(page.getByTestId('shared-context-ask')).toBeEnabled();
   await expect(page.getByTestId('context-receipt-inspect')).toBeEnabled();
   await expect(page.getByTestId('context-receipt-copy-context')).toBeEnabled();
   await expect(page.getByTestId('context-receipt-copy-codex')).toBeEnabled();

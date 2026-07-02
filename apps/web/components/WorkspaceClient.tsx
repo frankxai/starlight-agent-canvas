@@ -800,7 +800,7 @@ function composerModeIcon(mode: ComposerMode) {
 function composerPlaceholder(mode: ComposerMode): string {
   if (mode === 'note') return 'Write a note, claim, question, or synthesis fragment';
   if (mode === 'ask') return 'Ask across selected nodes or the whole canvas';
-  return 'Paste a YouTube link, image URL, transcript, PDF notes, or raw idea';
+  return 'Paste YouTube, any video URL, image, file notes, transcript, or raw idea';
 }
 
 function composerButtonLabel(mode: ComposerMode, actionMode: IntakeActionMode): string {
@@ -987,7 +987,7 @@ function WorkspaceInner() {
     selectedNode ? describeSourceReadiness(selectedNode, selectedArtifact ?? undefined) : null
   ), [selectedArtifact, selectedNode]);
   const canEnrichSelectedSource = Boolean(selectedNode && (selectedNode.kind.startsWith('source_') || selectedArtifact));
-  const contextGaps = useMemo(() => {
+  const sourceReadinessRows = useMemo(() => {
     if (!canvas) return [];
     const artifactsById = new Map(canvas.artifacts.map((artifact) => [artifact.id, artifact]));
     return canvas.nodes
@@ -999,7 +999,12 @@ function WorkspaceInner() {
           node,
           readiness: describeSourceReadiness(node, artifact),
         };
-      })
+      });
+  }, [canvas]);
+  const readySourceCount = useMemo(() => sourceReadinessRows.filter(({ readiness }) => readiness.status === 'ready').length, [sourceReadinessRows]);
+  const needsContextSourceCount = useMemo(() => sourceReadinessRows.filter(({ readiness }) => readiness.status !== 'ready').length, [sourceReadinessRows]);
+  const contextGaps = useMemo(() => {
+    return sourceReadinessRows
       .filter(({ readiness }) => readiness.status !== 'ready')
       .sort((left, right) => {
         const leftPriority = left.readiness.status === 'needs_context' ? 0 : 1;
@@ -1007,7 +1012,7 @@ function WorkspaceInner() {
         return leftPriority - rightPriority || left.node.title.localeCompare(right.node.title);
       })
       .slice(0, 5);
-  }, [canvas]);
+  }, [sourceReadinessRows]);
   const selectedChunkPreviews = useMemo(() => {
     const chunks = selectedArtifact?.chunks ?? [];
     if (!focusedChunkId) return chunks.slice(0, 2);
@@ -1112,6 +1117,38 @@ function WorkspaceInner() {
       },
     ];
   }, [canvas?.nodes, canvas?.runs.length, selectedIds.length, setupStatus?.codex.serverConfigured]);
+  const sharedContextContract = useMemo(() => {
+    const nodeCount = canvas?.nodes.length ?? 0;
+    const artifactCount = canvas?.artifacts.length ?? 0;
+    const toolCount = setupStatus?.agent.tools.length ?? 5;
+    const scopeCount = contextScope?.nodes.length ?? 0;
+    return [
+      {
+        label: 'You populate',
+        value: nodeCount ? `${sourceNodeCount} source${sourceNodeCount === 1 ? '' : 's'}` : 'paste/drop/note',
+        detail: nodeCount ? `${nodeCount} node${nodeCount === 1 ? '' : 's'} live` : 'first action ready',
+        ok: nodeCount > 0,
+      },
+      {
+        label: 'Canvas maps',
+        value: `${artifactCount} artifact${artifactCount === 1 ? '' : 's'}`,
+        detail: needsContextSourceCount ? `${needsContextSourceCount} need context` : readySourceCount ? `${readySourceCount} Codex-ready` : 'typed nodes + chunks',
+        ok: artifactCount > 0 && !needsContextSourceCount,
+      },
+      {
+        label: 'Codex reads/writes',
+        value: `${toolCount} MCP tools`,
+        detail: setupStatus?.codex.serverConfigured ? 'same local home' : 'handoff prompt ready',
+        ok: setupStatus?.codex.serverConfigured ?? false,
+      },
+      {
+        label: 'Handoff stays scoped',
+        value: scopeCount ? `${scopeCount} node${scopeCount === 1 ? '' : 's'}` : 'no context',
+        detail: contextScope?.mode === 'selection' ? 'selected evidence only' : 'whole canvas export',
+        ok: scopeCount > 0,
+      },
+    ];
+  }, [canvas?.artifacts.length, canvas?.nodes.length, contextScope?.mode, contextScope?.nodes.length, needsContextSourceCount, readySourceCount, setupStatus?.agent.tools.length, setupStatus?.codex.serverConfigured, sourceNodeCount]);
   const operatorLoop = useMemo<OperatorLoopStep[]>(() => {
     const nodes = canvas?.nodes ?? [];
     const sourceCount = nodes.filter((node) => node.kind.startsWith('source_')).length;
@@ -2245,7 +2282,7 @@ function WorkspaceInner() {
                   }
                 }}
                 className="min-h-24 w-full rounded-md border border-starlight-border bg-starlight-surface px-3 py-2 text-sm leading-6"
-                placeholder="Paste a YouTube link, image URL, transcript, or note"
+                placeholder="Paste YouTube, any video URL, image, file notes, transcript, or note"
               />
               <div className="flex flex-wrap gap-1.5" data-testid="rail-intake-preview">
                 {intakePlan.map((item) => (
@@ -2557,7 +2594,7 @@ function WorkspaceInner() {
                 </div>
               </div>
             ) : null}
-            <div className="absolute left-3 right-3 top-3 z-40 max-h-[calc(100%-5.25rem)] overflow-y-auto rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:max-h-none md:w-[min(760px,calc(100%-2rem))] md:overflow-visible" data-testid="live-composer">
+            <div className="absolute left-3 right-3 top-3 z-40 max-h-[calc(100%-5.25rem)] overflow-y-auto rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:max-h-[430px] md:w-[min(760px,calc(100%-2rem))] md:overflow-y-auto" data-testid="live-composer">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <div className="inline-flex items-center gap-1.5 rounded-md border border-starlight-mint/35 bg-starlight-mint/10 px-2.5 py-1 text-xs font-semibold text-starlight-ink" data-testid="live-intake-heading">
@@ -2712,6 +2749,65 @@ function WorkspaceInner() {
                   ))}
                 </div>
               ) : null}
+              <div className="mt-2 rounded-md border border-starlight-border bg-starlight-bg/72 p-2.5" data-testid="shared-context-contract">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                    <Network className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
+                    <span>Shared context contract</span>
+                  </div>
+                  <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
+                    <span className="min-w-0 truncate rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[10px] text-starlight-muted" data-testid="shared-context-home">
+                      {shortPath(setupStatus?.canvasHome || apiState.home || 'local canvas home', 44)}
+                    </span>
+                    <button
+                      type="button"
+                      data-testid="shared-context-add"
+                      disabled={!canMutate}
+                      onClick={() => requestComposerInput('source')}
+                      className="flex min-h-7 items-center justify-center gap-1 rounded-md border border-starlight-accent/35 bg-starlight-accent/10 px-2 text-[10px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <UploadCloud className="h-3 w-3" aria-hidden="true" />
+                      Add
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="shared-context-ask"
+                      disabled={!canMutate || !canvas?.nodes.length}
+                      onClick={() => requestComposerInput('ask')}
+                      className="flex min-h-7 items-center justify-center gap-1 rounded-md border border-starlight-border bg-starlight-surface/85 px-2 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <Sparkles className="h-3 w-3" aria-hidden="true" />
+                      Ask
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="shared-context-codex"
+                      disabled={!canvas || busy}
+                      onClick={copyCodexHandoff}
+                      className="flex min-h-7 items-center justify-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <Bot className="h-3 w-3" aria-hidden="true" />
+                      Codex
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-1.5 md:grid-cols-4" data-testid="shared-context-contract-steps">
+                  {sharedContextContract.map((item) => (
+                    <div key={item.label} className={`min-w-0 rounded-md border px-2 py-1.5 ${item.ok ? 'border-starlight-mint/35 bg-starlight-mint/10' : 'border-starlight-border bg-starlight-surface/78'}`}>
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        {item.ok ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-starlight-mint" aria-hidden="true" />
+                        ) : (
+                          <MousePointerClick className="h-3.5 w-3.5 shrink-0 text-starlight-gold" aria-hidden="true" />
+                        )}
+                        <span className="truncate text-[10px] font-semibold text-starlight-ink">{item.label}</span>
+                      </div>
+                      <div className="mt-1 truncate text-[11px] font-semibold text-starlight-ink">{item.value}</div>
+                      <div className="mt-0.5 truncate text-[9px] text-starlight-muted">{item.detail}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="mt-2 grid grid-cols-2 gap-1.5 md:grid-cols-5" data-testid="operator-loop">
                 {operatorLoop.map((step) => (
                   <button
@@ -2878,7 +2974,7 @@ function WorkspaceInner() {
               ) : null}
               {intakeReceipt ? (
                 <div
-                  className="mt-2 rounded-md border border-starlight-mint/35 bg-starlight-surface/95 p-2 shadow-command backdrop-blur md:absolute md:left-2 md:right-2 md:top-full md:z-20 md:p-2.5"
+                  className="mt-2 rounded-md border border-starlight-mint/35 bg-starlight-surface/95 p-2 shadow-command backdrop-blur md:p-2.5"
                   data-testid="context-mapping-receipt"
                   role="status"
                 >

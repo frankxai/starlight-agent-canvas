@@ -32,6 +32,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Users can enrich an existing reference-only source after mapping by attaching transcript, timestamp notes, OCR, visual observations, claims, or excerpts; the node body, linked artifact, chunks, source readiness, and intake trace update together.
 - The first-viewport composer exposes quick starters for `Video`, `Image`, `Web`, `Note`, and `Ask`, plus a visible `Drop -> Map -> Ask -> Handoff` loop.
 - The first-viewport composer exposes a live operator loop for `Capture -> Map -> Inspect -> Ask -> Handoff`, backed by actual canvas state and direct actions.
+- The first-viewport composer exposes a live `Shared context contract` showing human-populated source state, normalized artifacts/readiness, Codex/MCP tool path, and selected/whole-canvas export scope.
 - Templates launch guided workflow canvases with ordered stages, source slots, prompt nodes, expected output targets, and Codex/MCP handoff nodes.
 - User can inspect a live Workflow Map and click a stage to focus the corresponding canvas node.
 - User can create notes directly on the canvas and edit selected node title/body.
@@ -56,6 +57,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can see a maintained first-success contract in the workspace: install, open, capture, inspect, handoff, and Codex.
 - User can follow a live activation runway from install health to proof canvas, mapped source context, context export, and Codex MCP wiring.
 - User can follow a live human workflow loop from blank canvas to Codex handoff without discovering hidden shortcuts or reading docs first.
+- User can answer "can I populate it and can Codex populate it?" from the workspace itself: the `Shared context contract` shows browser input, canvas normalization, MCP read/write path, and handoff scope from live state.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
 - Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
 - Operators, GitHub contributors, setup helpers, and agents can parse the first-success contract through `pnpm first-success:json`.
@@ -119,6 +121,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A local operator can see the exact MCP tool path Codex should use and copy the adoption report or terminal handoff command without leaving the workspace.
 - A local operator can see the first-success contract and copy the human or JSON form without leaving the workspace.
 - A new user can follow the activation runway and understand the next install, demo, mapping, export, or Codex action without reading code.
+- A new user can inspect the shared context contract and understand that the browser, CLI, and MCP server operate over one local `AGENT_CANVAS_HOME`.
 - An agent or CI job can parse `pnpm doctor:json` and distinguish required failures from optional wiring warnings.
 - A setup helper, issue triage agent, or Codex session can parse `pnpm first-success:json` and understand the install-to-Codex loop before choosing tools.
 - A user can confirm from the first viewport exactly what happens to YouTube, any video, image, web, PDF, text, and note inputs before mapping them.

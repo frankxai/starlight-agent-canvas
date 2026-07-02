@@ -27,6 +27,8 @@ flowchart LR
 
 The web app and MCP server operate over the same local data home. A source added by you in the canvas is visible to an agent through MCP; a node added by Codex appears back in the same graph.
 
+The app now exposes this as a live `Shared context contract`: what you populated, what the canvas normalized, how many safe MCP tools Codex can use, and what will be exported for handoff. See `docs/interaction-model.md` for the exact browser, CLI, and MCP loop.
+
 ## What You Can Drop
 
 | Input | v0.1 behavior | Notes |
@@ -52,6 +54,7 @@ The web app and MCP server operate over the same local data home. A source added
 9. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP. These packets include an intake trace manifest, and when nodes are selected the manifest is recomputed so unrelated canvas material stays out.
 
 For the maintained first-success contract, run `pnpm first-success` or `pnpm first-success:json`.
+For the human plus Codex shared-state contract, see `docs/interaction-model.md`.
 For the full human plus agent operating loop, see `docs/operator-loop.md`.
 For the install-to-Codex first success path, see `docs/activation.md`.
 
@@ -68,6 +71,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 - See context gaps without hunting through nodes: the Action Drawer lists reference-only or needs-context sources and jumps straight to the `Attach context` panel.
 - Attach context to an existing source from the inspector: paste transcript, timestamps, OCR, visual notes, claims, or excerpts into `Attach context` and the linked artifact chunks, source readiness, search, Ask, exports, and intake trace all update together.
 - Follow a live operator loop in the first viewport: `Capture`, `Map`, `Inspect`, `Ask`, and `Handoff` update from actual canvas state and expose direct actions.
+- Inspect the `Shared context contract` in the first viewport to see the current human input state, normalized artifacts, Codex/MCP path, and export scope before leaving the browser.
 - Create a fresh blank canvas from the first viewport, and click an empty primary intake action to focus the composer instead of hitting a dead disabled state.
 - Launch guided workflow templates with source slots, ordered stages, prompt nodes, expected output targets, and Codex/MCP handoff nodes; use the live Workflow Map to jump between stages.
 - Preview detected intake types before mapping, including video source, image source, web source, source notes, text source, PDF, and file paths; active text input also shows the concrete node/artifact/readiness plan.
@@ -277,6 +281,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 - First success contract: `docs/first-success.md`
 - First success machine contract: `docs/first-success.contract.json`
 - Adoption report: `docs/adoption-report.md`
+- Human-agent interaction model: `docs/interaction-model.md`
 - Human/agent operator loop: `docs/operator-loop.md`
 - PRD: `docs/prd.md`
 - User flows: `docs/user-flows.md`

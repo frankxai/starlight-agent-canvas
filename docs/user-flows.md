@@ -44,7 +44,19 @@ Expected result: the user can use the top composer on every viewport, or the cen
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts, and source-specific notes remain bound to the media they explain.
 
-## Flow 1B: One-Click Demo Proof
+## Flow 1B: Shared Context Contract
+
+1. Open a blank or existing canvas.
+2. Inspect `Shared context contract` in the first-viewport composer.
+3. Confirm `You populate` shows the current browser-side source/node state.
+4. Confirm `Canvas maps` shows artifacts, source readiness, and whether sources need transcript, OCR, notes, claims, or excerpts.
+5. Confirm `Codex reads/writes` shows the MCP tool path and whether Codex is wired to the same local home or should use prompt handoff.
+6. Confirm `Handoff stays scoped` shows selected-node export when nodes are selected and whole-canvas export otherwise.
+7. Click `Add`, `Ask`, or `Codex` from the contract band to continue the current state.
+
+Expected result: the user can answer whether the human or Codex should populate next, whether mapped material is actually usable as context, and what Codex will receive before leaving the browser.
+
+## Flow 1C: One-Click Demo Proof
 
 1. Open the app.
 2. Click `Demo` in the first-viewport composer or toolbar.
