@@ -19,9 +19,9 @@ pnpm dev
 ```
 
 2. Open the canvas.
-3. Click `Import` in the canvas toolbar.
-4. Choose `examples/demo-canvas.json`.
-5. Select `Nodeflow-style video source`.
+3. Click `Demo` in the first-viewport composer or canvas toolbar.
+4. Confirm the selected node is `Nodeflow-style video source`.
+5. Manual portable import is still available from `Import -> examples/demo-canvas.json`.
 6. Inspect the source receipt: kind, ingest mode, chunk count, source URL, and chunk preview.
 7. Click `Source summary`, `Extract claims`, or `Ask selected`.
 8. Click `Context` in the toolbar to copy the full agent context packet.

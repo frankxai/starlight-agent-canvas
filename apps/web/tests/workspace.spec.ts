@@ -232,3 +232,34 @@ test('imports the public demo canvas and exports chunked context', async ({ page
   expect(contextText).toContain('artifact-youtube-nodeflow:chunk-001');
   expect(contextText).toContain('Codex context handoff');
 });
+
+test('loads the bundled demo canvas from the first viewport', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByTestId('workspace')).toBeVisible();
+  await expect(page.getByTestId('load-demo-canvas')).toBeVisible();
+  await page.getByTestId('load-demo-canvas').click();
+
+  await expect(page.getByTestId('status')).toContainText('Loaded demo from examples/demo-canvas.json');
+  await expect(page.getByTestId('canvas-live-state')).toContainText('5 nodes');
+  await expect(page.getByTestId('canvas-live-state')).toContainText('3 artifacts');
+  await expect(page.getByTestId('canvas-live-state')).toContainText('2 runs');
+  await expect(page.getByTestId('selected-context')).toContainText('1 node context');
+  await expect(page.getByTestId('source-receipt-kind')).toContainText('youtube');
+  await expect(page.getByTestId('source-receipt-ingest')).toContainText('manual transcript');
+  await expect(page.getByTestId('source-chunk-preview')).toContainText('artifact-youtube-nodeflow:chunk-001');
+  await expect(page.getByRole('button', { name: /Demo: YouTube To Codex Context Canvas/ }).first()).toBeVisible();
+
+  const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
+  expect(exportHref).toBeTruthy();
+  const jsonResponse = await page.request.get(exportHref!);
+  await expect(jsonResponse).toBeOK();
+  const exported = await jsonResponse.json() as { title: string; artifacts: Array<{ chunks?: unknown[] }> };
+  expect(exported.title).toContain('Demo: YouTube To Codex Context Canvas');
+  expect(exported.artifacts.some((artifact) => Array.isArray(artifact.chunks) && artifact.chunks.length > 0)).toBe(true);
+
+  const contextResponse = await page.request.get(exportHref!.replace('format=json', 'format=context'));
+  await expect(contextResponse).toBeOK();
+  const contextText = await contextResponse.text();
+  expect(contextText).toContain('Agent Context Packet');
+  expect(contextText).toContain('Codex context handoff');
+});

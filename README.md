@@ -39,7 +39,7 @@ The web app and MCP server operate over the same local data home. A source added
 1. Run `node scripts/setup.mjs`.
 2. Open `http://localhost:3000`.
 3. Confirm the in-app `Setup / MCP` panel.
-4. Click `Video`, `Web`, `Note`, or `Ask` in the first-viewport composer.
+4. Click `Demo` when you want a working proof canvas immediately, or click `Video`, `Web`, `Note`, or `Ask` to start from your own material.
 5. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 6. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
 7. Click `Context` or use MCP `export_canvas` with `format: "context"` for agent handoff.
@@ -113,8 +113,10 @@ API routes are localhost-only unless `AGENT_CANVAS_ALLOW_REMOTE=1` is set intent
 Try the portable demo:
 
 ```text
-Open the app -> Import -> examples/demo-canvas.json -> select the YouTube source -> click Context.
+Open the app -> Demo -> inspect the selected YouTube source receipt -> click Context.
 ```
+
+Manual portable import is still available from `Import -> examples/demo-canvas.json`.
 
 The demo proves YouTube/manual transcript context, URL notes, human notes, source artifacts, chunk ids, Map + Brief output, and Codex context handoff. See `docs/demo-walkthrough.md`.
 

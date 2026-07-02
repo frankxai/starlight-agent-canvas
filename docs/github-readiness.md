@@ -17,6 +17,7 @@ README first-read requirements before public announcement:
 - States the local-first/MCP-native wedge in the first paragraph.
 - Includes a concrete input behavior matrix.
 - Explains that non-YouTube video links are references plus notes in v0.1, not automatic full transcription.
+- Shows a one-click `Demo` path that imports the real bundled example canvas from the app.
 - Links to install, PRD, user flows, Codex integration, MCP setup, and readiness evidence.
 - Avoids comparing itself as a clone of Poppy, Nodeflow, or another closed product.
 

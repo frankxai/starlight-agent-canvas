@@ -177,6 +177,21 @@
       "path_or_url": "docs/visual-qa/desktop-self-serve-reduced-motion.png",
       "kind": "desktop reduced-motion self-serve ask screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-demo-proof-canvas.png",
+      "kind": "desktop one-click demo proof canvas screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-demo-proof-canvas.png",
+      "kind": "mobile one-click demo proof canvas screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-demo-proof-reduced-motion.png",
+      "kind": "desktop reduced-motion one-click demo screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -325,6 +340,7 @@
       "dropToCanvasBrowserTested": true,
       "dragOverlayBrowserTested": true,
       "videoReferenceQuickStarter": true,
+      "oneClickDemoLoader": true,
       "contextLoopVisibleOnMobile": true,
       "namedUploadControlTested": true,
       "mobileToolbarReduced": true
@@ -349,6 +365,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, quick starters for Video/Web/Note/Ask, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, JSON/Markdown export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, JSON/Markdown export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

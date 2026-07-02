@@ -15,6 +15,7 @@ Latest local proof commit: `a1537ca feat: clarify self-serve canvas intake`.
 | YouTube is transcript-first with manual fallback | `packages/core/src/ingest.ts`, `docs/user-flows.md`, core ingest tests, Playwright YouTube manual transcript path | Proven locally |
 | Non-YouTube video links can be captured as context references | `apps/web/components/WorkspaceClient.tsx`, `apps/web/app/api/canvases/[id]/nodes/route.ts`, Playwright video-reference assertion, `docs/visual-qa/desktop-self-serve-video-intake.png`, `docs/visual-qa/desktop-self-serve-video-mapped.png` | Proven locally for safe reference plus attached notes and exported `media: video_reference`; provider transcription remains future work |
 | First-viewport quick starters make intake self-serve | `canvas-quick-start` and `context-loop` in `apps/web/components/WorkspaceClient.tsx`; Playwright desktop/mobile assertions; visual captures in `docs/visual-qa/desktop-self-serve-video-intake.png` and `docs/visual-qa/mobile-self-serve-note-intake.png` | Proven locally |
+| New users can load a working proof canvas from the app | `apps/web/app/api/canvases/demo/route.ts`, `load-demo-canvas` controls in `apps/web/components/WorkspaceClient.tsx`, Playwright bundled demo assertion, `docs/visual-qa/desktop-demo-proof-canvas.png`, `docs/visual-qa/mobile-demo-proof-canvas.png` | Proven locally for in-app import of `examples/demo-canvas.json`, selected YouTube receipt, chunk preview, and context export |
 | User can run local actions and inspect outputs | `packages/core/src/actions.ts`, `packages/core/src/__tests__/actions.test.ts`, Playwright `ask-canvas` path | Proven locally |
 | JSON import/export is portable and non-destructive | `packages/core/src/store.ts`, `apps/web/app/api/canvases/import/route.ts`, `packages/core/src/__tests__/store.test.ts`, Playwright import path | Proven locally |
 | Agent context packet is available | `packages/core/src/exporters.ts`, web `format=context` route, MCP `export_canvas` with `format: "context"`, live preview API check on 2026-07-02 | Proven locally |
@@ -30,7 +31,7 @@ Latest local proof commit: `a1537ca feat: clarify self-serve canvas intake`.
 | Setup and Codex status are visible in the app | `apps/web/app/api/setup/status/route.ts`, `Setup / MCP` panel in `apps/web/components/WorkspaceClient.tsx`, Playwright setup-panel assertion; server is considered wired only when config sections, CLI path, and canvas home match | Proven locally |
 | Local data remains outside Git | `.gitignore`, `AGENT_CANVAS_HOME`, `packages/core/src/home.ts`, `pnpm doctor` | Proven by repo structure and doctor |
 | Security scan is clean | `Invoke-RepoSecurityScan.ps1 -Path ...` passed on 2026-07-02 after generated cache cleanup | Proven locally |
-| Public demo proves the product loop | `examples/demo-canvas.json`, `docs/demo-walkthrough.md`, `examples/mcp/README.md`; JSON parse check passed | Proven locally |
+| Public demo proves the product loop | `examples/demo-canvas.json`, `docs/demo-walkthrough.md`, `examples/mcp/README.md`, in-app `Demo` loader route; JSON parse check passed | Proven locally |
 | Visual QA passes 26/30+ | `docs/design-loop-evidence.json` validates and scores 28/30 | Proven locally |
 
 ## Current Known Gaps

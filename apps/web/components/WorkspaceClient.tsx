@@ -556,7 +556,7 @@ function WorkspaceInner() {
   const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [edgeKind, setEdgeKind] = useState<CanvasEdgeKind>('references');
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(true);
   const [status, setStatus] = useState('Booting local canvas...');
   const [dragActive, setDragActive] = useState(false);
   const [noteTitle, setNoteTitle] = useState('Research note');
@@ -1063,6 +1063,24 @@ function WorkspaceInner() {
     }
   }, [refreshList]);
 
+  const loadDemoCanvas = useCallback(async () => {
+    setBusy(true);
+    try {
+      const result = await api<{ canvas: CanvasRecord; source: string }>('/api/canvases/demo', {
+        method: 'POST',
+      });
+      setCanvas(result.canvas);
+      const focus = result.canvas.nodes.find((node) => node.kind === 'source_youtube') ?? result.canvas.nodes[0];
+      if (focus) focusNode(focus);
+      await refreshList();
+      setStatus(`Loaded demo from ${result.source}. Inspect receipts, run Ask, or export Context.`);
+    } catch (error) {
+      setStatus((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }, [focusNode, refreshList]);
+
   const copyCanvasContext = useCallback(async () => {
     if (!canvas) return;
     setBusy(true);
@@ -1383,6 +1401,19 @@ function WorkspaceInner() {
                 Templates
               </div>
               <div className="grid grid-cols-1 gap-2">
+                <button
+                  data-testid="load-demo-canvas-rail"
+                  type="button"
+                  disabled={busy}
+                  onClick={loadDemoCanvas}
+                  className="rounded-lg border border-starlight-gold/45 bg-starlight-gold/10 p-3 text-left transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <span className="flex items-center gap-2 text-sm font-semibold text-starlight-ink">
+                    <LayoutTemplate className="h-4 w-4 text-starlight-gold" aria-hidden="true" />
+                    Demo Proof Canvas
+                  </span>
+                  <span className="mt-1 block text-xs leading-5 text-starlight-muted">YouTube/manual transcript, URL notes, human note, chunks, citations, and Codex context.</span>
+                </button>
                 {apiState.templates.filter((template) => template.id !== 'blank').map((template) => (
                   <button
                     key={template.id}
@@ -1577,6 +1608,18 @@ function WorkspaceInner() {
               </div>
               <div className="mt-2 grid gap-2 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
                 <div className="flex flex-wrap gap-1.5" data-testid="canvas-quick-start">
+                  <button
+                    data-testid="load-demo-canvas"
+                    type="button"
+                    disabled={busy}
+                    onClick={loadDemoCanvas}
+                    className="inline-flex min-h-8 items-center gap-1.5 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2.5 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                    title="Import the bundled proof canvas"
+                  >
+                    <LayoutTemplate className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>Demo</span>
+                    <span className="hidden font-normal text-starlight-muted sm:inline">proof canvas</span>
+                  </button>
                   {QUICK_STARTERS.map((starter) => (
                     <button
                       key={starter.id}
@@ -1751,6 +1794,10 @@ function WorkspaceInner() {
               <button type="button" data-testid="copy-context" onClick={copyCanvasContext} disabled={!canvas || busy} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
                 <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
                 Context
+              </button>
+              <button type="button" data-testid="load-demo-canvas-toolbar" onClick={loadDemoCanvas} disabled={busy} className="flex items-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-1 text-xs font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
+                <LayoutTemplate className="h-3.5 w-3.5" aria-hidden="true" />
+                Demo
               </button>
               <label className={`flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink ${canMutate ? 'cursor-pointer hover:border-starlight-accent' : 'cursor-not-allowed opacity-45'}`}>
                 <FileUp className="h-3.5 w-3.5" aria-hidden="true" />

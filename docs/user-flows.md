@@ -27,6 +27,17 @@ Expected result: the user sees what will be created before mapping, the new type
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
 
+## Flow 1B: One-Click Demo Proof
+
+1. Open the app.
+2. Click `Demo` in the first-viewport composer or toolbar.
+3. Confirm the canvas loads the bundled demo and selects `Nodeflow-style video source`.
+4. Inspect the receipt: `youtube`, `manual transcript`, source URL, chunks, and character count.
+5. Click `Context` to copy the agent packet, or export JSON/Markdown.
+6. Ask Codex/Claude/Gemini through MCP to list canvases and read the same imported canvas.
+
+Expected result: a first-time user can see the complete product loop in seconds without locating example files manually.
+
 ## Flow 2: YouTube Research
 
 1. Paste a YouTube URL into the canvas composer.

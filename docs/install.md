@@ -109,23 +109,26 @@ pnpm dev
 
 1. Open the web app.
 2. Check the `Setup / MCP` panel for data home, MCP build, and Codex wiring status.
-3. Use the first-viewport quick starters: `Video`, `Web`, `Note`, or `Ask`.
-4. Paste or drop YouTube links, Loom/Vimeo/direct video links, URLs, transcripts, PDFs, files, and raw source text.
-5. Use the `Drop -> Map -> Ask -> Handoff` loop as the mental model.
-6. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
-7. Inspect the new source/output pair on the canvas and the selected node in the inspector.
-8. Select a source node and inspect the context receipt: source kind, ingest method, chunks, URL/file, and character count.
-9. Run `Source summary`, `Extract claims`, or `Ask selected` when you want the action scoped to only that source.
-10. Use the action drawer for multi-node or whole-canvas `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
-11. Click `Copy source` for selected-source context, or `Context` when you want a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
-12. Export JSON or Markdown from the canvas toolbar.
-13. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
-14. Import `examples/demo-canvas.json` when you want a ready-made proof of YouTube/manual transcript, artifacts, chunks, citations, Map + Brief, and Codex handoff.
-15. Build the MCP server with `pnpm mcp:build`.
-16. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
-17. Run `pnpm doctor` to confirm Codex points at this MCP server.
-18. Ask the agent to list canvases and add a source node.
-19. Keep building with the same shared canvas context.
+3. Click `Demo` in the first-viewport composer when you want an immediate working proof canvas.
+4. Inspect the selected YouTube source receipt: source kind, ingest method, chunks, source URL, and character count.
+5. Use `Context` to copy a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
+6. Use the first-viewport quick starters: `Video`, `Web`, `Note`, or `Ask` when you want to start from your own material.
+7. Paste or drop YouTube links, Loom/Vimeo/direct video links, URLs, transcripts, PDFs, files, and raw source text.
+8. Use the `Drop -> Map -> Ask -> Handoff` loop as the mental model.
+9. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
+10. Inspect the new source/output pair on the canvas and the selected node in the inspector.
+11. Select a source node and inspect the context receipt: source kind, ingest method, chunks, URL/file, and character count.
+12. Run `Source summary`, `Extract claims`, or `Ask selected` when you want the action scoped to only that source.
+13. Use the action drawer for multi-node or whole-canvas `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
+14. Click `Copy source` for selected-source context, or `Context` when you want the full canvas packet.
+15. Export JSON or Markdown from the canvas toolbar.
+16. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
+17. Manual import of `examples/demo-canvas.json` remains available when you want to test portable JSON import directly.
+18. Build the MCP server with `pnpm mcp:build`.
+19. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
+20. Run `pnpm doctor` to confirm Codex points at this MCP server.
+21. Ask the agent to list canvases and add a source node.
+22. Keep building with the same shared canvas context.
 
 ## Input Behavior
 
