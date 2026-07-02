@@ -242,6 +242,16 @@
       "path_or_url": "docs/visual-qa/mobile-paste-map-immediate.png",
       "kind": "mobile immediate Paste & Map workspace screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-handoff-readiness.png",
+      "kind": "desktop handoff readiness lane screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-handoff-readiness.png",
+      "kind": "mobile handoff readiness lane screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -294,6 +304,11 @@
       "name": "codex-handoff-loop",
       "status": "pass",
       "notes": "The workspace command tray and Setup/MCP panel expose Codex handoff controls; desktop, mobile, and reduced-motion screenshots plus API checks prove format=codex returns a ready-to-paste prompt with the context packet embedded."
+    },
+    {
+      "name": "handoff-readiness-lane",
+      "status": "pass",
+      "notes": "The action drawer now exposes evidence, synthesis, scope, and Codex/MCP readiness from live canvas/setup state; desktop and mobile screenshots were inspected."
     }
   ],
   "score": {

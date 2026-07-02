@@ -9,11 +9,12 @@ flowchart LR
   preview --> map["Click Map"]
   map --> inspect["Inspect receipt and edit node"]
   inspect --> scope["Confirm selected context tray"]
-  scope --> action["Run selected-source action"]
+  scope --> ready["Check handoff readiness"]
+  ready --> action["Run selected-source action"]
   action --> export["Export JSON or Markdown"]
 ```
 
-Expected result: the user sees what will be created before mapping, the new typed source node is selected, the inspector opens a context receipt with chunks/provenance, and source-grounded actions run without leaving the first screen.
+Expected result: the user sees what will be created before mapping, the new typed source node is selected, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
 
 ## Flow 1A: Self-Serve Quick Starter
 
@@ -25,7 +26,8 @@ Expected result: the user sees what will be created before mapping, the new type
 6. Paste or drop context.
 7. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
 8. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-9. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
+9. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
+10. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
 

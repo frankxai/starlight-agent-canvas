@@ -28,6 +28,7 @@ Turn mixed source material into reusable agent context, Codex continuation promp
 - Edit node titles and bodies in the inspector, then reuse the edited canvas as agent context.
 - Ask source-grounded questions over selected nodes or the whole canvas.
 - Copy a ready Codex handoff that tells Codex which MCP canvas to resume and embeds the current context packet.
+- See handoff readiness in the workspace: evidence, synthesis, selected scope, and Codex/MCP status are computed from live state.
 - Export selected nodes as focused JSON, Markdown, context, or Codex handoff packets when the human wants the next agent turn constrained to specific evidence.
 - Auto-select newly created source and action output nodes so answers and ingested context are immediately inspectable.
 - Persist graph interaction: node drag positions, direct node connections, run outputs, and exports.

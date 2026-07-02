@@ -23,6 +23,12 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
   await expect(page.getByTestId('setup-codex-handoff')).toBeEnabled();
+  await expect(page.getByTestId('handoff-readiness')).toContainText('Handoff readiness');
+  await expect(page.getByTestId('handoff-readiness')).toContainText('Evidence');
+  await expect(page.getByTestId('handoff-readiness')).toContainText('Synthesis');
+  await expect(page.getByTestId('handoff-readiness')).toContainText('Codex');
+  await expect(page.getByTestId('handoff-readiness-source')).toBeEnabled();
+  await expect(page.getByTestId('handoff-readiness-codex')).toBeEnabled();
   await expect(page.getByTestId('intake-ingest')).toContainText('Map + Brief');
   await expect(page.getByTestId('intake-ingest')).toBeEnabled();
   await expect(page.getByTestId('new-blank-canvas')).toBeVisible();

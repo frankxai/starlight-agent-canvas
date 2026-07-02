@@ -640,6 +640,33 @@ function WorkspaceInner() {
     { label: 'Codex', command: setupStatus.codex.installWriteCommand },
     { label: 'Smoke', command: setupStatus.mcp.smokeCommand },
   ] : [], [setupStatus]);
+  const handoffReadiness = useMemo(() => {
+    const sourceCount = canvas?.nodes.filter((node) => node.kind.startsWith('source_')).length ?? 0;
+    const outputCount = canvas?.nodes.filter((node) => node.kind === 'output').length ?? 0;
+    const runCount = canvas?.runs.length ?? 0;
+    return [
+      {
+        label: 'Evidence',
+        ok: sourceCount > 0,
+        detail: sourceCount ? `${sourceCount} source${sourceCount === 1 ? '' : 's'}` : 'map source',
+      },
+      {
+        label: 'Synthesis',
+        ok: outputCount > 0 || runCount > 0,
+        detail: outputCount || runCount ? `${outputCount} output${outputCount === 1 ? '' : 's'}` : 'ask or brief',
+      },
+      {
+        label: 'Scope',
+        ok: Boolean(canvas?.nodes.length),
+        detail: selectedIds.length ? `${selectedIds.length} selected` : 'whole canvas',
+      },
+      {
+        label: 'Codex',
+        ok: setupStatus?.codex.serverConfigured ?? false,
+        detail: setupStatus?.codex.serverConfigured ? 'MCP wired' : 'handoff prompt',
+      },
+    ];
+  }, [canvas?.nodes, canvas?.runs.length, selectedIds.length, setupStatus?.codex.serverConfigured]);
 
   const focusNode = useCallback((node?: CanvasNode, selectedOverride?: string[]) => {
     if (!node) return;
@@ -2045,6 +2072,54 @@ function WorkspaceInner() {
               <p className="mt-2 text-xs leading-5 text-starlight-muted">
                 Runs are local and deterministic in v0.1. Select nodes to scope an action, or leave empty to use the canvas.
               </p>
+              <div className="mt-3 rounded-md border border-starlight-border bg-starlight-surface/70 p-3" data-testid="handoff-readiness">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                    <Bot className="h-3.5 w-3.5 text-starlight-gold" aria-hidden="true" />
+                    Handoff readiness
+                  </span>
+                  <span className="rounded-md border border-starlight-border bg-starlight-bg px-2 py-1 text-[10px] text-starlight-muted">
+                    {selectedIds.length ? 'selected' : 'canvas'}
+                  </span>
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {handoffReadiness.map((step) => (
+                    <div key={step.label} className="rounded-md border border-starlight-border bg-starlight-bg/80 p-2">
+                      <div className="flex items-center gap-1.5">
+                        {step.ok ? (
+                          <CheckCircle2 className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
+                        ) : (
+                          <TriangleAlert className="h-3.5 w-3.5 text-starlight-gold" aria-hidden="true" />
+                        )}
+                        <span className="text-[11px] font-semibold text-starlight-ink">{step.label}</span>
+                      </div>
+                      <div className="mt-1 truncate text-[10px] text-starlight-muted">{step.detail}</div>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    data-testid="handoff-readiness-source"
+                    disabled={!canMutate}
+                    onClick={() => requestComposerInput('source')}
+                    className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-accent/40 bg-starlight-accent/10 px-2 py-2 text-[11px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />
+                    Add evidence
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="handoff-readiness-codex"
+                    disabled={!canvas || busy}
+                    onClick={copyCodexHandoff}
+                    className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-2 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                  >
+                    <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                    Codex handoff
+                  </button>
+                </div>
+              </div>
               <textarea
                 data-testid="ask-prompt"
                 value={askPrompt}

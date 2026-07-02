@@ -32,6 +32,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Selected source nodes show a context receipt with artifact kind, ingest method, chunk count, source path/URL, and character count.
 - Selected source nodes expose immediate source-scoped actions: summary, claims, cited ask, and selected context copy.
 - User can see the active selected context before running actions.
+- User can see handoff readiness before leaving the browser: evidence captured, synthesis/output present, selected scope, and whether Codex is MCP-wired or should use a handoff prompt.
 - User can export selected evidence as JSON, Markdown, agent context, or Codex handoff without exporting unrelated canvas material.
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
@@ -79,6 +80,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Every action output becomes inspectable context.
 - Every search result should help the user re-enter the graph, not become a detached list.
 - Every install/Codex claim shown in the UI should be backed by a local check or a copyable command.
+- Every handoff claim shown in the UI should be backed by live canvas state, not generic progress copy.
 - Human edits are first-class, not an afterthought.
 - MCP tools are explicit, bounded, local, and non-destructive.
 - Portability beats lock-in.
