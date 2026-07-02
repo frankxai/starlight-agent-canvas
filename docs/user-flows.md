@@ -32,11 +32,12 @@ Expected result: the user can use either the top composer or the center empty-ca
 11. If the paste contains multiple media URLs with nearby labeled transcript, notes, timestamps, OCR, alt text, or visual observations, confirm those details stay attached to the matching media source.
 12. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 13. Confirm the latest intake receipt lists the created node kind(s), artifact kind(s), optional output, and `Codex-ready` state.
-14. Use the receipt's `Inspect`, `Context`, or `Codex` controls when you want exactly the newly mapped material.
-15. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
-16. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
-17. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
-18. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
+14. Inspect a created source and confirm source readiness says whether it is Codex-ready or needs transcript, OCR, notes, or readable page text first.
+15. Use the receipt's `Inspect`, `Context`, or `Codex` controls when you want exactly the newly mapped material.
+16. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
+17. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
+18. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
+19. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts, and source-specific notes remain bound to the media they explain.
 
@@ -78,6 +79,7 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 6. Export JSON/context and confirm the source is a `source_video` node with a `video` artifact and `media: video_reference` provenance.
 
 Expected result: the canvas accepts arbitrary video links as local context references without claiming unsupported video download or platform transcription.
+If no transcript or notes are present, source readiness says `Video reference saved` and asks for transcript, timestamp notes, claims, or takeaways before deep analysis.
 
 ## Flow 2B: Image Evidence
 
@@ -90,6 +92,7 @@ Expected result: the canvas accepts arbitrary video links as local context refer
 7. Export JSON/context and confirm the source is a `source_image` node with an `image` artifact and `imageUrl` or `imageDataUrl` provenance.
 
 Expected result: the canvas accepts visual context as first-class local evidence without claiming OCR or model-backed image understanding until notes or provider vision are added.
+If no OCR or visual notes are present, source readiness says `Needs visual text` and explains what to add.
 
 ## Flow 3: Competitor Teardown
 
@@ -135,7 +138,7 @@ sequenceDiagram
   Human->>Canvas: Inspect and edit output
 ```
 
-Expected result: human and agent work on the same local state with explicit, reviewable mutations. When the agent receives a messy pasted source blob, `ingest_anything` mirrors the web canvas intake, maps YouTube, video, image, URL, and note context without making the user pick a lower-level tool, and keeps nearby media transcripts/notes/OCR attached to the right source.
+Expected result: human and agent work on the same local state with explicit, reviewable mutations. When the agent receives a messy pasted source blob, `ingest_anything` mirrors the web canvas intake, maps YouTube, video, image, URL, and note context without making the user pick a lower-level tool, keeps nearby media transcripts/notes/OCR attached to the right source, and returns source-readiness facts so Codex knows whether to run actions or ask for missing context.
 
 ## Flow 5A: Guided Workflow Template
 

@@ -9,9 +9,10 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   webServer: {
-    command: 'pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/web dev -p 3100',
+    command: 'pnpm build && pnpm --filter @starlight-agent-canvas/web start -p 3100',
     url: 'http://127.0.0.1:3100',
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
+    timeout: 120_000,
     env: {
       AGENT_CANVAS_HOME: '.agent-canvas/test-e2e',
     },

@@ -51,6 +51,7 @@ import {
 } from 'lucide-react';
 import { describeCanvasExportScope } from '@starlight-agent-canvas/core/exporters';
 import { detectIntakeText } from '@starlight-agent-canvas/core/intake';
+import { describeSourceReadiness, type SourceReadinessStatus } from '@starlight-agent-canvas/core/readiness';
 import type { CanvasActionType, CanvasArtifact, CanvasEdge, CanvasEdgeKind, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
 
 type CanvasSummary = {
@@ -411,6 +412,28 @@ function toFlow(canvas: CanvasRecord, compact = false): { nodes: Node<AgentNodeD
 
 function formatKind(kind: string) {
   return kind.replace(/_/g, ' ');
+}
+
+function sourceReadinessTone(status: SourceReadinessStatus) {
+  if (status === 'ready') {
+    return {
+      panel: 'border-starlight-mint/35 bg-starlight-mint/10',
+      badge: 'border-starlight-mint/40 bg-starlight-mint/10 text-starlight-mint',
+      icon: <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />,
+    };
+  }
+  if (status === 'needs_context') {
+    return {
+      panel: 'border-starlight-gold/35 bg-starlight-gold/10',
+      badge: 'border-starlight-gold/40 bg-starlight-gold/10 text-starlight-ink',
+      icon: <TriangleAlert className="h-3.5 w-3.5" aria-hidden="true" />,
+    };
+  }
+  return {
+    panel: 'border-starlight-border bg-starlight-bg/90',
+    badge: 'border-starlight-border bg-starlight-surface text-starlight-muted',
+    icon: <Link className="h-3.5 w-3.5" aria-hidden="true" />,
+  };
 }
 
 function shortPath(value: string, max = 48): string {
@@ -816,6 +839,9 @@ function WorkspaceInner() {
   const selectedArtifactChars = selectedArtifact?.body.length ?? selectedNode?.body.length ?? 0;
   const selectedChunkCount = selectedArtifact?.chunks.length ?? 0;
   const selectedPageCount = metadataNumber(selectedArtifact?.metadata, 'pages') ?? metadataNumber(selectedNode?.metadata, 'pages');
+  const selectedReadiness = useMemo(() => (
+    selectedNode ? describeSourceReadiness(selectedNode, selectedArtifact ?? undefined) : null
+  ), [selectedArtifact, selectedNode]);
   const selectedChunkPreviews = useMemo(() => {
     const chunks = selectedArtifact?.chunks ?? [];
     if (!focusedChunkId) return chunks.slice(0, 2);
@@ -3168,6 +3194,45 @@ function WorkspaceInner() {
                     {selectedSource ? (
                       <div className="mt-2 truncate rounded-md border border-starlight-border bg-starlight-bg px-2 py-1.5 text-[11px] text-starlight-mint" data-testid="source-receipt-source">
                         {selectedSource}
+                      </div>
+                    ) : null}
+                    {selectedReadiness ? (
+                      <div
+                        className={`mt-2 rounded-md border p-2.5 ${sourceReadinessTone(selectedReadiness.status).panel}`}
+                        data-testid="source-readiness"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <div className="text-[10px] uppercase text-starlight-muted">Source readiness</div>
+                            <div className="mt-1 text-xs font-semibold text-starlight-ink" data-testid="source-readiness-label">
+                              {selectedReadiness.label}
+                            </div>
+                          </div>
+                          <span
+                            className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-[10px] font-semibold ${sourceReadinessTone(selectedReadiness.status).badge}`}
+                            data-testid="source-readiness-state"
+                          >
+                            {sourceReadinessTone(selectedReadiness.status).icon}
+                            {selectedReadiness.canRunActions ? 'Actions ready' : 'Needs context'}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-[11px] leading-5 text-starlight-muted" data-testid="source-readiness-detail">
+                          {selectedReadiness.detail}
+                        </p>
+                        <p className="mt-1 text-[11px] leading-5 text-starlight-ink" data-testid="source-readiness-next">
+                          {selectedReadiness.nextAction}
+                        </p>
+                        <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] text-starlight-muted" data-testid="source-readiness-evidence">
+                          <span className="rounded-md border border-starlight-border bg-starlight-bg px-2 py-1">
+                            {selectedReadiness.evidence.usableChars.toLocaleString()} usable chars
+                          </span>
+                          <span className="rounded-md border border-starlight-border bg-starlight-bg px-2 py-1">
+                            {selectedReadiness.evidence.chunks} chunks
+                          </span>
+                          <span className="rounded-md border border-starlight-border bg-starlight-bg px-2 py-1">
+                            {formatKind(selectedReadiness.evidence.ingest)}
+                          </span>
+                        </div>
                       </div>
                     ) : null}
                     {selectedImageSrc ? (

@@ -25,7 +25,7 @@ flowchart LR
 5. Paste or drop YouTube, non-YouTube video links, image URLs/screenshots, web URLs, files, transcripts, rough notes, or mixed text. Labeled transcript, notes, timestamps, OCR, alt text, or visual observations after a YouTube/video/image URL stay attached to that media source. The clipboard button maps immediately when the browser allows it; when clipboard reads are blocked or empty, the composer stays focused for `Ctrl+V`, typing, or drop-to-canvas intake.
 6. Confirm the preview chips before mapping.
 7. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-8. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, and character count.
+8. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, character count, and source readiness.
 9. Run source-scoped actions when one source matters, or canvas actions when synthesis matters.
 10. Export `Context` for general agent packets, `Codex` for ready-to-paste Codex continuation prompts, `Markdown` for people, or `JSON` for portable rehydration. If nodes are selected, those exports stay scoped to the selected evidence.
 
@@ -36,13 +36,14 @@ Agents should use the MCP server as a typed local operating surface, not as a ge
 1. `get_latest_canvas` when the human means the active/recent canvas, or `list_canvases` and `get_canvas` when a specific canvas matters.
 2. Read existing nodes/artifacts before writing.
 3. Use `ingest_anything` for messy pasted context so MCP mirrors the human canvas intake, including nearby transcript/notes/OCR grouping for YouTube, video, and image sources.
-4. Use source-ingest tools when the source type is already known: `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, or `ingest_pdf`.
-5. Use `position` for generated nodes so the human opens a legible map.
-6. Use `connect_nodes` to make evidence relationships visible.
-7. Use `run_node_action` for summaries, claims, comparisons, matrices, implementation briefs, or cited answers.
-8. Use `update_node` for cleanup instead of duplicating messy nodes.
-9. Use `export_canvas` with `format: "codex"` when Codex should continue through MCP, or `format: "context"` when the next agent turn needs a self-contained packet. Pass `nodeIds` when the human selected a smaller evidence set.
-10. Report node ids, artifact ids, chunk ids, and actions changed.
+4. Check `sourceReadiness` from `get_canvas`, `get_latest_canvas`, or `ingest_anything` before running actions; ask for missing transcript, OCR, notes, or page text when a source is reference-only.
+5. Use source-ingest tools when the source type is already known: `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, or `ingest_pdf`.
+6. Use `position` for generated nodes so the human opens a legible map.
+7. Use `connect_nodes` to make evidence relationships visible.
+8. Use `run_node_action` for summaries, claims, comparisons, matrices, implementation briefs, or cited answers.
+9. Use `update_node` for cleanup instead of duplicating messy nodes.
+10. Use `export_canvas` with `format: "codex"` when Codex should continue through MCP, or `format: "context"` when the next agent turn needs a self-contained packet. Pass `nodeIds` when the human selected a smaller evidence set.
+11. Report node ids, artifact ids, chunk ids, source-readiness labels, and actions changed.
 
 ## Source Semantics
 

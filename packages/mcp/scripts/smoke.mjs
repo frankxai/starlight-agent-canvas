@@ -226,6 +226,25 @@ try {
     },
   });
 
+  const canvasWithReadiness = await client.callTool({
+    name: 'get_canvas',
+    arguments: { canvasId },
+  });
+  const sourceReadiness = canvasWithReadiness.structuredContent?.sourceReadiness;
+  if (!Array.isArray(sourceReadiness)) {
+    throw new Error('get_canvas did not expose sourceReadiness.');
+  }
+  const readinessLabels = sourceReadiness.map((item) => item.label);
+  if (!readinessLabels.includes('Codex-ready transcript')) {
+    throw new Error('sourceReadiness did not mark the YouTube transcript as Codex-ready.');
+  }
+  if (!readinessLabels.includes('Codex-ready visual notes')) {
+    throw new Error('sourceReadiness did not mark image visual notes as Codex-ready.');
+  }
+  if (!readinessLabels.includes('URL reference saved')) {
+    throw new Error('sourceReadiness did not mark URL fallback as a saved reference.');
+  }
+
   const search = await client.callTool({
     name: 'search_artifacts',
     arguments: {

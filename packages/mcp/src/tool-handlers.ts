@@ -21,6 +21,7 @@ import {
   type RunActionInput,
   type UpdateNodeInput,
 } from '@starlight-agent-canvas/core';
+import { describeCanvasSourceReadiness } from '@starlight-agent-canvas/core/readiness';
 
 export type ToolResult = {
   content: Array<{ type: 'text'; text: string }>;
@@ -130,12 +131,19 @@ export function createToolHandlers(store = new FileCanvasStore()) {
         return ok('No local canvases found.', { canvas: null, summary: null });
       }
       const canvas = args.includeCanvas === false ? null : await store.getCanvas(latest.id);
-      return ok(`Latest canvas: ${latest.title} (${latest.id})`, { canvas, summary: latest });
+      return ok(`Latest canvas: ${latest.title} (${latest.id})`, {
+        canvas,
+        summary: latest,
+        sourceReadiness: canvas ? describeCanvasSourceReadiness(canvas) : [],
+      });
     },
 
     async get_canvas(args: { canvasId: string }): Promise<ToolResult> {
       const canvas = await store.getCanvas(args.canvasId);
-      return ok(jsonText(canvas), { canvas });
+      return ok(jsonText(canvas), {
+        canvas,
+        sourceReadiness: describeCanvasSourceReadiness(canvas),
+      });
     },
 
     async create_canvas(args: CreateCanvasInput): Promise<ToolResult> {
@@ -397,11 +405,13 @@ export function createToolHandlers(store = new FileCanvasStore()) {
       }
 
       const nodeIds = results.map((result) => result.node.id);
+      const latestCanvas = await store.getCanvas(canvasId);
       return ok(`Mapped ${results.length} item(s) into ${canvasId}: ${results.map((result) => result.kind).join(', ')}.`, {
         canvasId,
         detected: plan,
         results,
         nodeIds,
+        sourceReadiness: describeCanvasSourceReadiness(latestCanvas).filter((item) => nodeIds.includes(item.nodeId)),
         run,
       });
     },

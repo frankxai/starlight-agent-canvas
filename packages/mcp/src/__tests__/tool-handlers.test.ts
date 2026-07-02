@@ -52,6 +52,14 @@ describe('MCP tool handlers', () => {
     expect(videoArtifact.kind).toBe('youtube');
     expect(videoArtifact.chunks[0].id).toContain('chunk-001');
 
+    const canvasWithYoutube = await handlers.get_canvas({ canvasId: canvas.id });
+    const youtubeReadiness = canvasWithYoutube.structuredContent?.sourceReadiness as Array<{ nodeId: string; label: string; status: string; canRunActions: boolean }>;
+    expect(youtubeReadiness.find((item) => item.nodeId === videoNode.id)).toMatchObject({
+      label: 'Codex-ready transcript',
+      status: 'ready',
+      canRunActions: true,
+    });
+
     const genericVideo = await handlers.ingest_video({
       canvasId: canvas.id,
       url: 'https://vimeo.com/123456789',
@@ -229,16 +237,24 @@ describe('MCP tool handlers', () => {
     });
 
     const results = result.structuredContent?.results as Array<{ kind: string; artifact: { body: string; kind: string } }>;
+    const readiness = result.structuredContent?.sourceReadiness as Array<{ label: string; status: string; canRunActions: boolean }>;
     expect(results.map((item) => item.kind)).toEqual(['youtube', 'video', 'image']);
     expect(results.find((item) => item.kind === 'youtube')?.artifact.body).toContain('Manual transcript');
     expect(results.find((item) => item.kind === 'video')?.artifact.body).toContain('Loom walkthrough');
     expect(results.find((item) => item.kind === 'image')?.artifact.body).toContain('visible buttons');
+    expect(readiness.map((item) => item.label)).toEqual([
+      'Codex-ready transcript',
+      'Codex-ready video notes',
+      'Codex-ready visual notes',
+    ]);
+    expect(readiness.every((item) => item.status === 'ready' && item.canRunActions)).toBe(true);
 
     const latest = await handlers.get_canvas({ canvasId: canvas.id });
     const latestText = JSON.stringify(latest.structuredContent);
     expect(latestText).toContain('source_youtube');
     expect(latestText).toContain('source_video');
     expect(latestText).toContain('source_image');
+    expect(latestText).toContain('Codex-ready visual notes');
     expect(latestText).not.toContain('kind":"note"');
   });
 });

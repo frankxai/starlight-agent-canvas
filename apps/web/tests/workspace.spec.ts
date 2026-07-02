@@ -180,6 +180,10 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('context-receipt-inspect')).toBeEnabled();
   await expect(page.getByTestId('context-receipt-copy-context')).toBeEnabled();
   await expect(page.getByTestId('context-receipt-copy-codex')).toBeEnabled();
+  await expect(page.getByTestId('source-readiness-label')).toContainText('Codex-ready video notes');
+  await expect(page.getByTestId('source-readiness-state')).toContainText('Actions ready');
+  await expect(page.getByTestId('source-readiness-detail')).toContainText('Manual transcript, notes, or timestamp context');
+  await expect(page.getByTestId('source-readiness-next')).toContainText('Ask selected');
   await expect(page.getByTestId('operator-loop-map')).toContainText('1 source');
   await expect(page.getByTestId('operator-loop-inspect')).toContainText('Video example.com');
   {
@@ -249,6 +253,8 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('source-receipt')).toContainText('Context receipt');
   await expect(page.getByTestId('source-receipt-kind')).toContainText('youtube');
   await expect(page.getByTestId('source-receipt-ingest')).toContainText('manual transcript');
+  await expect(page.getByTestId('source-readiness-label')).toContainText('Codex-ready transcript');
+  await expect(page.getByTestId('source-readiness-evidence')).toContainText('manual transcript');
   await expect(page.getByTestId('source-chunk-preview')).toContainText('Manual transcript');
   await expect(page.getByTestId('selected-source-copy')).toBeEnabled();
   await page.getByTestId('selected-source-ask').click();
@@ -300,6 +306,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('source-receipt-kind')).toContainText('pdf');
   await expect(page.getByTestId('source-receipt-source')).toContainText(`uploaded-pdf-${testInfo.project.name}.pdf`);
   await expect(page.getByTestId('source-receipt-chunks')).not.toContainText('0');
+  await expect(page.getByTestId('source-readiness-label')).toContainText('Codex-ready PDF');
   await expect(page.getByTestId('quick-note')).toBeEnabled();
 
   await page.getByTestId('intake-text').fill('https://example.com/workflow-screenshot.png\nVisual notes: this screenshot shows composer, source receipt, and canvas handoff states.');
@@ -307,6 +314,8 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('intake-ingest').click();
   await expect(page.getByTestId('source-receipt-kind')).toContainText('image');
   await expect(page.getByTestId('source-receipt-ingest')).toContainText('manual image notes');
+  await expect(page.getByTestId('source-readiness-label')).toContainText('Codex-ready visual notes');
+  await expect(page.getByTestId('source-readiness-next')).toContainText('visual evidence');
   await expect(page.getByTestId('source-image-preview')).toBeVisible();
 
   const imagePath = testInfo.outputPath(`uploaded-image-${testInfo.project.name}.png`);

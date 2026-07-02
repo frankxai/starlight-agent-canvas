@@ -16,7 +16,7 @@ An active research graph where every source, action, and agent output becomes in
 
 - Left rail: always-visible "Add To Canvas" intake with detected-source preview chips, templates, canvases, and direct source controls.
 - Center: React Flow typed graph with first-viewport `Add Anything` composer, live `Capture -> Map -> Inspect -> Ask -> Handoff` operator loop, fresh blank-canvas action, clipboard paste with manual fallback, detected-source preview chips, latest intake receipt with scoped context/Codex copy, responsive empty-input primary actions, interactive empty-state actions, paste-anywhere intake, drop-to-position mapping, toolbar note creation, double-click note creation, drag persistence, direct node connections, context copy, explicit import preview/cancel/confirm, and import/export controls.
-- Right rail: selected-context tray, Codex export preview, live Workflow Map, handoff readiness lane, source-grounded ask box, action drawer, editable selected node inspector with context receipt, clickable citation-to-source cards, selected-source commands immediately after the action drawer, setup/MCP status, first-success contract, Agent toolbelt for `get_latest_canvas -> ingest_anything -> run_node_action -> export_canvas`, adoption report commands, local search, run log with clickable citation chips.
+- Right rail: selected-context tray, Codex export preview, live Workflow Map, handoff readiness lane, source-grounded ask box, action drawer, editable selected node inspector with context receipt plus source-readiness band, clickable citation-to-source cards, selected-source commands immediately after the action drawer, setup/MCP status, first-success contract, Agent toolbelt for `get_latest_canvas -> ingest_anything -> run_node_action -> export_canvas`, adoption report commands, local search, run log with clickable citation chips.
 - Top bar: product identity, local data path, export route, MCP status.
 
 ## Motion
@@ -44,7 +44,8 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 - Codex export preview shows scope mode, exact included nodes, sources, chunks, edges, runs, excluded nodes, and scope rules before context/Codex copy.
 - Handoff readiness makes evidence, synthesis, selected scope, and Codex/MCP status visible before export.
 - Setup / MCP shows first-success phases, proof commands, the agent tool path, adoption report command, agent prompt, and terminal Codex handoff command so human and Codex can share the same local context loop.
-- Selected sources show ingest method, artifact kind, chunks, source URL/file path, chars, and source-scoped actions.
+- Selected sources show ingest method, artifact kind, chunks, source URL/file path, chars, source readiness, and source-scoped actions.
+- Source readiness clearly distinguishes Codex-ready transcript/video notes/visual notes/PDF/web text from reference-only sources that still need transcript, OCR, notes, or readable page text.
 - Citation cards and run-log citation chips refocus the cited source node and highlighted chunk.
 - Markdown context copy and JSON import/export are available from the canvas toolbar.
 - JSON imports show reviewable counts, node kinds, sample nodes, and duplicate-id copy behavior before local canvas state changes.

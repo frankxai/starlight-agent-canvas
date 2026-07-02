@@ -36,6 +36,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Empty canvas, composer, toolbar, and inspector all expose direct add/map actions.
 - Newly created source, note, file, and action nodes become selected and open in the inspector.
 - Selected source nodes show a context receipt with artifact kind, ingest method, chunk count, source path/URL, and character count.
+- Selected source nodes show source readiness: whether the source is Codex-ready, reference-only, or needs transcript/OCR/text before deep analysis, plus usable chars, chunks, ingest mode, and a next action.
 - Selected source nodes expose immediate source-scoped actions: summary, claims, cited ask, and selected context copy.
 - User can see the active selected context before running actions.
 - User can see the supported-input contract in the first viewport: YouTube, any video link, image, web, PDF, text, and note, with each one mapped to the node/artifact type Codex will later receive.
@@ -56,7 +57,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
 - Operators, GitHub contributors, setup helpers, and agents can parse the first-success contract through `pnpm first-success:json`.
 - Operators, GitHub contributors, and agents can parse adoption readiness through `pnpm adoption:report:json`, not only scattered docs and screenshots.
-- MCP clients can list, read, get the latest canvas, create, import, add/update positioned nodes, ingest mixed paste-anything content, ingest text/URL/YouTube/video/image/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
+- MCP clients can list, read, get the latest canvas with source-readiness facts, create, import, add/update positioned nodes, ingest mixed paste-anything content, ingest text/URL/YouTube/video/image/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
 
 ## Non-Goals
@@ -124,13 +125,14 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - A user can identify what `Map` created after clicking it, inspect the latest mapped cluster, and copy a context/Codex handoff scoped to that intake.
 - A user can paste a mixed media research blob containing a YouTube URL, generic video URL, image URL, and nearby transcript/notes/OCR labels, then get typed media nodes with attached context and no duplicate stray note node.
+- A user can select any mapped source and know whether it is Codex-ready now or needs transcript, OCR, page text, or notes first.
 - A user can start from `Video`, `Image`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
 - A user can see which workflow stage is complete and trigger the next one from the first viewport.
 - A user can launch a workflow template and understand the ordered stages from the Workflow Map without reading docs.
 - A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
 - A user can add an image URL or uploaded screenshot, see a thumbnail in the graph/inspector, and preserve the image artifact/provenance in JSON/context export.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context/Codex handoff for the whole canvas or selected node ids, and import portable JSON through smoke tests.
-- An MCP client can mirror the human paste-anything flow with one `ingest_anything` call that detects YouTube, generic video, image, URL, and text context, keeps nearby media notes/transcripts/OCR attached, and optionally runs an action on only the newly mapped nodes.
+- An MCP client can mirror the human paste-anything flow with one `ingest_anything` call that detects YouTube, generic video, image, URL, and text context, keeps nearby media notes/transcripts/OCR attached, returns source-readiness facts, and optionally runs an action on only the newly mapped nodes.
 - Contributors can identify the right issue template and local verification command without reading code.
 
 ## Roadmap
@@ -138,6 +140,8 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 ### v0.1 Hardening
 
 - Better import feedback for URL/video/PDF failures.
+- Persistent intake trace that records each mapping transaction, source-readiness row, action output, and recommended Codex/MCP handoff scope.
+- Shared core source-intake transaction service so web `/ingest/anything` and MCP `ingest_anything` cannot drift in fallback text, metadata, action scope, or receipt shape.
 - Canvas cleanup tools that remain non-destructive by default.
 - Richer export templates.
 - More visual QA states around empty, error, and long-source workflows.
