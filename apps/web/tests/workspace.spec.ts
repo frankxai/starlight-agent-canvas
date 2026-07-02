@@ -171,6 +171,38 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Uploaded markdown source/);
   await expect(page.getByTestId('quick-note')).toBeEnabled();
 
+  const pdfPath = testInfo.outputPath(`uploaded-pdf-${testInfo.project.name}.pdf`);
+  await writeFile(
+    pdfPath,
+    [
+      '%PDF-1.4',
+      '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
+      '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
+      '3 0 obj << /Type /Page /Parent 2 0 R /Resources << >> /MediaBox [0 0 200 200] /Contents 4 0 R >> endobj',
+      '4 0 obj << /Length 44 >> stream',
+      'BT /F1 12 Tf 20 120 Td (PDF canvas source) Tj ET',
+      'endstream endobj',
+      'xref',
+      '0 5',
+      '0000000000 65535 f ',
+      '0000000009 00000 n ',
+      '0000000058 00000 n ',
+      '0000000115 00000 n ',
+      '0000000230 00000 n ',
+      'trailer << /Root 1 0 R /Size 5 >>',
+      'startxref',
+      '323',
+      '%%EOF',
+    ].join('\n'),
+    'utf8',
+  );
+  await page.getByTestId('composer-upload-source').setInputFiles(pdfPath);
+  await expect(page.getByTestId('inspector-title')).toHaveValue(new RegExp(`uploaded-pdf-${testInfo.project.name}\\.pdf`));
+  await expect(page.getByTestId('source-receipt-kind')).toContainText('pdf');
+  await expect(page.getByTestId('source-receipt-source')).toContainText(`uploaded-pdf-${testInfo.project.name}.pdf`);
+  await expect(page.getByTestId('source-receipt-chunks')).not.toContainText('0');
+  await expect(page.getByTestId('quick-note')).toBeEnabled();
+
   await page.getByTestId('intake-text').fill('https://example.com/workflow-screenshot.png\nVisual notes: this screenshot shows composer, source receipt, and canvas handoff states.');
   await expect(page.getByTestId('intake-preview')).toContainText('Image source');
   await page.getByTestId('intake-ingest').click();
@@ -263,21 +295,38 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   const exportedCanvas = await exportResponse.json() as {
     id: string;
     title: string;
-    nodes: Array<{ kind: string; body: string; metadata: Record<string, unknown> }>;
+    nodes: Array<{ id: string; kind: string; body: string; metadata: Record<string, unknown> }>;
+    edges: Array<{ source: string; target: string; kind: string }>;
     artifacts: Array<{ kind: string; body: string; chunks?: unknown[]; metadata: Record<string, unknown> }>;
   };
   expect(JSON.stringify(exportedCanvas)).toContain('Edited canvas note');
   expect(exportedCanvas.nodes.some((node) => node.kind === 'source_video')).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.kind === 'source_image')).toBe(true);
+  expect(exportedCanvas.nodes.some((node) => node.kind === 'source_pdf')).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.kind === 'source_url')).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.kind === 'source_youtube' && node.body.includes('Manual transcript'))).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.metadata.artifactId)).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'video' && artifact.body.includes('Manual video notes'))).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'image' && artifact.body.includes('Visual notes'))).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'image' && typeof artifact.metadata.imageDataUrl === 'string')).toBe(true);
+  expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'pdf' && Array.isArray(artifact.chunks) && artifact.chunks.length > 0)).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'url' && Array.isArray(artifact.chunks) && artifact.chunks.length > 0)).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'youtube' && artifact.body.includes('Manual transcript'))).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'markdown' && artifact.body.includes('Uploaded markdown source'))).toBe(true);
+
+  const sourceNode = exportedCanvas.nodes.find((node) => node.kind === 'source_youtube') ?? exportedCanvas.nodes[0];
+  const targetNode = exportedCanvas.nodes.find((node) => node.kind === 'output') ?? exportedCanvas.nodes.at(-1);
+  if (!sourceNode || !targetNode) throw new Error('Expected at least two nodes before creating a test edge.');
+  const edgeResponse = await page.request.post(`/api/canvases/${exportedCanvas.id}/edges`, {
+    data: { source: sourceNode.id, target: targetNode.id, kind: 'derives_from' },
+  });
+  await expect(edgeResponse).toBeOK();
+  const edgeResult = await edgeResponse.json() as {
+    canvas: { edges: Array<{ source: string; target: string; kind: string }> };
+    edge: { source: string; target: string; kind: string };
+  };
+  expect(edgeResult.edge).toMatchObject({ source: sourceNode.id, target: targetNode.id, kind: 'derives_from' });
+  expect(edgeResult.canvas.edges.some((edge) => edge.source === sourceNode.id && edge.target === targetNode.id && edge.kind === 'derives_from')).toBe(true);
 
   const contextResponse = await page.request.get(fullExportHref.replace('format=json', 'format=context'));
   await expect(contextResponse).toBeOK();
@@ -303,6 +352,12 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect.poll(async () => {
     return await page.getByLabel('Export JSON').getAttribute('href') ?? '';
   }).toContain(exportedCanvas.id);
+  await page.getByTestId('import-canvas-file').setInputFiles(importPath);
+  await expect(page.getByTestId('status')).toContainText(`Imported copy of ${importTitle}`);
+  await expect(page.getByRole('button', { name: new RegExp(`${importTitle} \\(imported\\)`) })).toBeVisible();
+  const duplicateExportHref = await page.getByLabel('Export JSON').getAttribute('href');
+  expect(duplicateExportHref).toBeTruthy();
+  expect(new URL(duplicateExportHref!, 'http://127.0.0.1').pathname).not.toBe(`/api/canvases/${exportedCanvas.id}/export`);
 });
 
 test('imports the public demo canvas and exports chunked context', async ({ page }, testInfo) => {

@@ -82,6 +82,17 @@ type CanvasMutationResponse = {
   outputNode?: CanvasNode;
 };
 
+type ImportCanvasResponse = {
+  canvas: CanvasRecord;
+  import?: {
+    conflict: 'none' | 'copy';
+    sourceId: string;
+    sourceTitle: string;
+    importedId: string;
+    importedTitle: string;
+  };
+};
+
 type AgentNodeData = {
   title: string;
   kind: CanvasNodeKind;
@@ -1231,7 +1242,7 @@ function WorkspaceInner() {
     setBusy(true);
     try {
       const raw = await file.text();
-      const result = await api<{ canvas: CanvasRecord }>('/api/canvases/import', {
+      const result = await api<ImportCanvasResponse>('/api/canvases/import', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: raw,
@@ -1239,7 +1250,11 @@ function WorkspaceInner() {
       setCanvas(result.canvas);
       setSelectedIds([]);
       await refreshList();
-      setStatus(`Imported ${result.canvas.title}.`);
+      if (result.import?.conflict === 'copy') {
+        setStatus(`Imported copy of ${result.import.sourceTitle} as ${result.canvas.title}; existing canvas was preserved.`);
+      } else {
+        setStatus(`Imported ${result.canvas.title}.`);
+      }
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
@@ -2111,7 +2126,13 @@ function WorkspaceInner() {
                   <option key={kind.id} value={kind.id}>{kind.label}</option>
                 ))}
               </select>
-              <button type="button" onClick={connectSelected} disabled={!canMutate || selectedIds.length < 2} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
+              <button
+                type="button"
+                data-testid="canvas-toolbar-connect"
+                onClick={connectSelected}
+                disabled={!canMutate || selectedIds.length < 2}
+                className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40"
+              >
                 <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="hidden sm:inline">Connect</span>
               </button>

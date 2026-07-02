@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { canvasRecordSchema } from '@starlight-agent-canvas/core';
 import { getStore } from '@/lib/store';
 
 export const runtime = 'nodejs';
@@ -16,12 +17,22 @@ export async function POST(request: Request) {
     }
 
     const payload = JSON.parse(raw) as { canvas?: unknown } | unknown;
-    const canvas = await getStore().importCanvas(
+    const sourceCanvas = canvasRecordSchema.parse(
       typeof payload === 'object' && payload !== null && 'canvas' in payload
         ? (payload as { canvas: unknown }).canvas
         : payload,
     );
-    return NextResponse.json({ canvas });
+    const canvas = await getStore().importCanvas(sourceCanvas);
+    return NextResponse.json({
+      canvas,
+      import: {
+        conflict: canvas.id !== sourceCanvas.id ? 'copy' : 'none',
+        sourceId: sourceCanvas.id,
+        sourceTitle: sourceCanvas.title,
+        importedId: canvas.id,
+        importedTitle: canvas.title,
+      },
+    });
   } catch (error) {
     return NextResponse.json({ error: (error as Error).message }, { status: 400 });
   }
