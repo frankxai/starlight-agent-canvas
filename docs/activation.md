@@ -6,7 +6,7 @@ The activation runway is the first successful loop for Starlight Agent Canvas. I
 
 1. Install and health
    - Run `node scripts/setup.mjs`.
-   - This installs dependencies, builds MCP, runs doctor, smoke-tests MCP, smoke-tests temporary Codex config installation, seeds the Starlight canvas, and prints Codex config as a dry-run.
+   - This installs dependencies, builds MCP, runs doctor, smoke-tests MCP, smoke-tests temporary Codex config installation plus launch, seeds the Starlight canvas, and prints Codex config as a dry-run.
    - Proof: `pnpm doctor:json` has `summary.fail === 0`.
    - First-success contract: `pnpm first-success` shows the maintained install-to-Codex path.
    - Adoption snapshot: `pnpm adoption:report` shows install, release, demo, visual, GitHub, and Codex status in one place.
@@ -27,7 +27,7 @@ The activation runway is the first successful loop for Starlight Agent Canvas. I
 
 5. Wire Codex MCP
    - Run `pnpm mcp:install:codex -- --write`.
-   - Run `pnpm mcp:codex:smoke` when you want a safe temp-config proof before or after the real write.
+   - Run `pnpm mcp:codex:smoke` when you want a safe temp-config proof before or after the real write. It verifies doctor checks, launches the configured MCP server, and calls safe read tools without touching your real config.
    - Restart Codex.
    - Run `pnpm doctor` again and confirm the Codex server, CLI path, and `AGENT_CANVAS_HOME` match.
 

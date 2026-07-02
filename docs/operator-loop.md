@@ -86,7 +86,7 @@ pnpm test:e2e
 - next setup actions
 
 Warnings are allowed for optional wiring, such as Codex not yet pointing at this local MCP server. Failures mean the repo cannot be treated as a healthy local install.
-`pnpm mcp:codex:smoke` is the non-mutating Codex config proof: it writes a temporary config, verifies it with `doctor --config`, and deletes the temp files.
+`pnpm mcp:codex:smoke` is the non-mutating Codex config proof: it writes a temporary config, verifies it with `doctor --config`, launches the configured MCP server from outside the repo, calls `tools/list` and `list_canvases`, and deletes the temp files.
 
 ## GitHub Contributor Loop
 

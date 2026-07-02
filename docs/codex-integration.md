@@ -10,7 +10,7 @@ Fast path:
 node scripts/setup.mjs --codex-write
 ```
 
-This installs dependencies, builds the MCP server, runs doctor, smoke-tests MCP, smoke-tests temporary Codex config installation, seeds the Starlight OS canvas, then updates Codex config with a timestamped backup.
+This installs dependencies, builds the MCP server, runs doctor, smoke-tests MCP, smoke-tests temporary Codex config installation plus launch, seeds the Starlight OS canvas, then updates Codex config with a timestamped backup.
 
 Manual path:
 
@@ -38,7 +38,8 @@ AGENT_CANVAS_HOME = "/absolute/path/to/.starlight/agent-canvas"
 Run `pnpm doctor` any time the local setup feels uncertain.
 It verifies that Codex has the `starlight-agent-canvas` server/env blocks and that they point at this repo's current built MCP CLI plus the active `AGENT_CANVAS_HOME`.
 It also verifies that the built core/MCP artifacts include the current video and image node/tool schema, which catches stale MCP builds after source media support changes.
-Run `pnpm mcp:codex:smoke` when you want non-mutating proof that the Codex installer and doctor agree: the smoke script writes a temporary `config.toml`, uses a temporary canvas home, verifies it with `doctor --config`, and removes the temporary files.
+Run `pnpm mcp:codex:smoke` when you want non-mutating proof that the Codex installer, doctor, and MCP launch path agree: the smoke script writes a temporary `config.toml`, uses a temporary canvas home, verifies it with `doctor --config`, launches the configured server from outside the repo, calls `tools/list` and `list_canvases`, and removes the temporary files.
+If a running Codex session can discover `starlight-agent-canvas` tools but tool calls fail with `Transport closed`, run `pnpm mcp:codex:smoke` to prove the config/launch path and restart Codex so the app reloads MCP servers.
 The in-app `Setup / MCP` panel also exposes the activation runway and a copyable Codex activation prompt backed by `/api/setup/status`.
 It also exposes the First Success contract so Codex and the human share the same install/open/capture/inspect/handoff/Codex loop.
 It also exposes the Agent toolbelt so the human can see the MCP sequence Codex should use: `get_latest_canvas`, `ingest_anything`, `enrich_source_node`, `run_node_action`, and `export_canvas`.

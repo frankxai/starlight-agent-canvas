@@ -46,7 +46,7 @@ pnpm mcp:install:codex -- --write
 ```
 
 The first command is a dry-run. The second command updates `~/.codex/config.toml`, removes any previous `starlight-agent-canvas` MCP block, preserves unrelated settings, and writes a timestamped backup first.
-Run `pnpm mcp:codex:smoke` when you want to prove the installer and doctor path without changing your real Codex config. It writes a temporary config, uses a temporary canvas home, verifies it through `doctor --config`, and cleans up.
+Run `pnpm mcp:codex:smoke` when you want to prove the installer, doctor, and launch path without changing your real Codex config. It writes a temporary config, uses a temporary canvas home, verifies it through `doctor --config`, launches the configured MCP server from outside the repo, calls `tools/list` and `list_canvases`, and cleans up.
 
 The output shape is:
 

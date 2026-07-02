@@ -83,7 +83,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 - `pnpm doctor` explains local readiness and missing build steps.
 - `pnpm doctor:json` emits a stable pass/warn/fail health contract with repo root, canvas home, MCP CLI path, Codex config path, checks, and next steps.
-- `pnpm mcp:codex:smoke` proves the Codex installer and doctor config parser against a temporary Codex config and temporary canvas home without mutating the user's real Codex configuration.
+- `pnpm mcp:codex:smoke` proves the Codex installer, doctor config parser, configured MCP launch, `tools/list`, and `list_canvases` against a temporary Codex config and temporary canvas home without mutating the user's real Codex configuration.
 - `pnpm adoption:report` and `pnpm adoption:report:json` combine doctor health, release audit health, demo proof, visual evidence, Git/GitHub state, Codex MCP path/home, first-success commands, and a compact Codex prompt.
 - `pnpm first-success` and `pnpm first-success:json` expose the install/open/capture/inspect/handoff/Codex contract and supported input contracts.
 - The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
