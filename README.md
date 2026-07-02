@@ -1,5 +1,8 @@
 # Starlight Agent Canvas
 
+[![CI](https://github.com/frankxai/starlight-agent-canvas/actions/workflows/ci.yml/badge.svg)](https://github.com/frankxai/starlight-agent-canvas/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-f5c36a.svg)](LICENSE)
+
 OSS-first, MCP-native research and workflow canvas for Codex, Claude, Gemini, creators, and Starlight systems.
 
 This is not a Poppy or Nodeflow clone. It is a local-first agent context layer: sources, prompts, MCP tools, agent runs, and outputs become typed nodes on a portable canvas.
@@ -75,8 +78,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 From a GitHub clone:
 
 ```powershell
-# Use the clone URL from this repository's GitHub Code button or project release page.
-git clone <repo-url>
+git clone https://github.com/frankxai/starlight-agent-canvas.git
 cd starlight-agent-canvas
 corepack enable
 corepack prepare pnpm@11.7.0 --activate

@@ -7,9 +7,10 @@ This repo is prepared for public OSS work when the local and GitHub-side checkli
 Recommended GitHub metadata:
 
 - Description: `OSS-first, MCP-native research/workflow canvas for humans and agents.`
+- Repository: `https://github.com/frankxai/starlight-agent-canvas`
 - Website: hosted docs/demo URL once connected; do not use a localhost URL in public metadata.
 - Topics: `mcp`, `agents`, `research`, `workflow`, `canvas`, `nextjs`, `react-flow`, `local-first`, `codex`, `claude`, `gemini`.
-- Visibility: public only after secrets scan and product boundary review pass.
+- Visibility: public after secrets scan and product boundary review pass.
 
 README first-read requirements before public announcement:
 
@@ -64,7 +65,7 @@ Use labels:
 
 1. Run `pnpm doctor` and confirm it reports Node/pnpm, workspaces, built MCP server, `.mcp.json`, and Codex MCP path/home checks.
 2. Run `pnpm doctor:json` and confirm `summary.fail` is `0`; Codex wiring warnings are acceptable until the user opts into config writes.
-3. Run `pnpm release:audit` and address failures. A missing remote is only a warning until the GitHub repo is attached.
+3. Run `pnpm release:audit` and address failures. The public GitHub remote should be attached before public release.
 4. Run `pnpm verify`.
 5. Run `pnpm canvas:smoke`.
 6. Run `pnpm mcp:smoke`.
@@ -79,13 +80,13 @@ Use labels:
 15. Confirm `.env` and private canvas exports are not staged.
 16. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
 17. Update README links and docs index.
-18. Replace CODEOWNERS placeholder comments with real GitHub usernames or teams before enforcing owner review.
+18. Keep CODEOWNERS pointed at the active maintainer account or team before enforcing owner review.
 19. Tag release only after GitHub CI passes.
 
 Public install proof to keep current:
 
 ```powershell
-git clone <repo-url>
+git clone https://github.com/frankxai/starlight-agent-canvas.git
 cd starlight-agent-canvas
 corepack enable
 corepack prepare pnpm@11.7.0 --activate

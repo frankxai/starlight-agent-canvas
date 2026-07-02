@@ -28,8 +28,7 @@ corepack prepare pnpm@11.7.0 --activate
 Fast path:
 
 ```powershell
-# Use the clone URL from this repository's GitHub Code button or project release page.
-git clone <repo-url>
+git clone https://github.com/frankxai/starlight-agent-canvas.git
 cd starlight-agent-canvas
 corepack enable
 corepack prepare pnpm@11.7.0 --activate

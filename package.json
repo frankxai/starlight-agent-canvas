@@ -5,6 +5,14 @@
   "description": "OSS-first, MCP-native research and workflow canvas for agents, creators, and Starlight systems.",
   "license": "MIT",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/frankxai/starlight-agent-canvas.git"
+  },
+  "bugs": {
+    "url": "https://github.com/frankxai/starlight-agent-canvas/issues"
+  },
+  "homepage": "https://github.com/frankxai/starlight-agent-canvas#readme",
   "packageManager": "pnpm@11.7.0",
   "engines": {
     "node": ">=20.11.0"
