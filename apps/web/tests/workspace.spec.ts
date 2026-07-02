@@ -179,7 +179,26 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
 
   const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
   expect(exportHref).toBeTruthy();
-  const exportResponse = await page.request.get(exportHref!);
+  expect(exportHref).toContain('nodeIds=');
+  const selectedExportResponse = await page.request.get(exportHref!);
+  await expect(selectedExportResponse).toBeOK();
+  const selectedExportedCanvas = await selectedExportResponse.json() as {
+    nodes: Array<{ kind: string; body: string; metadata: Record<string, unknown> }>;
+    artifacts: Array<{ kind: string; body: string; chunks?: unknown[]; metadata: Record<string, unknown> }>;
+  };
+  expect(selectedExportedCanvas.nodes).toHaveLength(1);
+  expect(selectedExportedCanvas.nodes[0].body).toContain('Nodeflow connects YouTube');
+  expect(JSON.stringify(selectedExportedCanvas)).not.toContain('Edited canvas note');
+
+  const selectedCodexResponse = await page.request.get(exportHref!.replace('format=json', 'format=codex'));
+  await expect(selectedCodexResponse).toBeOK();
+  const selectedCodexText = await selectedCodexResponse.text();
+  expect(selectedCodexText).toContain('selected node');
+  expect(selectedCodexText).toContain('Nodeflow connects YouTube');
+  expect(selectedCodexText).not.toContain('Edited canvas note');
+
+  const fullExportHref = exportHref!.replace(/&nodeIds=[^&]+/, '');
+  const exportResponse = await page.request.get(fullExportHref);
   await expect(exportResponse).toBeOK();
   expect(exportResponse.headers()['content-type']).toContain('application/json');
   const exportedCanvas = await exportResponse.json() as {
@@ -198,12 +217,12 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'youtube' && artifact.body.includes('Manual transcript'))).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'markdown' && artifact.body.includes('Uploaded markdown source'))).toBe(true);
 
-  const contextResponse = await page.request.get(exportHref!.replace('format=json', 'format=context'));
+  const contextResponse = await page.request.get(fullExportHref.replace('format=json', 'format=context'));
   await expect(contextResponse).toBeOK();
   expect(contextResponse.headers()['content-type']).toContain('text/markdown');
   expect(await contextResponse.text()).toContain('Agent Context Packet');
 
-  const codexResponse = await page.request.get(exportHref!.replace('format=json', 'format=codex'));
+  const codexResponse = await page.request.get(fullExportHref.replace('format=json', 'format=codex'));
   await expect(codexResponse).toBeOK();
   expect(codexResponse.headers()['content-type']).toContain('text/markdown');
   const codexText = await codexResponse.text();
@@ -261,7 +280,12 @@ test('imports the public demo canvas and exports chunked context', async ({ page
   expect(contextText).toContain('Agent Context Packet');
   expect(contextText).toContain('Source Chunk Manifest');
   expect(contextText).toContain('artifact-youtube-nodeflow:chunk-001');
-  expect(contextText).toContain('Codex context handoff');
+  expect(contextText).not.toContain('Codex context handoff');
+
+  const fullContextResponse = await page.request.get(exportHref!.replace(/&nodeIds=[^&]+/, '').replace('format=json', 'format=context'));
+  await expect(fullContextResponse).toBeOK();
+  const fullContextText = await fullContextResponse.text();
+  expect(fullContextText).toContain('Codex context handoff');
 });
 
 test('loads the bundled demo canvas from the first viewport', async ({ page }) => {
@@ -282,15 +306,25 @@ test('loads the bundled demo canvas from the first viewport', async ({ page }) =
 
   const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
   expect(exportHref).toBeTruthy();
+  expect(exportHref).toContain('nodeIds=');
   const jsonResponse = await page.request.get(exportHref!);
   await expect(jsonResponse).toBeOK();
-  const exported = await jsonResponse.json() as { title: string; artifacts: Array<{ chunks?: unknown[] }> };
+  const exported = await jsonResponse.json() as { title: string; nodes: Array<{ id: string }>; artifacts: Array<{ chunks?: unknown[] }> };
   expect(exported.title).toContain('Demo: YouTube To Codex Context Canvas');
+  expect(exported.nodes).toHaveLength(1);
   expect(exported.artifacts.some((artifact) => Array.isArray(artifact.chunks) && artifact.chunks.length > 0)).toBe(true);
 
   const contextResponse = await page.request.get(exportHref!.replace('format=json', 'format=context'));
   await expect(contextResponse).toBeOK();
   const contextText = await contextResponse.text();
   expect(contextText).toContain('Agent Context Packet');
-  expect(contextText).toContain('Codex context handoff');
+  expect(contextText).toContain('artifact-youtube-nodeflow:chunk-001');
+  expect(contextText).not.toContain('Codex context handoff');
+
+  const fullContextResponse = await page.request.get(exportHref!.replace(/&nodeIds=[^&]+/, '').replace('format=json', 'format=context'));
+  await expect(fullContextResponse).toBeOK();
+  const fullContextText = await fullContextResponse.text();
+  expect(fullContextText).toContain('Agent Context Packet');
+  expect(fullContextText).toContain('artifact-youtube-nodeflow:chunk-001');
+  expect(fullContextText).toContain('Codex context handoff');
 });

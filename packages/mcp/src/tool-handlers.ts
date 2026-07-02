@@ -199,10 +199,11 @@ export function createToolHandlers(store = new FileCanvasStore()) {
       return ok(jsonText(results), { results });
     },
 
-    async export_canvas(args: { canvasId: string; format?: CanvasExportFormat }): Promise<ToolResult> {
+    async export_canvas(args: { canvasId: string; format?: CanvasExportFormat; nodeIds?: string[] }): Promise<ToolResult> {
       const format = args.format ?? 'json';
-      const body = await store.exportCanvas(args.canvasId, format);
-      return ok(body, { canvasId: args.canvasId, format, body });
+      const nodeIds = args.nodeIds ?? [];
+      const body = await store.exportCanvas(args.canvasId, format, { nodeIds });
+      return ok(body, { canvasId: args.canvasId, format, nodeIds, body });
     },
   };
 }

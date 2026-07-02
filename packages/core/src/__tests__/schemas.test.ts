@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canvasArtifactSchema, canvasRecordSchema, CANVAS_SCHEMA_VERSION, ingestSourceInputSchema, runActionInputSchema } from '../schemas.js';
+import { canvasArtifactSchema, canvasRecordSchema, CANVAS_SCHEMA_VERSION, exportCanvasOptionsSchema, ingestSourceInputSchema, runActionInputSchema } from '../schemas.js';
 
 describe('canvas schema', () => {
   it('accepts a minimal valid canvas', () => {
@@ -36,6 +36,9 @@ describe('canvas schema', () => {
     });
     expect(action.inputNodeIds).toEqual([]);
     expect(action.prompt).toBe('');
+
+    const exportOptions = exportCanvasOptionsSchema.parse({});
+    expect(exportOptions.nodeIds).toEqual([]);
   });
 
   it('normalizes legacy artifacts without chunks', () => {

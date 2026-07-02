@@ -1,10 +1,10 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { canvasIdSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, ingestSourceInputSchema, updateNodeInputSchema, type AddNodeInput, type CanvasArtifact, type CanvasEdge, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type IngestSourceInput, type RunActionInput, type UpdateNodeInput, type CanvasExportFormat } from './schemas.js';
+import { canvasIdSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, exportCanvasOptionsSchema, ingestSourceInputSchema, updateNodeInputSchema, type AddNodeInput, type CanvasArtifact, type CanvasEdge, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type IngestSourceInput, type RunActionInput, type UpdateNodeInput, type CanvasExportFormat, type CanvasExportOptions } from './schemas.js';
 import { buildSourceChunks, chunksForArtifact } from './chunks.js';
 import { createCanvasRecord } from './templates.js';
-import { exportCanvasAsAgentContext, exportCanvasAsCodexHandoff, exportCanvasAsMarkdown } from './exporters.js';
+import { exportCanvasAsAgentContext, exportCanvasAsCodexHandoff, exportCanvasAsMarkdown, scopeCanvasToNodes } from './exporters.js';
 import { makeId, nowIso } from './ids.js';
 import { runCanvasAction } from './actions.js';
 import { getAgentCanvasHome } from './home.js';
@@ -311,12 +311,14 @@ export class FileCanvasStore {
     });
   }
 
-  async exportCanvas(canvasId: string, format: CanvasExportFormat = 'json'): Promise<string> {
+  async exportCanvas(canvasId: string, format: CanvasExportFormat = 'json', options: CanvasExportOptions = {}): Promise<string> {
     const canvas = await this.getCanvas(canvasId);
-    if (format === 'markdown') return exportCanvasAsMarkdown(canvas);
-    if (format === 'context') return exportCanvasAsAgentContext(canvas);
-    if (format === 'codex') return exportCanvasAsCodexHandoff(canvas);
-    return JSON.stringify(canvas, null, 2);
+    const parsedOptions = exportCanvasOptionsSchema.parse(options);
+    const exportCanvas = scopeCanvasToNodes(canvas, parsedOptions.nodeIds);
+    if (format === 'markdown') return exportCanvasAsMarkdown(exportCanvas);
+    if (format === 'context') return exportCanvasAsAgentContext(exportCanvas);
+    if (format === 'codex') return exportCanvasAsCodexHandoff(exportCanvas);
+    return JSON.stringify(exportCanvas, null, 2);
   }
 
   async searchArtifacts(query: string): Promise<Array<{ canvasId: string; nodeId: string; artifactId?: string; chunkId?: string; chunkIndex?: number; title: string; kind: string; excerpt: string; source?: string; score: number }>> {

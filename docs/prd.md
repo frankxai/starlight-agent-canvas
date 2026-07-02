@@ -32,6 +32,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Selected source nodes show a context receipt with artifact kind, ingest method, chunk count, source path/URL, and character count.
 - Selected source nodes expose immediate source-scoped actions: summary, claims, cited ask, and selected context copy.
 - User can see the active selected context before running actions.
+- User can export selected evidence as JSON, Markdown, agent context, or Codex handoff without exporting unrelated canvas material.
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
 - User can export portable JSON, readable Markdown, general agent context packets, and Codex-ready continuation prompts; user can re-import portable JSON.
@@ -92,7 +93,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - A user can start from `Video`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
 - A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
-- An MCP client can ingest a text source, run an action, export Markdown/JSON/context/Codex handoff, and import portable JSON through smoke tests.
+- An MCP client can ingest a text source, run an action, export Markdown/JSON/context/Codex handoff for the whole canvas or selected node ids, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.
 
 ## Roadmap

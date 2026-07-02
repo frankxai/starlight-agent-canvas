@@ -27,7 +27,7 @@ flowchart LR
 7. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 8. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, and character count.
 9. Run source-scoped actions when one source matters, or canvas actions when synthesis matters.
-10. Export `Context` for general agent packets, `Codex` for ready-to-paste Codex continuation prompts, `Markdown` for people, or `JSON` for portable rehydration.
+10. Export `Context` for general agent packets, `Codex` for ready-to-paste Codex continuation prompts, `Markdown` for people, or `JSON` for portable rehydration. If nodes are selected, those exports stay scoped to the selected evidence.
 
 ## Agent Interaction Loop
 
@@ -41,7 +41,7 @@ Agents should use the MCP server as a typed local operating surface, not as a ge
 6. Use `connect_nodes` to make evidence relationships visible.
 7. Use `run_node_action` for summaries, claims, comparisons, matrices, implementation briefs, or cited answers.
 8. Use `update_node` for cleanup instead of duplicating messy nodes.
-9. Use `export_canvas` with `format: "codex"` when Codex should continue through MCP, or `format: "context"` when the next agent turn needs a self-contained packet.
+9. Use `export_canvas` with `format: "codex"` when Codex should continue through MCP, or `format: "context"` when the next agent turn needs a self-contained packet. Pass `nodeIds` when the human selected a smaller evidence set.
 10. Report node ids, artifact ids, chunk ids, and actions changed.
 
 ## Source Semantics

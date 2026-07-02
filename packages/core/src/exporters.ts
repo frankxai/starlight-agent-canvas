@@ -1,6 +1,44 @@
 import type { CanvasRecord } from './schemas.js';
 import { chunksForArtifact } from './chunks.js';
 
+export function scopeCanvasToNodes(canvas: CanvasRecord, nodeIds: string[] = []): CanvasRecord {
+  const uniqueNodeIds = [...new Set(nodeIds.map((id) => id.trim()).filter(Boolean))];
+  if (!uniqueNodeIds.length) return canvas;
+
+  const nodesById = new Map(canvas.nodes.map((node) => [node.id, node]));
+  const missing = uniqueNodeIds.filter((id) => !nodesById.has(id));
+  if (missing.length) {
+    throw new Error(`Cannot export missing node id(s): ${missing.join(', ')}`);
+  }
+
+  const selectedSet = new Set(uniqueNodeIds);
+  const selectedNodes = uniqueNodeIds.map((id) => nodesById.get(id)!);
+  const artifactIds = new Set(
+    selectedNodes
+      .map((node) => (typeof node.metadata.artifactId === 'string' ? node.metadata.artifactId : undefined))
+      .filter((id): id is string => Boolean(id)),
+  );
+  const titleSuffix = selectedNodes.length === 1 ? 'selected node' : `${selectedNodes.length} selected nodes`;
+  const scopeDescription = [
+    canvas.description || 'No canvas description provided.',
+    '',
+    `Selected context export from canvas \`${canvas.id}\`. Scope: ${uniqueNodeIds.map((id) => `\`${id}\``).join(', ')}.`,
+  ].join('\n').trim();
+
+  return {
+    ...canvas,
+    title: `${canvas.title} (${titleSuffix})`,
+    description: scopeDescription,
+    nodes: selectedNodes,
+    edges: canvas.edges.filter((edge) => selectedSet.has(edge.source) && selectedSet.has(edge.target)),
+    runs: canvas.runs.filter((run) => (
+      (run.outputNodeId ? selectedSet.has(run.outputNodeId) : false)
+      || run.inputNodeIds.some((id) => selectedSet.has(id))
+    )),
+    artifacts: canvas.artifacts.filter((artifact) => artifactIds.has(artifact.id)),
+  };
+}
+
 function tableCell(value: unknown): string {
   return String(value ?? '')
     .replace(/\|/g, '/')

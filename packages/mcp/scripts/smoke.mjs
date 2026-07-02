@@ -229,6 +229,24 @@ try {
     throw new Error('export_canvas did not return a Codex handoff prompt for the smoke canvas.');
   }
 
+  const exportedSelectedCodex = await client.callTool({
+    name: 'export_canvas',
+    arguments: {
+      canvasId,
+      format: 'codex',
+      nodeIds: [videoNodeId],
+    },
+  });
+  const selectedCodexBody = exportedSelectedCodex.structuredContent?.body;
+  if (
+    typeof selectedCodexBody !== 'string'
+    || !selectedCodexBody.includes('selected node')
+    || !selectedCodexBody.includes(videoArtifact.chunks[0].id)
+    || selectedCodexBody.includes('Smoke note')
+  ) {
+    throw new Error('export_canvas did not return a scoped Codex handoff for the selected node.');
+  }
+
   const exportedJson = await client.callTool({
     name: 'export_canvas',
     arguments: {

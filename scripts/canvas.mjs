@@ -20,13 +20,14 @@ function usage() {
     '  pnpm canvas -- demo [--json] [--home <path>]',
     '  pnpm canvas -- import <canvas.json> [--json] [--home <path>]',
     '  pnpm canvas -- show <canvasId|latest> [--home <path>]',
-    '  pnpm canvas -- export <canvasId|latest> [--format json|markdown|context|codex] [--out <file>] [--home <path>]',
+    '  pnpm canvas -- export <canvasId|latest> [--format json|markdown|context|codex] [--nodes <id,id>] [--out <file>] [--home <path>]',
     '  pnpm canvas -- search <query...> [--json] [--home <path>]',
     '',
     'Notes:',
     '  - Runtime data lives in AGENT_CANVAS_HOME unless --home is provided.',
     '  - Imports are non-destructive; same-id imports are saved as copies.',
     '  - export defaults to format=context for agent handoff; use format=codex for a ready-to-paste Codex prompt.',
+    '  - pass --nodes node-a,node-b to export only selected canvas context.',
   ].join('\n'));
 }
 
@@ -86,6 +87,10 @@ async function main() {
   const asJson = takeFlag('--json');
   const outPath = takeOption('--out');
   const format = takeOption('--format') ?? 'context';
+  const nodeIds = (takeOption('--nodes') ?? takeOption('--node-ids') ?? '')
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean);
   const command = args.shift();
   const store = new FileCanvasStore(home ? path.resolve(home) : undefined);
 
@@ -150,7 +155,7 @@ async function main() {
   if (command === 'export') {
     const canvasId = await resolveCanvasId(store, args.shift());
     if (!formats.has(format)) fail(`Unknown export format: ${format}`);
-    const body = await store.exportCanvas(canvasId, format);
+    const body = await store.exportCanvas(canvasId, format, { nodeIds });
     await writeOutput(body, outPath);
     return;
   }

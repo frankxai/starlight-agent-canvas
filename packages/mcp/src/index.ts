@@ -137,6 +137,7 @@ function registerOperatorPrompts(server: McpServer) {
             'Add prompts, MCP tools, agent runs, and outputs as typed nodes. Connect evidence with references, derives_from, compares, runs, or exports edges.',
             'Run local actions for summaries, claims, comparisons, decision matrices, implementation briefs, and source-grounded answers.',
             'Prefer export_canvas with format "codex" for a ready-to-paste Codex continuation prompt, "context" for agent packets, JSON for portable rehydration, and Markdown for human-readable handoff.',
+            'Pass nodeIds to export_canvas when the human has selected a smaller evidence set and the next agent turn should stay scoped.',
             'Do not use this server for secrets, external posting, destructive operations, payments, or remote account mutation.',
           ].join('\n'),
         },
@@ -384,6 +385,7 @@ export function createAgentCanvasMcpServer() {
       inputSchema: {
         canvasId: canvasIdSchema,
         format: exportFormatSchema.optional(),
+        nodeIds: z.array(z.string().min(1)).optional(),
       },
       annotations: READ_ONLY_LOCAL,
     },

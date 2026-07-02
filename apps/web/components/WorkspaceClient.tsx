@@ -581,6 +581,9 @@ function WorkspaceInner() {
   const selectedNode = useMemo(() => canvas?.nodes.find((node) => node.id === selectedIds[0]) ?? null, [canvas, selectedIds]);
   const selectedNodes = useMemo(() => canvas?.nodes.filter((node) => selectedIds.includes(node.id)) ?? [], [canvas, selectedIds]);
   const selectedChars = useMemo(() => selectedNodes.reduce((total, node) => total + node.body.length, 0), [selectedNodes]);
+  const selectedExportQuery = useMemo(() => (
+    selectedIds.length ? `&nodeIds=${encodeURIComponent(selectedIds.join(','))}` : ''
+  ), [selectedIds]);
   const selectedCitations = useMemo(() => selectedNode ? metadataCitations(selectedNode.metadata) : [], [selectedNode]);
   const selectedArtifact = useMemo(() => {
     const artifactId = metadataString(selectedNode?.metadata, 'artifactId');
@@ -1101,33 +1104,33 @@ function WorkspaceInner() {
     if (!canvas) return;
     setBusy(true);
     try {
-      const response = await fetch(`/api/canvases/${canvas.id}/export?format=context`);
+      const response = await fetch(`/api/canvases/${canvas.id}/export?format=context${selectedExportQuery}`);
       if (!response.ok) throw new Error(await response.text());
       const text = await response.text();
       await navigator.clipboard.writeText(text);
-      setStatus('Copied agent context packet.');
+      setStatus(selectedIds.length ? `Copied selected context packet for ${selectedIds.length} node(s).` : 'Copied agent context packet.');
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
       setBusy(false);
     }
-  }, [canvas]);
+  }, [canvas, selectedExportQuery, selectedIds.length]);
 
   const copyCodexHandoff = useCallback(async () => {
     if (!canvas) return;
     setBusy(true);
     try {
-      const response = await fetch(`/api/canvases/${canvas.id}/export?format=codex`);
+      const response = await fetch(`/api/canvases/${canvas.id}/export?format=codex${selectedExportQuery}`);
       if (!response.ok) throw new Error(await response.text());
       const text = await response.text();
       await navigator.clipboard.writeText(text);
-      setStatus('Copied Codex handoff prompt.');
+      setStatus(selectedIds.length ? `Copied selected Codex handoff for ${selectedIds.length} node(s).` : 'Copied Codex handoff prompt.');
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
       setBusy(false);
     }
-  }, [canvas]);
+  }, [canvas, selectedExportQuery, selectedIds.length]);
 
   const copySelectedContext = useCallback(async () => {
     if (!selectedNode) return;
@@ -1881,11 +1884,11 @@ function WorkspaceInner() {
                 <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="hidden sm:inline">Connect</span>
               </button>
-              <a aria-label="Export JSON" href={canvas ? `/api/canvases/${canvas.id}/export?format=json` : '#'} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
+              <a aria-label="Export JSON" href={canvas ? `/api/canvases/${canvas.id}/export?format=json${selectedExportQuery}` : '#'} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 JSON
               </a>
-              <a aria-label="Export Markdown" href={canvas ? `/api/canvases/${canvas.id}/export?format=markdown` : '#'} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
+              <a aria-label="Export Markdown" href={canvas ? `/api/canvases/${canvas.id}/export?format=markdown${selectedExportQuery}` : '#'} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 MD
               </a>

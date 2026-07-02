@@ -42,7 +42,7 @@ The web app and MCP server operate over the same local data home. A source added
 4. Click `New` for a fresh blank graph, `Demo` for a working proof canvas, or `Video`, `Web`, `Note`, or `Ask` to start from your own material.
 5. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 6. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
-7. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP.
+7. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP. When nodes are selected, these exports stay scoped to the selected evidence.
 
 For the full human plus agent operating loop, see `docs/operator-loop.md`.
 
@@ -59,7 +59,7 @@ For the full human plus agent operating loop, see `docs/operator-loop.md`.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
 - Ingest YouTube links with title lookup, best-effort public captions, and manual transcript fallback.
 - Run local actions from intake, selected sources, selected nodes, or the whole canvas: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions with citation metadata.
-- Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect a selected source receipt with ingest mode/chunks/provenance, run source-scoped actions, copy selected source context, copy a Codex continuation prompt, export the result, and re-import portable canvas JSON.
+- Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect a selected source receipt with ingest mode/chunks/provenance, run source-scoped actions, copy selected source context, export selected or whole-canvas context/Codex handoff packets, export the result, and re-import portable canvas JSON.
 - Inspect local setup, data home, MCP build, and Codex MCP wiring from the in-app `Setup / MCP` panel.
 - Auto-select and open newly created sources, notes, files, and action answers in the inspector so the captured context is immediately usable.
 - Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/video/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
@@ -184,11 +184,12 @@ pnpm canvas -- list
 pnpm canvas -- demo
 pnpm canvas -- export latest --format context --out .agent-canvas/demo-context.md
 pnpm canvas -- export latest --format codex --out .agent-canvas/demo-codex.md
+pnpm canvas -- export latest --format codex --nodes source-youtube-nodeflow --out .agent-canvas/demo-selected-codex.md
 pnpm canvas -- search "Codex context handoff"
 pnpm canvas:smoke
 ```
 
-The CLI uses the same local data home as the web app and MCP server. It gives terminal users a safe way to import the demo, list local canvases, export JSON/Markdown/context/Codex handoff, and search artifacts without opening the browser. See `docs/cli.md`.
+The CLI uses the same local data home as the web app and MCP server. It gives terminal users a safe way to import the demo, list local canvases, export JSON/Markdown/context/Codex handoff for the full canvas or selected node ids, and search artifacts without opening the browser. See `docs/cli.md`.
 
 ## Verify
 

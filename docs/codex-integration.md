@@ -54,7 +54,7 @@ pnpm canvas -- export latest --format context --out .agent-canvas/latest-context
 pnpm canvas -- export latest --format codex --out .agent-canvas/latest-codex.md
 ```
 
-Use `context` when Codex should receive a self-contained evidence packet. Use `codex` when you want a ready-to-paste continuation prompt that names the canvas id, tells Codex to call MCP `get_canvas`, and embeds the context packet as fallback.
+Use `context` when Codex should receive a self-contained evidence packet. Use `codex` when you want a ready-to-paste continuation prompt that names the canvas id, tells Codex to call MCP `get_canvas`, and embeds the context packet as fallback. Add `--nodes <id,id>` when the human selected a smaller evidence set.
 
 ## Agent Operating Contract
 
@@ -67,6 +67,7 @@ Codex should treat the canvas as a typed local context layer:
 - Cite node ids and chunk ids when using source-grounded answers or context packets.
 - Prefer `update_node` for human-readable cleanup over creating duplicate nodes.
 - Export `codex` when Codex needs a ready continuation prompt, `context` when any agent needs a self-contained packet, `markdown` for human handoff, and `json` for portable rehydration.
+- Pass `nodeIds` to `export_canvas` when the human has selected sources/notes and Codex should stay scoped to that evidence.
 - Import portable JSON when a user gives Codex a saved canvas snapshot that should become active local context again.
 - Never assume destructive tools exist; v0.1 intentionally has no delete or external-posting tools.
 
@@ -96,7 +97,7 @@ For implementation continuation, prefer `export_canvas` with `format: "codex"` o
 - `connect_nodes`: make evidence relationships explicit.
 - `run_node_action`: summarize, compare, build matrix, build brief, or answer a question.
 - `search_artifacts`: find local source material across canvases, including artifact and chunk ids when available.
-- `export_canvas`: produce JSON, Markdown, an agent context packet, or a ready-to-paste Codex handoff.
+- `export_canvas`: produce JSON, Markdown, an agent context packet, or a ready-to-paste Codex handoff; pass `nodeIds` for selected evidence only.
 
 If MCP is temporarily unavailable, `pnpm canvas -- export latest --format codex` produces the same ready-to-paste Codex prompt from the shared store. `--format context` remains the general agent packet.
 If setup health is uncertain, `pnpm doctor:json` gives Codex a structured checklist without requiring it to parse terminal prose.
@@ -113,7 +114,7 @@ For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Us
 6. Human exports or asks Codex to continue implementation from the output.
 7. Later, either side can import the JSON export to resume the same graph as durable context.
 
-When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`. When the human clicks `Codex`, the app copies the `format: "codex"` handoff prompt, which tells Codex to resume with `get_canvas` against the current canvas id and embeds the context packet as fallback. Cite node ids and chunk ids from either export when making claims.
+When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`. When the human clicks `Codex`, the app copies the `format: "codex"` handoff prompt, which tells Codex to resume with `get_canvas` against the current canvas id and embeds the context packet as fallback. If nodes are selected, both buttons export only the selected nodes, their linked artifacts/chunks, selected-internal edges, and related runs. Cite node ids and chunk ids from either export when making claims.
 
 When the human clicks `Copy source` in a selected node receipt, Codex should treat that as a narrower source-only packet. Use it when the task is about one YouTube video, PDF, page, or note instead of the whole canvas.
 
@@ -145,6 +146,19 @@ Read the canvas before writing.
 Identify the source nodes and artifacts that look most relevant.
 Run one useful action over the selected evidence.
 Export format "codex" and summarize the node ids, artifact ids, chunk ids, and changes you made.
+```
+
+## Selected Evidence Prompt
+
+When the human has selected one or more sources/notes in the canvas:
+
+```text
+Use starlight-agent-canvas.
+Read the current canvas, but keep this turn scoped to these selected node ids:
+<paste node ids from the selected context tray>.
+Run one useful selected-source action if needed.
+Export the canvas with format "codex" and nodeIds set to those selected ids.
+Return only claims supported by the selected node/chunk ids.
 ```
 
 ## Safety Notes

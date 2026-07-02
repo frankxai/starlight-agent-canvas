@@ -33,6 +33,7 @@ Connect the source nodes as references.
 Run summarize on those nodes.
 Search artifacts for "Source Note Ask".
 Export the canvas with format "codex".
+Export the canvas again with format "codex" and nodeIds set to the YouTube node id.
 Return the node ids, artifact ids, chunk ids, and export format you used.
 ```
 
@@ -46,3 +47,4 @@ Expected proof points:
 - `search_artifacts` returns chunk-aware results.
 - `export_canvas` with `format: "context"` returns an agent packet.
 - `export_canvas` with `format: "codex"` returns a Codex-ready continuation prompt with the context packet embedded.
+- `export_canvas` with `nodeIds` returns a scoped handoff that excludes unrelated nodes and artifacts.

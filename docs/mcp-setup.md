@@ -21,6 +21,7 @@ The terminal CLI is a companion, not a replacement:
 pnpm canvas -- list
 pnpm canvas -- export latest --format context
 pnpm canvas -- export latest --format codex
+pnpm canvas -- export latest --format codex --nodes source-youtube-nodeflow
 pnpm canvas:smoke
 ```
 
@@ -127,6 +128,8 @@ Use the same stdio shape when the host supports MCP servers:
 - `markdown`: readable handoff.
 - `context`: agent context packet with operating contract, node index, evidence corpus, recent runs, and continuation prompt.
 - `codex`: ready-to-paste Codex continuation prompt that starts with MCP `get_canvas` for the canvas id and embeds the context packet as fallback.
+
+`export_canvas` also accepts optional `nodeIds`. When present, every export format is scoped to those selected nodes, their linked artifacts/chunks, edges where both ends are selected, and action runs that used or produced selected nodes. Missing node ids are rejected instead of silently producing misleading context.
 
 `add_node`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
 

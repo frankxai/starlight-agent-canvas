@@ -10,6 +10,7 @@ const home = path.join(root, '.agent-canvas', 'cli-smoke');
 const outDir = path.join(home, 'exports');
 const contextPath = path.join(outDir, 'demo-context.md');
 const codexPath = path.join(outDir, 'demo-codex.md');
+const selectedCodexPath = path.join(outDir, 'demo-selected-codex.md');
 const env = { ...process.env, AGENT_CANVAS_HOME: home };
 
 async function run(args) {
@@ -53,11 +54,18 @@ assert(codex.includes('Codex Handoff'), 'codex export missing handoff heading');
 assert(codex.includes('get_canvas'), 'codex export missing MCP resume instruction');
 assert(codex.includes('Agent Context Packet'), 'codex export missing embedded context packet');
 
+await run(['export', 'latest', '--format', 'codex', '--nodes', 'source-youtube-nodeflow', '--out', selectedCodexPath]);
+const selectedCodex = await readFile(selectedCodexPath, 'utf8');
+assert(selectedCodex.includes('selected node'), 'selected codex export missing selected scope');
+assert(selectedCodex.includes('artifact-youtube-nodeflow:chunk-001'), 'selected codex export missing selected chunk');
+assert(!selectedCodex.includes('Poppy AI benchmark notes'), 'selected codex export included unselected source');
+
 console.log(JSON.stringify({
   ok: true,
   home,
   canvasId: demo.canvas.id,
   contextPath,
   codexPath,
+  selectedCodexPath,
   searchResults: search.results.length,
 }, null, 2));

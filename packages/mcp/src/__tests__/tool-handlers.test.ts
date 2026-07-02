@@ -130,6 +130,12 @@ describe('MCP tool handlers', () => {
     expect(codex.content[0].text).toContain('# Agent Context Packet: MCP smoke');
     expect(codex.structuredContent?.format).toBe('codex');
 
+    const selectedCodex = await handlers.export_canvas({ canvasId: canvas.id, format: 'codex', nodeIds: [videoNode.id] });
+    expect(selectedCodex.content[0].text).toContain('# Codex Handoff: MCP smoke (selected node)');
+    expect(selectedCodex.content[0].text).toContain(videoArtifact.chunks[0].id);
+    expect(selectedCodex.content[0].text).not.toContain('Local node');
+    expect(selectedCodex.structuredContent?.nodeIds).toEqual([videoNode.id]);
+
     const exportedJson = await handlers.export_canvas({ canvasId: canvas.id, format: 'json' });
     const portable = JSON.parse(exportedJson.content[0].text) as { id: string; title: string };
     portable.id = 'canvas-imported-mcp-smoke';

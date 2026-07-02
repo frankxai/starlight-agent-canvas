@@ -61,6 +61,20 @@ describe('FileCanvasStore', () => {
     expect(codex).toContain(`get_canvas\` for canvas id \`${canvas.id}`);
     expect(codex).toContain('# Agent Context Packet: Planning');
 
+    const selectedContext = await store.exportCanvas(canvas.id, 'context', { nodeIds: [ingested.node.id] });
+    expect(selectedContext).toContain('# Agent Context Packet: Planning (selected node)');
+    expect(selectedContext).toContain(ingested.artifact.chunks[0].id);
+    expect(selectedContext).toContain('Transcript text about MCP canvas workflows.');
+    expect(selectedContext).not.toContain('MCP note');
+
+    const selectedPortable = JSON.parse(await store.exportCanvas(canvas.id, 'json', { nodeIds: [ingested.node.id] })) as typeof canvas;
+    expect(selectedPortable.nodes).toHaveLength(1);
+    expect(selectedPortable.nodes[0].id).toBe(ingested.node.id);
+    expect(selectedPortable.artifacts).toHaveLength(1);
+    expect(selectedPortable.artifacts[0].id).toBe(ingested.artifact.id);
+
+    await expect(store.exportCanvas(canvas.id, 'context', { nodeIds: ['missing-node'] })).rejects.toThrow('Cannot export missing node id');
+
     const portable = JSON.parse(await store.exportCanvas(canvas.id, 'json')) as typeof canvas;
     portable.id = 'canvas-imported-planning';
     portable.title = 'Imported planning';
