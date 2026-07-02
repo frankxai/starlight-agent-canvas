@@ -140,6 +140,8 @@ Use the same stdio shape when the host supports MCP servers:
 
 `ingest_anything` mirrors the web app's paste-anything behavior for MCP clients. It accepts mixed pasted content, detects YouTube links, generic video links, image links, web URLs, and plain notes, then creates typed nodes and artifacts. It accepts optional `canvasId`; when omitted, it uses the latest local canvas and creates a fresh local capture canvas only when none exists. It also accepts optional `runAction` when the agent should immediately summarize, extract claims, build a brief, or answer a question over only the newly mapped nodes.
 
+The web app exposes the matching local route at `/api/canvases/:id/ingest/anything`. The first-viewport composer uses that route after client-side preview, and `pnpm first-run:check` exercises it in a production preview against a temporary data home.
+
 `add_node`, `ingest_anything`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
 
 `search_artifacts` searches node text and durable source artifacts. Results include artifact ids, chunk ids, scores, and source metadata when available.

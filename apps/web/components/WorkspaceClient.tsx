@@ -83,6 +83,16 @@ type CanvasMutationResponse = {
   outputNode?: CanvasNode;
 };
 
+type IntakeAnythingResponse = CanvasMutationResponse & {
+  nodes?: CanvasNode[];
+  artifacts?: CanvasArtifact[];
+  detected?: {
+    itemCount: number;
+    kinds: string[];
+    urls: string[];
+  };
+};
+
 type ImportCanvasResponse = {
   canvas: CanvasRecord;
   import?: {
@@ -1347,59 +1357,40 @@ function WorkspaceInner() {
 
   const intakeAnything = useCallback(async (value: string, position?: FlowPosition, actionMode: IntakeActionMode = intakeAction) => {
     if (!canvas || !value.trim()) return;
-    const detected = detectIntakeText(value);
     setBusy(true);
     try {
-      const createdNodeIds: string[] = [];
-      let last: CanvasMutationResponse | null = null;
-      let count = 0;
-
-      for (const item of detected.items) {
-        const nodePosition = offsetPosition(position, count);
-
-        if (item.kind === 'text') {
-          last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/text`, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({
-              title: textTitle(item.body),
-              body: item.body,
-              metadata: { intake: detected.urls.length ? 'text_with_links' : 'manual_text' },
-              position: nodePosition,
-            }),
-          });
-        } else if (item.url) {
-          const videoReference = item.kind === 'video';
-          const imageReference = item.kind === 'image';
-          last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
-            method: 'POST',
-            headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({
-              kind: item.kind === 'youtube' ? 'source_youtube' : videoReference ? 'source_video' : imageReference ? 'source_image' : 'source_url',
-              title: item.title,
-              body: item.attachedText ?? item.body,
-              position: nodePosition,
-              metadata: {
-                url: item.url,
-                imageUrl: imageReference ? item.url : undefined,
-                media: videoReference ? 'video_reference' : imageReference ? 'image_reference' : undefined,
-              },
-            }),
-          });
-        }
-
-        if (last?.node?.id) createdNodeIds.push(last.node.id);
-        count += 1;
-      }
-
       const summary = buildIntakePlan(value).filter((item) => item.active).map((item) => item.label).join(', ');
-      await finishIntake(createdNodeIds, last, actionMode, summary ? `Mapped ${count} item(s): ${summary}.` : `Mapped ${count} source item(s).`);
+      const actionInput = intakeActionInput(actionMode);
+      const result = await api<IntakeAnythingResponse>(`/api/canvases/${canvas.id}/ingest/anything`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          body: value,
+          position,
+          action: actionInput.action,
+          prompt: actionInput.prompt ?? '',
+        }),
+      });
+      const createdIds = result.nodes?.map((node) => node.id) ?? (result.node?.id ? [result.node.id] : []);
+      const lastCreated = result.nodes?.[result.nodes.length - 1] ?? result.node;
+      if (result.canvas) setCanvas(result.canvas);
+      if (result.outputNode) {
+        focusNode(result.outputNode);
+        frameNodes([...createdIds, result.outputNode.id], 0.28);
+        await refreshList();
+        setStatus(`${summary ? `Mapped ${createdIds.length} item(s): ${summary}.` : `Mapped ${createdIds.length} source item(s).`} Ran ${String(actionInput.action).replace(/_/g, ' ')} on ${createdIds.length} new item(s).`);
+        return;
+      }
+      focusNode(lastCreated, createdIds);
+      frameNodes(createdIds);
+      await refreshList();
+      setStatus(summary ? `Mapped ${createdIds.length} item(s): ${summary}.` : `Mapped ${createdIds.length} source item(s).`);
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
       setBusy(false);
     }
-  }, [canvas, finishIntake, intakeAction]);
+  }, [canvas, focusNode, frameNodes, intakeAction, refreshList]);
 
   const submitCanvasIntake = useCallback(async () => {
     const text = intakeText.trim();

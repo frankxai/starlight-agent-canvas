@@ -58,7 +58,7 @@ Need a non-interactive proof that the app can actually start after install:
 pnpm first-run:check
 ```
 
-This builds the production app, starts it on a temporary localhost port with a temporary `AGENT_CANVAS_HOME`, checks `/api/setup/status`, imports the bundled demo canvas, verifies context export, stops the preview, and removes the temporary data home. Use `pnpm first-run:check -- --skip-build` after an existing `pnpm build`.
+This builds the production app, starts it on a temporary localhost port with a temporary `AGENT_CANVAS_HOME`, checks `/api/setup/status`, imports the bundled demo canvas, verifies context export, maps a mixed YouTube/video/image/web/text blob through `/api/canvases/:id/ingest/anything`, runs a local action on the mapped nodes, stops the preview, and removes the temporary data home. Use `pnpm first-run:check -- --skip-build` after an existing `pnpm build`.
 
 The setup script:
 

@@ -132,6 +132,14 @@ async function fetchText(url, init) {
   return text;
 }
 
+function postJson(body) {
+  return {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(body),
+  };
+}
+
 async function waitFor(url, timeoutMs = 45_000) {
   const started = Date.now();
   let lastError = new Error('not attempted');
@@ -186,6 +194,10 @@ async function main() {
     const setup = await fetchJson(`${baseUrl}/api/setup/status`);
     assert(setup.canvasHome === tempHome, 'Setup status did not use the temporary first-run data home.');
     assert(setup.mcp?.built === true, 'MCP server is not built in setup status.');
+    const expectedInputContracts = ['youtube', 'video', 'image', 'web', 'pdf', 'text', 'note'];
+    const inputContracts = Array.isArray(setup.firstSuccess?.inputContracts) ? setup.firstSuccess.inputContracts : [];
+    const inputIds = inputContracts.map((contract) => contract.id);
+    assert(expectedInputContracts.every((id) => inputIds.includes(id)), 'Setup status is missing supported-input contract mappings.');
 
     const demo = await fetchJson(`${baseUrl}/api/canvases/demo`, { method: 'POST' });
     assert(demo.canvas?.nodes?.length >= 5, 'Demo canvas did not import with expected nodes.');
@@ -198,6 +210,41 @@ async function main() {
 
     const canvases = await fetchJson(`${baseUrl}/api/canvases`);
     assert(canvases.canvases?.some((canvas) => canvas.id === demo.canvas.id), 'Imported demo canvas is not listed.');
+
+    const proof = await fetchJson(`${baseUrl}/api/canvases`, postJson({
+      title: 'First-run supported input proof',
+      template: 'blank',
+    }));
+    const mixedIntake = [
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      'https://www.loom.com/share/starlight-agent-canvas-proof',
+      'https://example.com/starlight-agent-canvas-proof.png',
+      'https://example.com/starlight-agent-canvas-research',
+      '',
+      'First-run proof notes: compare the video, image, page, and human note as shared local agent context.',
+    ].join('\n');
+    const anything = await fetchJson(`${baseUrl}/api/canvases/${proof.canvas.id}/ingest/anything`, postJson({
+      body: mixedIntake,
+      fetchRemote: false,
+      action: 'summarize',
+      position: { x: 120, y: 140 },
+    }));
+    const mappedKinds = new Set((anything.nodes ?? []).map((node) => node.kind));
+    const artifactKinds = new Set((anything.artifacts ?? []).map((artifact) => artifact.kind));
+    for (const kind of ['source_youtube', 'source_video', 'source_image', 'source_url', 'note']) {
+      assert(mappedKinds.has(kind), `Paste-anything first-run proof did not create ${kind}.`);
+    }
+    for (const kind of ['youtube', 'video', 'image', 'url', 'manual']) {
+      assert(artifactKinds.has(kind), `Paste-anything first-run proof did not create ${kind} artifact.`);
+    }
+    assert(anything.outputNode?.kind === 'output', 'Paste-anything first-run proof did not create an output node.');
+    assert(anything.run?.action === 'summarize', 'Paste-anything first-run proof did not run summarize.');
+
+    const proofContext = await fetchText(`${baseUrl}/api/canvases/${proof.canvas.id}/export?format=context`);
+    for (const kind of ['source_youtube', 'source_video', 'source_image', 'source_url']) {
+      assert(proofContext.includes(kind), `Supported-input context export is missing ${kind}.`);
+    }
+    assert(proofContext.includes('First-run proof notes'), 'Supported-input context export is missing human notes.');
 
     console.log('');
     console.log('[ok] First-run check passed.');
