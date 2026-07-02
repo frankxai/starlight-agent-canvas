@@ -54,6 +54,25 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('new-blank-canvas')).toBeVisible();
   await expect(page.getByTestId('rail-intake-paste')).toContainText('Paste & Map');
   await expect(page.getByTestId('intake-paste')).toContainText('Paste & Map');
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        readText: async () => {
+          throw new DOMException('Clipboard permission denied', 'NotAllowedError');
+        },
+        writeText: async () => {},
+      },
+    });
+  });
+  await page.getByTestId('intake-paste').click();
+  await expect(page.getByTestId('clipboard-fallback')).toContainText('Paste manually');
+  await expect(page.getByTestId('clipboard-fallback')).toContainText('source');
+  await expect(page.getByTestId('status')).toContainText('Clipboard read was blocked or empty');
+  await expect(page.getByTestId('intake-text')).toBeFocused();
+  await page.getByTestId('intake-text').fill('Manual clipboard fallback source note.');
+  await expect(page.getByTestId('clipboard-fallback')).toHaveCount(0);
+  await page.getByTestId('intake-text').fill('');
   await page.getByTestId('intake-ingest').click();
   await expect(page.getByTestId('status')).toContainText('Paste or drop a YouTube link');
   await expect(page.getByTestId('intake-text')).toBeFocused();

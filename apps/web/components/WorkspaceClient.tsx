@@ -102,6 +102,11 @@ type ImportPreview = {
   nodePreview: Array<{ id: string; kind: string; title: string }>;
 };
 
+type ClipboardFallback = {
+  mode: ComposerMode;
+  message: string;
+};
+
 type AgentNodeData = {
   title: string;
   kind: CanvasNodeKind;
@@ -665,6 +670,7 @@ function WorkspaceInner() {
   const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
   const [focusedChunkId, setFocusedChunkId] = useState<string | null>(null);
   const [pendingImport, setPendingImport] = useState<ImportPreview | null>(null);
+  const [clipboardFallback, setClipboardFallback] = useState<ClipboardFallback | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const compactCanvas = useCompactCanvas();
 
@@ -1474,9 +1480,13 @@ function WorkspaceInner() {
   const pasteClipboardToIntake = useCallback(async (mode: ComposerMode = composerMode) => {
     if (!canvas || busy) return;
     try {
+      if (!navigator.clipboard?.readText) {
+        throw new Error('Clipboard read is not available in this browser.');
+      }
       const text = (await navigator.clipboard.readText()).trim();
       if (!text) throw new Error('Clipboard is empty.');
 
+      setClipboardFallback(null);
       if (mode === 'ask') {
         setAskPrompt(text);
         await runAction('answer_question', text);
@@ -1493,10 +1503,14 @@ function WorkspaceInner() {
       setIntakeText(text);
       await intakeAnything(text);
       setIntakeText('');
-    } catch (error) {
-      setStatus((error as Error).message);
+    } catch {
+      const message = `Clipboard read was blocked or empty. ${mode === 'ask' ? 'The ask composer' : mode === 'note' ? 'The note composer' : 'The source composer'} is focused; press Ctrl+V or drop content here.`;
+      setComposerMode(mode);
+      setClipboardFallback({ mode, message });
+      setStatus(message);
+      focusComposer();
     }
-  }, [addCanvasNoteAt, busy, canvas, composerMode, intakeAnything, runAction]);
+  }, [addCanvasNoteAt, busy, canvas, composerMode, focusComposer, intakeAnything, runAction]);
 
   const submitActiveComposer = useCallback(async () => {
     if (composerMode === 'note') {
@@ -1517,12 +1531,14 @@ function WorkspaceInner() {
       const files = Array.from(event.clipboardData?.files ?? []);
       if (files.length && canvas && !busy) {
         event.preventDefault();
+        setClipboardFallback(null);
         void ingestFiles(files);
         return;
       }
       const text = event.clipboardData?.getData('text/plain')?.trim();
       if (!text || !canvas || busy) return;
       event.preventDefault();
+      setClipboardFallback(null);
       if (composerMode === 'note') {
         void addCanvasNoteAt(undefined, text);
         return;
@@ -2037,6 +2053,7 @@ function WorkspaceInner() {
                   ref={composerRef}
                   value={composerText}
                   onChange={(event) => {
+                    setClipboardFallback(null);
                     if (composerMode === 'ask') {
                       setAskPrompt(event.target.value);
                     } else {
@@ -2083,6 +2100,20 @@ function WorkspaceInner() {
                   Note
                 </button>
               </div>
+              {clipboardFallback ? (
+                <div
+                  className="mt-2 rounded-md border border-starlight-gold/35 bg-starlight-gold/10 px-3 py-2 text-xs leading-5 text-starlight-ink"
+                  data-testid="clipboard-fallback"
+                  role="status"
+                >
+                  <div className="flex flex-wrap items-center gap-2">
+                    <ClipboardPaste className="h-3.5 w-3.5 text-starlight-gold" aria-hidden="true" />
+                    <span className="font-semibold">Paste manually</span>
+                    <span className="rounded border border-starlight-gold/30 px-1.5 py-0.5 text-[10px] uppercase text-starlight-gold">{clipboardFallback.mode}</span>
+                  </div>
+                  <p className="mt-1 text-starlight-muted">{clipboardFallback.message}</p>
+                </div>
+              ) : null}
               <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-starlight-muted" data-testid="intake-preview">
                 {composerMode === 'source' ? (
                   <>

@@ -216,6 +216,7 @@ The same exports are available from the terminal with `pnpm canvas -- export <ca
 - `pnpm doctor` warns that the MCP server is not built: run `pnpm mcp:build`.
 - `pnpm doctor` says Codex has a path/home mismatch: run `pnpm mcp:install:codex -- --write`, restart Codex, then run `pnpm doctor` again.
 - The app cannot find canvases: check `AGENT_CANVAS_HOME`.
+- `Paste & Map` says clipboard read was blocked or empty: the composer is focused on purpose. Press `Ctrl+V` in that field, type manually, or drop the source onto the graph.
 - Import preview says `copy on import`: this is intentional when a JSON export has the same canvas id as an existing local canvas. The existing canvas is preserved and the imported copy is selected after you confirm.
 - Browser says the API is blocked from a remote host: this is intentional. Set `AGENT_CANVAS_ALLOW_REMOTE=1` only for a protected deployment.
 - YouTube has no transcript: paste a manual transcript or notes with the URL.

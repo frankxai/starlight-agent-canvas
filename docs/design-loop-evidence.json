@@ -357,6 +357,21 @@
       "path_or_url": "docs/visual-qa/mobile-import-source-focused.png",
       "kind": "mobile post-import source receipt screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-clipboard-fallback.png",
+      "kind": "desktop clipboard-denied fallback screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-clipboard-fallback.png",
+      "kind": "mobile clipboard-denied fallback screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-clipboard-fallback-reduced-motion.png",
+      "kind": "desktop reduced-motion clipboard-denied fallback screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -393,7 +408,12 @@
     {
       "name": "human-intake-affordance",
       "status": "pass",
-      "notes": "The first viewport now exposes New blank canvas, Source, Note, and Ask modes with Paste & Map clipboard intake, active empty-submit focus feedback, Map + Brief, note capture, file upload, detected source chips, created-node inspector selection, and an in-graph Source/Paste & Map/File/Note/Ask/Context command tray."
+      "notes": "The first viewport now exposes New blank canvas, Source, Note, and Ask modes with Paste & Map clipboard intake, blocked/empty clipboard manual fallback, active empty-submit focus feedback, Map + Brief, note capture, file upload, detected source chips, created-node inspector selection, and an in-graph Source/Paste & Map/File/Note/Ask/Context command tray."
+    },
+    {
+      "name": "clipboard-fallback-loop",
+      "status": "pass",
+      "notes": "When browser clipboard reads are blocked or empty, Paste & Map focuses the correct composer, shows a visible manual paste status, preserves drop-to-canvas intake, and clears the fallback once the human types or pastes manually; desktop, mobile, and reduced-motion screenshots were inspected."
     },
     {
       "name": "source-receipt-loop",
@@ -529,7 +549,10 @@
       "docs/visual-qa/mobile-import-preview-copy.png",
       "docs/visual-qa/desktop-import-preview-reduced-motion.png",
       "docs/visual-qa/desktop-import-source-focused.png",
-      "docs/visual-qa/mobile-import-source-focused.png"
+      "docs/visual-qa/mobile-import-source-focused.png",
+      "docs/visual-qa/desktop-clipboard-fallback.png",
+      "docs/visual-qa/mobile-clipboard-fallback.png",
+      "docs/visual-qa/desktop-clipboard-fallback-reduced-motion.png"
     ],
     "productionMetrics": {
       "desktop": {
@@ -602,7 +625,8 @@
       "frameNewNodeClusters": true,
       "mcpMediaReadyStatus": true,
       "importPreviewDiff": true,
-      "importFocusesSourceEvidence": true
+      "importFocusesSourceEvidence": true,
+      "clipboardPermissionFallback": true
     },
     "metrics": {
       "desktop": {
@@ -624,6 +648,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, guided workflow templates with clickable stages, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, clickable answer/run-log citations with highlighted source chunks, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, reviewable JSON import preview with fresh duplicate-id detection and source-evidence focus after confirmation, in-app Setup/MCP status for local home, MCP build, Codex wiring, and the five-step activation runway from install health to proof canvas, source mapping, context export, and Codex MCP wiring; mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, guided workflow templates with clickable stages, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste with blocked/empty clipboard fallback, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, clickable answer/run-log citations with highlighted source chunks, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, reviewable JSON import preview with fresh duplicate-id detection and source-evidence focus after confirmation, in-app Setup/MCP status for local home, MCP build, Codex wiring, and the five-step activation runway from install health to proof canvas, source mapping, context export, and Codex MCP wiring; mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }
