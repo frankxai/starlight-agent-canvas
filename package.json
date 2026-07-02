@@ -46,8 +46,8 @@
     "mcp:start": "pnpm --filter @starlight-agent-canvas/mcp start"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "typescript": "^5.7.2",
-    "vitest": "^3.2.6"
+    "@types/node": "^26.1.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
   }
 }
