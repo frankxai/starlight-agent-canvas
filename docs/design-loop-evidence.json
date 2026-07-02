@@ -77,6 +77,16 @@
       "path_or_url": "docs/visual-qa/desktop-production-reduced-motion.png",
       "kind": "reduced-motion product screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-context-citations-search.png",
+      "kind": "desktop context, citation, and search screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-context-canvas.png",
+      "kind": "mobile context canvas screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -93,7 +103,7 @@
     {
       "name": "desktop-layout",
       "status": "pass",
-      "notes": "Composer, graph, rails, toolbar, context, export, and import controls are visible without incoherent overlap."
+      "notes": "Composer, graph, rails, toolbar, selected context, edge kind, search, export, and import controls are visible without incoherent overlap."
     },
     {
       "name": "mobile-layout",
@@ -139,6 +149,8 @@
       "docs/visual-qa/mobile-live-canvas-composer.png",
       "docs/visual-qa/desktop-context-import-toolbar.png",
       "docs/visual-qa/mobile-context-import-toolbar.png",
+      "docs/visual-qa/desktop-context-citations-search.png",
+      "docs/visual-qa/mobile-context-canvas.png",
       "docs/visual-qa/desktop-first-viewport.png",
       "docs/visual-qa/mobile-first-viewport.png",
       "docs/visual-qa/mobile-graph-viewport.png",
@@ -202,6 +214,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport composer controls, paste-anywhere, double-click notes, editable inspector, source/action auto-selection, context copy, JSON/Markdown export, JSON import, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport composer controls, paste-anywhere, double-click notes, selected-context scoping, edge-kind selection, clickable local search evidence, editable inspector, source/action auto-selection, context copy, JSON/Markdown export, JSON import, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

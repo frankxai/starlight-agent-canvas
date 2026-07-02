@@ -24,6 +24,7 @@ import {
   Boxes,
   Braces,
   ClipboardPaste,
+  Crosshair,
   Download,
   FileText,
   FileUp,
@@ -40,7 +41,7 @@ import {
   UploadCloud,
   Youtube,
 } from 'lucide-react';
-import type { CanvasActionType, CanvasEdge, CanvasNode, CanvasNodeKind, CanvasRecord } from '@starlight-agent-canvas/core';
+import type { CanvasActionType, CanvasEdge, CanvasEdgeKind, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
 
 type CanvasSummary = {
   id: string;
@@ -78,6 +79,19 @@ type AgentNodeData = {
 
 type FlowPosition = { x: number; y: number };
 
+type SearchResult = {
+  canvasId: string;
+  nodeId: string;
+  title: string;
+  kind: string;
+  excerpt: string;
+  artifactId?: string;
+  chunkId?: string;
+  chunkIndex?: number;
+  source?: string;
+  score?: number;
+};
+
 const KIND_STYLE: Record<CanvasNodeKind, { label: string; accent: string; bg: string }> = {
   note: { label: 'Note', accent: '#F5C36A', bg: 'rgba(245,195,106,0.08)' },
   source_url: { label: 'URL', accent: '#79E6C5', bg: 'rgba(121,230,197,0.08)' },
@@ -96,6 +110,14 @@ const ACTIONS: Array<{ id: CanvasActionType; label: string }> = [
   { id: 'decision_matrix', label: 'Matrix' },
   { id: 'implementation_brief', label: 'Build Brief' },
   { id: 'answer_question', label: 'Ask' },
+];
+
+const EDGE_KINDS: Array<{ id: CanvasEdgeKind; label: string }> = [
+  { id: 'references', label: 'References' },
+  { id: 'derives_from', label: 'Derives' },
+  { id: 'compares', label: 'Compares' },
+  { id: 'runs', label: 'Runs' },
+  { id: 'exports', label: 'Exports' },
 ];
 
 function offsetPosition(position: FlowPosition | undefined, index: number): FlowPosition | undefined {
@@ -179,6 +201,19 @@ function formatKind(kind: string) {
   return kind.replace(/_/g, ' ');
 }
 
+function metadataCitations(metadata: Record<string, unknown>): SourceCitation[] {
+  const raw = metadata.citations;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((item): item is SourceCitation =>
+    Boolean(item)
+      && typeof item === 'object'
+      && typeof (item as SourceCitation).id === 'string'
+      && typeof (item as SourceCitation).nodeId === 'string'
+      && typeof (item as SourceCitation).nodeTitle === 'string'
+      && typeof (item as SourceCitation).quote === 'string'
+  );
+}
+
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
 
 function extractUrls(value: string): string[] {
@@ -236,12 +271,13 @@ export default function WorkspaceClient() {
 }
 
 function WorkspaceInner() {
-  const { screenToFlowPosition } = useReactFlow<Node<AgentNodeData>, Edge>();
+  const { screenToFlowPosition, setCenter } = useReactFlow<Node<AgentNodeData>, Edge>();
   const [apiState, setApiState] = useState<ApiState>({ canvases: [], templates: [], home: '' });
   const [canvas, setCanvas] = useState<CanvasRecord | null>(null);
   const [flowNodes, setFlowNodes] = useState<Node<AgentNodeData>[]>([]);
   const [flowEdges, setFlowEdges] = useState<Edge[]>([]);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [edgeKind, setEdgeKind] = useState<CanvasEdgeKind>('references');
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('Booting local canvas...');
   const [dragActive, setDragActive] = useState(false);
@@ -256,10 +292,13 @@ function WorkspaceInner() {
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Array<{ title: string; kind: string; excerpt: string }>>([]);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const compactCanvas = useCompactCanvas();
 
   const selectedNode = useMemo(() => canvas?.nodes.find((node) => node.id === selectedIds[0]) ?? null, [canvas, selectedIds]);
+  const selectedNodes = useMemo(() => canvas?.nodes.filter((node) => selectedIds.includes(node.id)) ?? [], [canvas, selectedIds]);
+  const selectedChars = useMemo(() => selectedNodes.reduce((total, node) => total + node.body.length, 0), [selectedNodes]);
+  const selectedCitations = useMemo(() => selectedNode ? metadataCitations(selectedNode.metadata) : [], [selectedNode]);
   const baseFlow = useMemo(() => (canvas ? toFlow(canvas, compactCanvas) : { nodes: [], edges: [] }), [canvas, compactCanvas]);
   const canMutate = Boolean(canvas) && !busy;
 
@@ -277,6 +316,7 @@ function WorkspaceInner() {
     const data = await api<{ canvas: CanvasRecord }>(`/api/canvases/${id}`);
     setCanvas(data.canvas);
     setSelectedIds([]);
+    return data.canvas;
   }, []);
 
   const refreshList = useCallback(async () => {
@@ -637,11 +677,11 @@ function WorkspaceInner() {
       () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/edges`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ source: selectedIds[0], target: selectedIds[1], kind: 'references' }),
+        body: JSON.stringify({ source: selectedIds[0], target: selectedIds[1], kind: edgeKind }),
       }),
-      'Connected selected nodes.',
+      `Connected selected nodes as ${formatKind(edgeKind)}.`,
     );
-  }, [canvas, mutateCanvas, selectedIds]);
+  }, [canvas, edgeKind, mutateCanvas, selectedIds]);
 
   const connectFlow = useCallback(async (connection: Connection) => {
     if (!canvas || !connection.source || !connection.target) return;
@@ -650,18 +690,32 @@ function WorkspaceInner() {
       () => api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/edges`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ source: connection.source, target: connection.target, kind: 'references' }),
+        body: JSON.stringify({ source: connection.source, target: connection.target, kind: edgeKind }),
       }),
-      'Connected canvas nodes.',
+      `Connected canvas nodes as ${formatKind(edgeKind)}.`,
     );
-  }, [canvas, mutateCanvas]);
+  }, [canvas, edgeKind, mutateCanvas]);
 
   const runSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
-    const data = await api<{ results: Array<{ title: string; kind: string; excerpt: string }> }>(`/api/search?q=${encodeURIComponent(searchQuery)}`);
+    const data = await api<{ results: SearchResult[] }>(`/api/search?q=${encodeURIComponent(searchQuery)}`);
     setSearchResults(data.results);
     setStatus(`Found ${data.results.length} local result(s).`);
   }, [searchQuery]);
+
+  const focusSearchResult = useCallback(async (result: SearchResult) => {
+    if (!result.nodeId) return;
+    try {
+      const targetCanvas = canvas?.id === result.canvasId ? canvas : await loadCanvas(result.canvasId);
+      const node = targetCanvas.nodes.find((candidate) => candidate.id === result.nodeId);
+      if (!node) throw new Error('Search result node is not available anymore.');
+      setSelectedIds([node.id]);
+      setCenter(node.position.x + 130, node.position.y + 80, { zoom: compactCanvas ? 0.72 : 1, duration: 450 });
+      setStatus(result.chunkId ? `Focused ${node.title} at ${result.chunkId}.` : `Focused ${node.title}.`);
+    } catch (error) {
+      setStatus((error as Error).message);
+    }
+  }, [canvas, compactCanvas, loadCanvas, setCenter]);
 
   const onSelectionChange = useCallback((params: OnSelectionChangeParams) => {
     setSelectedIds(params.nodes.map((node) => node.id));
@@ -962,9 +1016,11 @@ function WorkspaceInner() {
                   Note
                 </button>
               </div>
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-starlight-muted">
-                <span>Paste anywhere on the canvas.</span>
-                <span className="hidden sm:inline">Double-click empty space for a note.</span>
+            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-starlight-muted">
+                <span>Paste anywhere.</span>
+                <span className="hidden sm:inline">Drop files or links.</span>
+                <span className="hidden sm:inline">Drag handles to connect.</span>
+                <span className="hidden sm:inline">Ask with selected nodes scoped.</span>
                 <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink">
                   <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
                   File
@@ -981,6 +1037,19 @@ function WorkspaceInner() {
             </div>
             <div className="absolute bottom-3 left-3 top-auto z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-2 rounded-lg border border-starlight-border bg-starlight-surface/88 p-1.5 shadow-command backdrop-blur sm:bottom-4 sm:left-4 sm:max-w-[calc(100%-2rem)] sm:p-2">
               <span className="hidden px-2 text-xs text-starlight-muted sm:inline">{canvas?.title ?? 'Loading canvas'}</span>
+              <span className="rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-muted">
+                {selectedIds.length ? `${selectedIds.length} selected` : `${canvas?.nodes.length ?? 0} nodes`}
+              </span>
+              <select
+                aria-label="Connection kind"
+                value={edgeKind}
+                onChange={(event) => setEdgeKind(event.target.value as CanvasEdgeKind)}
+                className="max-w-[132px] rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-xs text-starlight-ink"
+              >
+                {EDGE_KINDS.map((kind) => (
+                  <option key={kind.id} value={kind.id}>{kind.label}</option>
+                ))}
+              </select>
               <button type="button" onClick={connectSelected} disabled={!canMutate || selectedIds.length < 2} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
                 <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="hidden sm:inline">Connect</span>
@@ -1014,6 +1083,15 @@ function WorkspaceInner() {
               </label>
             </div>
             <div className="absolute inset-0 pt-[188px] sm:pt-0">
+              {!canvas?.nodes.length ? (
+                <div className="pointer-events-none absolute left-1/2 top-[52%] z-10 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-starlight-accent/25 bg-starlight-surface/82 p-5 text-center shadow-command backdrop-blur">
+                  <UploadCloud className="mx-auto h-7 w-7 text-starlight-accent" aria-hidden="true" />
+                  <h2 className="mt-3 text-base font-semibold text-starlight-ink">Drop context here</h2>
+                  <p className="mt-2 text-sm leading-6 text-starlight-muted">
+                    Paste or drop a YouTube link, URL, transcript, PDF, markdown, or raw notes. The canvas will turn it into source nodes, chunks, citations, and agent-ready context.
+                  </p>
+                </div>
+              ) : null}
               <ReactFlow
                 nodes={flowNodes}
                 edges={flowEdges}
@@ -1051,6 +1129,30 @@ function WorkspaceInner() {
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Sparkles className="h-4 w-4 text-starlight-accent" aria-hidden="true" />
                 Action Drawer
+              </div>
+              <div className="mt-3 rounded-md border border-starlight-accent/25 bg-starlight-accent/10 p-3" data-testid="selected-context">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-xs font-semibold text-starlight-ink">
+                    {selectedNodes.length ? `${selectedNodes.length} node context` : 'Whole canvas context'}
+                  </span>
+                  <span className="text-[11px] text-starlight-muted">{selectedNodes.length ? selectedChars : canvas?.nodes.reduce((total, node) => total + node.body.length, 0) ?? 0} chars</span>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {(selectedNodes.length ? selectedNodes : canvas?.nodes.slice(0, 4) ?? []).map((node) => (
+                    <button
+                      key={node.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedIds([node.id]);
+                        setCenter(node.position.x + 130, node.position.y + 80, { zoom: compactCanvas ? 0.72 : 1, duration: 350 });
+                      }}
+                      className="max-w-full truncate rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[11px] text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink"
+                    >
+                      {node.title}
+                    </button>
+                  ))}
+                  {!canvas?.nodes.length ? <span className="text-[11px] text-starlight-muted">No context yet.</span> : null}
+                </div>
               </div>
               <p className="mt-2 text-xs leading-5 text-starlight-muted">
                 Runs are local and deterministic in v0.1. Select nodes to scope an action, or leave empty to use the canvas.
@@ -1125,6 +1227,23 @@ function WorkspaceInner() {
                   <pre className="max-h-48 overflow-y-auto rounded-md border border-starlight-border bg-starlight-bg p-3 text-[11px] leading-5 text-starlight-muted">
                     {JSON.stringify(selectedNode.metadata, null, 2)}
                   </pre>
+                  {selectedCitations.length ? (
+                    <div className="rounded-md border border-starlight-mint/30 bg-starlight-mint/10 p-3">
+                      <div className="text-xs font-semibold text-starlight-mint">Citations</div>
+                      <div className="mt-2 space-y-2">
+                        {selectedCitations.slice(0, 6).map((citation) => (
+                          <div key={citation.id} className="rounded-md border border-starlight-border bg-starlight-surface p-2">
+                            <div className="flex items-center justify-between gap-2 text-[11px]">
+                              <span className="font-semibold text-starlight-ink">{citation.id}</span>
+                              <span className="truncate text-starlight-muted">{citation.chunkId ?? citation.artifactId ?? citation.nodeId}</span>
+                            </div>
+                            {citation.source ? <p className="mt-1 truncate text-[11px] text-starlight-mint">{citation.source}</p> : null}
+                            <p className="mt-1 line-clamp-3 text-xs leading-5 text-starlight-muted">{citation.quote}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : (
                 <p className="mt-3 text-xs leading-5 text-starlight-muted">Select a node to inspect source metadata and body text.</p>
@@ -1149,11 +1268,25 @@ function WorkspaceInner() {
               </div>
               <div className="mt-3 space-y-2">
                 {searchResults.map((result, index) => (
-                  <div key={`${result.title}-${index}`} className="rounded-md border border-starlight-border bg-starlight-surface p-3">
-                    <div className="text-xs font-semibold">{result.title}</div>
-                    <div className="mt-1 text-[11px] text-starlight-muted">{formatKind(result.kind)}</div>
+                  <button
+                    key={`${result.canvasId}-${result.nodeId}-${result.chunkId ?? index}`}
+                    type="button"
+                    disabled={!result.nodeId}
+                    onClick={() => focusSearchResult(result)}
+                    className="w-full rounded-md border border-starlight-border bg-starlight-surface p-3 text-left transition hover:border-starlight-mint/70 disabled:cursor-not-allowed disabled:opacity-55"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 text-xs font-semibold text-starlight-ink">{result.title}</div>
+                      <Crosshair className="mt-0.5 h-3.5 w-3.5 shrink-0 text-starlight-mint" aria-hidden="true" />
+                    </div>
+                    <div className="mt-1 text-[11px] text-starlight-muted">
+                      {formatKind(result.kind)}
+                      {result.chunkId ? ` · ${result.chunkId}` : result.artifactId ? ` · ${result.artifactId}` : ''}
+                      {typeof result.score === 'number' ? ` · score ${result.score}` : ''}
+                    </div>
+                    {result.source ? <p className="mt-1 truncate text-[11px] text-starlight-mint">{result.source}</p> : null}
                     <p className="mt-2 line-clamp-3 text-xs leading-5 text-starlight-muted">{result.excerpt}</p>
-                  </div>
+                  </button>
                 ))}
               </div>
             </section>
@@ -1164,13 +1297,25 @@ function WorkspaceInner() {
                 Run Log
               </div>
               <div className="mt-3 space-y-2">
-                {canvas?.runs.slice().reverse().slice(0, 8).map((run) => (
-                  <div key={run.id} className="rounded-md border border-starlight-border bg-starlight-surface p-3">
-                    <div className="text-xs font-semibold">{run.action.replace(/_/g, ' ')}</div>
-                    <div className="mt-1 text-[11px] text-starlight-muted">{new Date(run.createdAt).toLocaleString()}</div>
-                    <p className="mt-2 text-xs leading-5 text-starlight-muted">{run.summary}</p>
-                  </div>
-                )) ?? null}
+                {canvas?.runs.slice().reverse().slice(0, 8).map((run) => {
+                  const citations = metadataCitations(run.metadata);
+                  return (
+                    <div key={run.id} className="rounded-md border border-starlight-border bg-starlight-surface p-3">
+                      <div className="text-xs font-semibold">{run.action.replace(/_/g, ' ')}</div>
+                      <div className="mt-1 text-[11px] text-starlight-muted">{new Date(run.createdAt).toLocaleString()}</div>
+                      <p className="mt-2 text-xs leading-5 text-starlight-muted">{run.summary}</p>
+                      {citations.length ? (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {citations.slice(0, 5).map((citation) => (
+                            <span key={citation.id} className="rounded-md border border-starlight-mint/30 bg-starlight-mint/10 px-1.5 py-0.5 text-[10px] text-starlight-mint">
+                              {citation.id}{citation.chunkId ? ` ${citation.chunkId}` : ''}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                }) ?? null}
                 {!canvas?.runs.length ? <p className="text-xs leading-5 text-starlight-muted">No runs yet. Select sources and run an action.</p> : null}
               </div>
             </section>

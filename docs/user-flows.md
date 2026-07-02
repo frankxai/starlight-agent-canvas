@@ -7,7 +7,8 @@ flowchart LR
   open["Open app"] --> paste["Paste source into canvas composer"]
   paste --> map["Click Map"]
   map --> inspect["Inspect/edit created node"]
-  inspect --> action["Run summarize or ask"]
+  inspect --> scope["Confirm selected context tray"]
+  scope --> action["Run summarize or ask"]
   action --> export["Export JSON or Markdown"]
 ```
 
@@ -20,7 +21,9 @@ Expected result: the user sees a typed source node, can edit it in the inspector
 3. Click `Map`.
 4. Confirm the created node is selected and visible in the inspector.
 5. Run `Claims` or `Ask Canvas`.
-6. Export the output node as part of the canvas.
+6. Inspect the cited node/chunk ids in the output inspector.
+7. Search a claim or transcript phrase and jump back to the source node.
+8. Export the output node as part of the canvas.
 
 Design note: YouTube ingestion is transcript-first. The app tries title lookup and captions, but manual transcript fallback is part of the core product path.
 
@@ -28,7 +31,7 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 
 1. Launch the `Competitor teardown` template.
 2. Paste competitor URLs, videos, and notes.
-3. Connect related claims with `references` or `compares` edges.
+3. Pick the edge kind in the canvas toolbar, then connect related claims with `references` or `compares` edges.
 4. Run `Compare` and `Matrix`.
 5. Run `Build Brief`.
 6. Export Markdown for implementation planning.
@@ -39,7 +42,8 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 2. Select the new note.
 3. Edit title/body in the inspector.
 4. Connect it to source nodes.
-5. Ask the canvas a question over selected nodes.
+5. Confirm the selected context tray shows the intended nodes.
+6. Ask the canvas a question over selected nodes.
 
 ## Flow 5: Codex Uses The Same Canvas
 
@@ -80,4 +84,4 @@ Mobile is intended for review and light intake in v0.1, not dense graph authorin
 4. Re-import the JSON from the canvas toolbar or through MCP when you want to rehydrate the exact graph later.
 5. If the canvas id already exists locally, import creates a non-destructive copy instead of overwriting active work.
 
-Expected result: a canvas can move between human review, repo artifacts, Codex/Claude/Gemini MCP sessions, and later local rehydration without becoming a dead screenshot. The context packet gives agents metadata, a node index, evidence corpus, recent runs, and a continuation prompt.
+Expected result: a canvas can move between human review, repo artifacts, Codex/Claude/Gemini MCP sessions, and later local rehydration without becoming a dead screenshot. The context packet gives agents metadata, a node index, source chunk manifest, evidence corpus, recent runs, and a continuation prompt.

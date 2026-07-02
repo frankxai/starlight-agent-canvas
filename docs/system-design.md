@@ -28,11 +28,13 @@ Each canvas stores:
 - action runs
 - source artifacts
 
-Source ingestion writes both an artifact record and a typed node. The node is what users manipulate on the graph; the artifact is the durable source/provenance record used by search, export, and future chunk/citation work.
+Source ingestion writes both an artifact record and a typed node. The node is what users manipulate on the graph; the artifact is the durable source/provenance record used by search, export, and citation work.
+
+Artifacts include deterministic source chunks with ids, index, text, and body offsets. Older exports without chunks remain valid; the core can derive chunks from artifact body text when needed.
 
 Portable JSON import validates the same canvas record schema used by exports. Imports preserve the incoming id when it is new to the local home; when that id already exists, the store creates a non-destructive copy with a fresh canvas id and updated timestamps.
 
-Exports have three roles: JSON is portable state, Markdown is a readable handoff, and context is an agent packet with operating contract, node index, evidence corpus, recent runs, and continuation prompt.
+Exports have three roles: JSON is portable state, Markdown is a readable handoff, and context is an agent packet with operating contract, node index, source chunk manifest, evidence corpus, recent runs, and continuation prompt.
 
 ## Node Kinds
 
@@ -48,7 +50,7 @@ v0.1 ships deterministic local actions: summarize, extract claims, compare sourc
 
 ## MCP Boundary
 
-The MCP server exposes safe local tools only. It can list/get/create/import canvases, add/update/ingest positioned nodes, ingest text/URL/YouTube/PDF sources, connect nodes, run actions, search node/artifact evidence, and export. It never posts, pays, scrapes social platforms, or deletes data.
+The MCP server exposes safe local tools only. It can list/get/create/import canvases, add/update/ingest positioned nodes, ingest text/URL/YouTube/PDF sources, connect nodes, run actions, search node/artifact/chunk evidence, and export. It never posts, pays, scrapes social platforms, or deletes data.
 
 ## Network Boundary
 

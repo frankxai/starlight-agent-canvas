@@ -1,4 +1,5 @@
 import type { CanvasRecord } from './schemas.js';
+import { chunksForArtifact } from './chunks.js';
 
 function tableCell(value: unknown): string {
   return String(value ?? '')
@@ -75,6 +76,7 @@ export function exportCanvasAsAgentContext(canvas: CanvasRecord): string {
     '## Operating Contract',
     '',
     '- Treat sources, notes, prompts, runs, and outputs as inspectable canvas state.',
+    '- Cite node ids and chunk ids when making claims from this packet.',
     '- If MCP is available, read the live canvas before mutating it and write durable findings back as nodes.',
     '- Use `ingest_text_source`, `ingest_url`, or `ingest_youtube` for new evidence instead of keeping important context only in chat.',
     '- Use `run_node_action` for deterministic local summaries, claims, comparisons, matrices, build briefs, and source-grounded answers.',
@@ -103,6 +105,18 @@ export function exportCanvasAsAgentContext(canvas: CanvasRecord): string {
     lines.push('', '## Edge Map', '');
     for (const edge of canvas.edges) {
       lines.push(`- \`${edge.source}\` --${edge.kind}--> \`${edge.target}\``);
+    }
+  }
+
+  if (canvas.artifacts.length) {
+    lines.push('', '## Source Chunk Manifest', '');
+    lines.push('| Chunk ID | Artifact ID | Node ID | Source | Offsets |');
+    lines.push('| --- | --- | --- | --- | --- |');
+    for (const artifact of canvas.artifacts) {
+      const node = canvas.nodes.find((candidate) => candidate.metadata.artifactId === artifact.id);
+      for (const chunk of chunksForArtifact(artifact)) {
+        lines.push(`| \`${tableCell(chunk.id)}\` | \`${tableCell(artifact.id)}\` | ${node ? `\`${tableCell(node.id)}\`` : 'n/a'} | ${tableCell(artifact.source) || 'n/a'} | ${chunk.startOffset}-${chunk.endOffset} |`);
+      }
     }
   }
 

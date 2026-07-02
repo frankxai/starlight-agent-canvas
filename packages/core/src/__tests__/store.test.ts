@@ -35,6 +35,7 @@ describe('FileCanvasStore', () => {
       metadata: { videoId: 'abcdefghijk' },
     });
     expect(ingested.artifact.kind).toBe('youtube');
+    expect(ingested.artifact.chunks[0]?.id).toContain(`${ingested.artifact.id}:chunk-`);
     expect(ingested.node.metadata.artifactId).toBe(ingested.artifact.id);
 
     const moved = await store.updateNode(canvas.id, ingested.node.id, { position: { x: 640, y: 360 } });
@@ -42,6 +43,8 @@ describe('FileCanvasStore', () => {
 
     const search = await store.searchArtifacts('local-first');
     expect(search[0]?.canvasId).toBe(canvas.id);
+    const chunkSearch = await store.searchArtifacts('MCP canvas');
+    expect(chunkSearch.some((result) => result.chunkId)).toBe(true);
 
     const markdown = await store.exportCanvas(canvas.id, 'markdown');
     expect(markdown).toContain('# Planning');
@@ -50,6 +53,7 @@ describe('FileCanvasStore', () => {
     const context = await store.exportCanvas(canvas.id, 'context');
     expect(context).toContain('# Agent Context Packet: Planning');
     expect(context).toContain('## Operating Contract');
+    expect(context).toContain('## Source Chunk Manifest');
     expect(context).toContain('MCP-native');
 
     const portable = JSON.parse(await store.exportCanvas(canvas.id, 'json')) as typeof canvas;

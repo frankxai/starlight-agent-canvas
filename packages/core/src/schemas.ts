@@ -59,6 +59,14 @@ export const canvasEdgeSchema = z.object({
   createdAt: z.string().datetime(),
 });
 
+export const sourceChunkSchema = z.object({
+  id: z.string().min(1),
+  index: z.number().int().nonnegative(),
+  text: z.string().default(''),
+  startOffset: z.number().int().nonnegative(),
+  endOffset: z.number().int().nonnegative(),
+});
+
 export const canvasArtifactSchema = z.object({
   id: z.string().min(1),
   kind: z.enum(['url', 'pdf', 'youtube', 'markdown', 'json', 'manual']),
@@ -67,6 +75,19 @@ export const canvasArtifactSchema = z.object({
   source: z.string().optional(),
   createdAt: z.string().datetime(),
   metadata: z.record(z.unknown()).default({}),
+  chunks: z.array(sourceChunkSchema).default([]),
+});
+
+export const sourceCitationSchema = z.object({
+  id: z.string().min(1),
+  nodeId: z.string().min(1),
+  nodeTitle: z.string().min(1),
+  artifactId: z.string().optional(),
+  chunkId: z.string().optional(),
+  chunkIndex: z.number().int().nonnegative().optional(),
+  source: z.string().optional(),
+  quote: z.string().min(1),
+  score: z.number(),
 });
 
 export const actionRunSchema = z.object({
@@ -148,7 +169,9 @@ export type CanvasActionType = z.infer<typeof actionTypeSchema>;
 export type CanvasId = z.infer<typeof canvasIdSchema>;
 export type CanvasNode = z.infer<typeof canvasNodeSchema>;
 export type CanvasEdge = z.infer<typeof canvasEdgeSchema>;
+export type SourceChunk = z.infer<typeof sourceChunkSchema>;
 export type CanvasArtifact = z.infer<typeof canvasArtifactSchema>;
+export type SourceCitation = z.infer<typeof sourceCitationSchema>;
 export type ActionRun = z.infer<typeof actionRunSchema>;
 export type CanvasRecord = z.infer<typeof canvasRecordSchema>;
 export type CreateCanvasInput = z.infer<typeof createCanvasInputSchema>;

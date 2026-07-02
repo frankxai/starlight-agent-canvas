@@ -15,10 +15,10 @@ Most AI canvases make research visible for a human but awkward for local agents.
 - Create local canvases with portable JSON import/export, Markdown handoff exports, and agent context packets.
 - Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
-- Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata.
+- Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata, source chunks, and citation-ready ids.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
 - Ingest YouTube links with title lookup, best-effort public captions, and manual transcript fallback.
-- Run local actions: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions.
+- Run local actions: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions with citation metadata.
 - Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect source bodies, copy/export an agent-ready context packet, export the result, and re-import portable canvas JSON.
 - Auto-open newly created sources and action answers in the inspector so the captured context is immediately usable.
 - Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
@@ -119,7 +119,7 @@ pnpm test:e2e
 
 - Next.js App Router, React, TypeScript, Tailwind.
 - `@xyflow/react` typed workflow canvas.
-- Zod schemas, source artifacts, and a local file-backed store in `packages/core`.
+- Zod schemas, chunked source artifacts, citations, and a local file-backed store in `packages/core`.
 - Source adapters for URL fetch, optional Firecrawl, PDF extraction, YouTube oEmbed/captions, and manual text.
 - `@modelcontextprotocol/sdk` stdio server in `packages/mcp`.
 - Vercel AI SDK dependency for future provider adapters; v0.1 actions remain deterministic and keyless.

@@ -23,7 +23,9 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - The first screen is the usable workspace, not a landing page.
 - User can paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
 - User can create notes directly on the canvas and edit selected node title/body.
-- User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, answer question.
+- User can see the active selected context before running actions.
+- User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
+- User can search local evidence and jump from a result back to the matching graph node/chunk.
 - User can export portable JSON, readable Markdown, and agent context packets; user can re-import portable JSON.
 - MCP clients can list, read, create, import, add/update positioned nodes, ingest text/URL/YouTube/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
@@ -57,7 +59,9 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 - The canvas is both display and input.
 - Every source becomes an artifact plus a visible node.
+- Every durable source artifact gets chunk ids that answers and context exports can cite.
 - Every action output becomes inspectable context.
+- Every search result should help the user re-enter the graph, not become a detached list.
 - Human edits are first-class, not an afterthought.
 - MCP tools are explicit, bounded, local, and non-destructive.
 - Portability beats lock-in.
@@ -65,7 +69,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 ## Success Metrics
 
 - A new local user can install, seed, and open the app in under 10 minutes.
-- A user can map a YouTube/manual transcript source and run `Ask Canvas` in under 2 minutes after launch.
+- A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.
 

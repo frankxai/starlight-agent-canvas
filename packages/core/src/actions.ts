@@ -1,4 +1,5 @@
-import { actionTypeSchema, runActionInputSchema, type ActionRun, type CanvasEdge, type CanvasNode, type CanvasRecord, type RunActionInput } from './schemas.js';
+import { actionTypeSchema, runActionInputSchema, type ActionRun, type CanvasArtifact, type CanvasEdge, type CanvasNode, type CanvasRecord, type RunActionInput, type SourceChunk, type SourceCitation } from './schemas.js';
+import { chunksForArtifact } from './chunks.js';
 import { makeId, nowIso } from './ids.js';
 
 function normalizeWhitespace(value: string): string {
@@ -117,17 +118,76 @@ function implementationBrief(nodes: CanvasNode[]): string {
   ].join('\n');
 }
 
-function answerQuestion(nodes: CanvasNode[], prompt: string): string {
+type EvidenceCandidate = {
+  node: CanvasNode;
+  sentence: string;
+  score: number;
+  artifact?: CanvasArtifact;
+  chunk?: SourceChunk;
+  source?: string;
+};
+
+type ActionOutputResult = {
+  body: string;
+  citations: SourceCitation[];
+};
+
+function artifactForNode(canvas: CanvasRecord | undefined, node: CanvasNode): CanvasArtifact | undefined {
+  const artifactId = typeof node.metadata.artifactId === 'string' ? node.metadata.artifactId : undefined;
+  if (!artifactId) return undefined;
+  return canvas?.artifacts.find((artifact) => artifact.id === artifactId);
+}
+
+function sourceForEvidence(node: CanvasNode, artifact?: CanvasArtifact): string | undefined {
+  if (artifact?.source) return artifact.source;
+  if (typeof node.metadata.source === 'string') return node.metadata.source;
+  if (typeof node.metadata.url === 'string') return node.metadata.url;
+  return undefined;
+}
+
+function nodeChunks(canvas: CanvasRecord | undefined, node: CanvasNode): Array<{ artifact?: CanvasArtifact; chunk?: SourceChunk; text: string; source?: string }> {
+  const artifact = artifactForNode(canvas, node);
+  if (artifact) {
+    const chunks = chunksForArtifact(artifact);
+    return chunks.length
+      ? chunks.map((chunk) => ({ artifact, chunk, text: chunk.text, source: artifact.source }))
+      : [{ artifact, text: artifact.body, source: artifact.source }];
+  }
+  return [{
+    text: node.body || node.title,
+    source: sourceForEvidence(node),
+  }];
+}
+
+function citationFromCandidate(candidate: EvidenceCandidate, index: number): SourceCitation {
+  return {
+    id: `C${index + 1}`,
+    nodeId: candidate.node.id,
+    nodeTitle: candidate.node.title,
+    artifactId: candidate.artifact?.id,
+    chunkId: candidate.chunk?.id,
+    chunkIndex: candidate.chunk?.index,
+    source: candidate.source,
+    quote: candidate.sentence,
+    score: candidate.score,
+  };
+}
+
+function answerQuestion(nodes: CanvasNode[], prompt: string, canvas?: CanvasRecord): ActionOutputResult {
   const question = prompt.trim() || 'What is the most important answer from this canvas?';
   const terms = keywords(question);
   const evidence = nodes
-    .flatMap((node) => splitSentences(`${node.title}. ${node.body}`).slice(0, 24).map((sentence) => {
-      const lower = sentence.toLowerCase();
-      const score = terms.reduce((total, term) => total + (lower.includes(term) ? 1 : 0), 0)
-        + (node.kind.startsWith('source_') ? 0.4 : 0)
-        + (node.kind === 'output' ? 0.2 : 0);
-      return { node, sentence, score };
-    }))
+    .flatMap((node) => nodeChunks(canvas, node).flatMap(({ artifact, chunk, text, source }) =>
+      splitSentences(text).slice(0, 24).map((sentence) => {
+        const lower = sentence.toLowerCase();
+        const title = `${node.title} ${artifact?.title ?? ''}`.toLowerCase();
+        const score = terms.reduce((total, term) => total + (lower.includes(term) ? 1 : 0) + (title.includes(term) ? 0.35 : 0), 0)
+          + (node.kind.startsWith('source_') ? 0.4 : 0)
+          + (artifact ? 0.4 : 0)
+          + (node.kind === 'output' ? 0.2 : 0);
+        return { node, sentence, score, artifact, chunk, source } satisfies EvidenceCandidate;
+      })
+    ))
     .sort((a, b) => b.score - a.score || a.sentence.length - b.sentence.length)
     .slice(0, 8);
 
@@ -135,59 +195,82 @@ function answerQuestion(nodes: CanvasNode[], prompt: string): string {
   const fallback = evidence.slice(0, 4);
   const chosen = useful.length ? useful : fallback;
   if (!chosen.length) {
-    return [
+    return {
+      citations: [],
+      body: [
+        '## Source-grounded Answer',
+        '',
+        `Question: ${question}`,
+        '',
+        'No source text is available yet. Drop a URL, YouTube link, PDF, transcript, or note onto the canvas first.',
+      ].join('\n'),
+    };
+  }
+
+  const citations = chosen.map(citationFromCandidate);
+  const sourceLines = citations.map((citation) => {
+    const chunk = citation.chunkId ? `; chunk \`${citation.chunkId}\`` : '';
+    return `- [${citation.id}] ${citation.quote} (${citation.nodeTitle}; node \`${citation.nodeId}\`${chunk})`;
+  });
+  const citationLines = citations.map((citation) => {
+    const source = citation.source ? `; source: ${citation.source}` : '';
+    const artifact = citation.artifactId ? `; artifact: \`${citation.artifactId}\`` : '';
+    const chunk = citation.chunkId ? `; chunk: \`${citation.chunkId}\`` : '';
+    return `- [${citation.id}] node: \`${citation.nodeId}\`${artifact}${chunk}${source}`;
+  });
+  return {
+    citations,
+    body: [
       '## Source-grounded Answer',
       '',
       `Question: ${question}`,
       '',
-      'No source text is available yet. Drop a URL, YouTube link, PDF, transcript, or note onto the canvas first.',
-    ].join('\n');
-  }
+      '### Best answer',
+      `${citations[0].quote} [${citations[0].id}]`,
+      '',
+      '### Evidence',
+      ...sourceLines,
+      '',
+      '### Citations',
+      ...citationLines,
+      '',
+      '### Next move',
+      'Run extract claims or decision matrix on the same selected nodes when you need a more structured pass.',
+    ].join('\n'),
+  };
+}
 
-  const sourceLines = chosen.map((item) => `- ${item.sentence} (${item.node.title})`);
-  return [
-    '## Source-grounded Answer',
-    '',
-    `Question: ${question}`,
-    '',
-    '### Best answer',
-    chosen[0].sentence,
-    '',
-    '### Evidence',
-    ...sourceLines,
-    '',
-    '### Next move',
-    'Run extract claims or decision matrix on the same selected nodes when you need a more structured pass.',
-  ].join('\n');
+function buildActionResult(action: RunActionInput['action'], nodes: CanvasNode[], prompt = '', canvas?: CanvasRecord): ActionOutputResult {
+  switch (actionTypeSchema.parse(action)) {
+    case 'summarize':
+      return { body: summarize(nodes), citations: [] };
+    case 'extract_claims':
+      return { body: extractClaims(nodes), citations: [] };
+    case 'compare_sources':
+      return { body: compareSources(nodes), citations: [] };
+    case 'decision_matrix':
+      return { body: decisionMatrix(nodes), citations: [] };
+    case 'implementation_brief':
+      return { body: implementationBrief(nodes), citations: [] };
+    case 'answer_question':
+      return answerQuestion(nodes, prompt, canvas);
+  }
 }
 
 export function buildActionOutput(action: RunActionInput['action'], nodes: CanvasNode[], prompt = ''): string {
-  switch (actionTypeSchema.parse(action)) {
-    case 'summarize':
-      return summarize(nodes);
-    case 'extract_claims':
-      return extractClaims(nodes);
-    case 'compare_sources':
-      return compareSources(nodes);
-    case 'decision_matrix':
-      return decisionMatrix(nodes);
-    case 'implementation_brief':
-      return implementationBrief(nodes);
-    case 'answer_question':
-      return answerQuestion(nodes, prompt);
-  }
+  return buildActionResult(action, nodes, prompt).body;
 }
 
 export function runCanvasAction(canvas: CanvasRecord, rawInput: RunActionInput): { canvas: CanvasRecord; run: ActionRun; outputNode: CanvasNode } {
   const input = runActionInputSchema.parse(rawInput);
   const createdAt = nowIso();
   const nodes = selectedNodes(canvas, input.inputNodeIds);
-  const output = buildActionOutput(input.action, nodes, input.prompt);
+  const output = buildActionResult(input.action, nodes, input.prompt, canvas);
   const outputNode: CanvasNode = {
     id: makeId('node', `${input.action}-output`),
     kind: 'output',
     title: `${input.action.replace(/_/g, ' ')} output`,
-    body: output,
+    body: output.body,
     position: {
       x: 720,
       y: 120 + canvas.runs.length * 180,
@@ -196,6 +279,7 @@ export function runCanvasAction(canvas: CanvasRecord, rawInput: RunActionInput):
       action: input.action,
       inputNodeIds: input.inputNodeIds,
       prompt: input.prompt || undefined,
+      citations: output.citations,
     },
     createdAt,
     updatedAt: createdAt,
@@ -210,6 +294,7 @@ export function runCanvasAction(canvas: CanvasRecord, rawInput: RunActionInput):
     createdAt,
     metadata: {
       prompt: input.prompt || undefined,
+      citations: output.citations,
     },
   };
   const inputEdges: CanvasEdge[] = nodes.slice(0, 12).map((node) => ({

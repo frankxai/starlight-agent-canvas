@@ -101,7 +101,7 @@ Use the same stdio shape when the host supports MCP servers:
 
 `add_node`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
 
-`search_artifacts` searches node text and durable source artifacts. Results include artifact ids and source metadata when available.
+`search_artifacts` searches node text and durable source artifacts. Results include artifact ids, chunk ids, scores, and source metadata when available.
 
 ## Resources And Prompt
 

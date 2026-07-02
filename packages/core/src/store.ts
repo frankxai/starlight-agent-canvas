@@ -2,6 +2,7 @@ import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { canvasIdSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, ingestSourceInputSchema, updateNodeInputSchema, type AddNodeInput, type CanvasArtifact, type CanvasEdge, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type IngestSourceInput, type RunActionInput, type UpdateNodeInput } from './schemas.js';
+import { buildSourceChunks, chunksForArtifact } from './chunks.js';
 import { createCanvasRecord } from './templates.js';
 import { exportCanvasAsAgentContext, exportCanvasAsMarkdown } from './exporters.js';
 import { makeId, nowIso } from './ids.js';
@@ -215,7 +216,9 @@ export class FileCanvasStore {
         source: parsed.source,
         createdAt: timestamp,
         metadata: parsed.metadata,
+        chunks: [],
       };
+      artifact.chunks = buildSourceChunks(artifact.id, artifact.body);
       const node: CanvasNode = {
         id: makeId('node', parsed.title),
         kind: parsed.kind,
@@ -313,11 +316,11 @@ export class FileCanvasStore {
     return JSON.stringify(canvas, null, 2);
   }
 
-  async searchArtifacts(query: string): Promise<Array<{ canvasId: string; nodeId: string; artifactId?: string; title: string; kind: string; excerpt: string; source?: string; score: number }>> {
+  async searchArtifacts(query: string): Promise<Array<{ canvasId: string; nodeId: string; artifactId?: string; chunkId?: string; chunkIndex?: number; title: string; kind: string; excerpt: string; source?: string; score: number }>> {
     const lower = query.trim().toLowerCase();
     if (!lower) return [];
     const summaries = await this.listCanvases();
-    const results: Array<{ canvasId: string; nodeId: string; artifactId?: string; title: string; kind: string; excerpt: string; source?: string; score: number }> = [];
+    const results: Array<{ canvasId: string; nodeId: string; artifactId?: string; chunkId?: string; chunkIndex?: number; title: string; kind: string; excerpt: string; source?: string; score: number }> = [];
     for (const summary of summaries) {
       const canvas = await this.getCanvas(summary.id);
       for (const node of canvas.nodes) {
@@ -336,17 +339,39 @@ export class FileCanvasStore {
       }
       for (const artifact of canvas.artifacts) {
         const haystack = `${artifact.title}\n${artifact.body}\n${artifact.source ?? ''}\n${JSON.stringify(artifact.metadata)}`.toLowerCase();
+        const chunks = chunksForArtifact(artifact);
+        const matchingChunks = chunks.filter((chunk) => chunk.text.toLowerCase().includes(lower));
         if (haystack.includes(lower)) {
+          const node = canvas.nodes.find((candidate) => candidate.metadata.artifactId === artifact.id);
+          if (!matchingChunks.length) {
+            const fallbackChunk = chunks[0];
+            results.push({
+              canvasId: canvas.id,
+              nodeId: node?.id ?? '',
+              artifactId: artifact.id,
+              chunkId: fallbackChunk?.id,
+              chunkIndex: fallbackChunk?.index,
+              title: artifact.title,
+              kind: artifact.kind,
+              excerpt: (fallbackChunk?.text ?? artifact.body).slice(0, 240),
+              source: artifact.source,
+              score: artifact.title.toLowerCase().includes(lower) ? 4 : 2,
+            });
+          }
+        }
+        for (const chunk of matchingChunks) {
           const node = canvas.nodes.find((candidate) => candidate.metadata.artifactId === artifact.id);
           results.push({
             canvasId: canvas.id,
             nodeId: node?.id ?? '',
             artifactId: artifact.id,
+            chunkId: chunk.id,
+            chunkIndex: chunk.index,
             title: artifact.title,
             kind: artifact.kind,
-            excerpt: artifact.body.slice(0, 240),
+            excerpt: chunk.text.slice(0, 240),
             source: artifact.source,
-            score: artifact.title.toLowerCase().includes(lower) ? 4 : 2,
+            score: artifact.title.toLowerCase().includes(lower) ? 5 : 3,
           });
         }
       }

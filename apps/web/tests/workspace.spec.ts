@@ -12,6 +12,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByText('Starlight Agent Canvas')).toBeVisible();
   await page.getByRole('button', { name: new RegExp(title) }).click();
   await expect(page.getByTestId('intake-text')).toBeVisible();
+  await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
 
   await page.getByTestId('intake-text').fill('My canvas note: collect the product gaps and turn them into a brief.');
   await expect(page.getByTestId('quick-note')).toBeEnabled();
@@ -45,7 +46,15 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('ask-prompt').fill('What source types are supported?');
   await page.getByTestId('ask-canvas').click();
   await expect(page.getByTestId('inspector-title')).toHaveValue('answer question output');
+  await expect(page.getByTestId('inspector')).toContainText('Citations');
   await expect(page.getByTestId('copy-context')).toBeEnabled();
+
+  await page.getByPlaceholder('Search canvases').fill('Nodeflow');
+  await page.getByRole('button', { name: 'Go' }).click();
+  await expect(page.getByRole('button', { name: /Nodeflow connects YouTube/ }).first()).toBeVisible();
+  await page.getByRole('button', { name: /Nodeflow connects YouTube/ }).first().click();
+  await expect(page.getByTestId('inspector-body')).toHaveValue(/Nodeflow connects YouTube/);
+  await expect(page.getByTestId('selected-context')).toContainText('1 node context');
 
   const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
   expect(exportHref).toBeTruthy();

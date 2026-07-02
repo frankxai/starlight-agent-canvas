@@ -38,6 +38,7 @@ Codex should treat the canvas as a typed local context layer:
 - Read before writing when a canvas already exists.
 - Add source nodes for durable evidence, not one-off chat snippets.
 - Run actions to create output nodes that the human can inspect.
+- Cite node ids and chunk ids when using source-grounded answers or context packets.
 - Prefer `update_node` for human-readable cleanup over creating duplicate nodes.
 - Export `context` when Codex needs a self-contained agent packet, `markdown` for human handoff, and `json` for portable rehydration.
 - Import portable JSON when a user gives Codex a saved canvas snapshot that should become active local context again.
@@ -65,7 +66,7 @@ Keep mutations explicit and summarize every node/action you changed.
 - `update_node`: clean up titles, bodies, metadata, or positions.
 - `connect_nodes`: make evidence relationships explicit.
 - `run_node_action`: summarize, compare, build matrix, build brief, or answer a question.
-- `search_artifacts`: find local source material across canvases.
+- `search_artifacts`: find local source material across canvases, including artifact and chunk ids when available.
 - `export_canvas`: produce JSON, Markdown, or an agent context packet for handoff.
 
 For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Use this for agent-generated canvases so human review starts from a coherent visual map.
@@ -79,7 +80,7 @@ For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Us
 5. Human exports or asks Codex to continue implementation from the output.
 6. Later, either side can import the JSON export to resume the same graph as durable context.
 
-When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`.
+When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`. That packet includes a source chunk manifest; cite those chunk ids when making claims.
 
 ## Safety Notes
 
