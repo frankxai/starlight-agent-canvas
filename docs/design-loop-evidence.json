@@ -232,6 +232,16 @@
       "path_or_url": "docs/visual-qa/desktop-codex-handoff-reduced-motion.png",
       "kind": "desktop reduced-motion Codex handoff screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-paste-map-immediate.png",
+      "kind": "desktop immediate Paste & Map workspace screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-paste-map-immediate.png",
+      "kind": "mobile immediate Paste & Map workspace screenshot",
+      "inspected": true
     }
   ],
   "checks": [
