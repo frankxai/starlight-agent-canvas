@@ -18,7 +18,10 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm doctor
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm mcp:smoke
       - run: pnpm build
+      - run: pnpm --filter @starlight-agent-canvas/web exec playwright install --with-deps chromium
+      - run: pnpm test:e2e

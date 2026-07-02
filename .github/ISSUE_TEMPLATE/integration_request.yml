@@ -1,0 +1,46 @@
+name: Integration Request
+description: Request an MCP client, model provider, ingestion source, or deployment integration.
+title: "integration: "
+labels: ["integration", "mcp"]
+body:
+  - type: dropdown
+    id: integration_type
+    attributes:
+      label: Integration Type
+      options:
+        - MCP client
+        - Model provider
+        - Source ingestion
+        - Export target
+        - Local storage
+        - Hosted deployment
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: use_case
+    attributes:
+      label: Use Case
+      description: What workflow should this unlock?
+    validations:
+      required: true
+  - type: textarea
+    id: interface
+    attributes:
+      label: Proposed Interface
+      description: Config shape, command, API route, MCP tool, env var names, or UI entry point.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Safety Review
+      options:
+        - label: Does not require broad credentials.
+        - label: Can run with least-privilege or local-only defaults.
+        - label: Has a clear failure mode when keys/network are unavailable.
+        - label: Does not post externally or mutate accounts without explicit user action.
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Links to docs, SDKs, MCP servers, or comparable products.
+

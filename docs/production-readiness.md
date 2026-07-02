@@ -5,6 +5,7 @@ Starlight Agent Canvas is ready for local production use when these gates pass:
 ```powershell
 cd C:\Users\frank\starlight\repos\starlight-agent-canvas
 C:\Users\frank\starlight\repos\security\Invoke-RepoSecurityScan.ps1 -Path .
+pnpm doctor
 pnpm verify
 pnpm mcp:smoke
 pnpm test:e2e
@@ -52,8 +53,9 @@ Optional:
 2. Verify MCP stdio smoke.
 3. Capture desktop, mobile, and reduced-motion screenshots.
 4. Commit to `main`.
-5. If a Vercel project is intentionally connected later, deploy a preview first.
-6. Verify the live URL before any production promotion.
+5. Confirm the GitHub readiness checklist in `docs/github-readiness.md`.
+6. If a Vercel project is intentionally connected later, deploy a preview first.
+7. Verify the live URL before any production promotion.
 
 ## Current Boundary
 

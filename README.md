@@ -4,6 +4,12 @@ OSS-first, MCP-native research and workflow canvas for Codex, Claude, Gemini, cr
 
 This is not a Poppy or Nodeflow clone. It is a local-first agent context layer: sources, prompts, MCP tools, agent runs, and outputs become typed nodes on a portable canvas.
 
+![Starlight Agent Canvas desktop workspace](docs/visual-qa/desktop-live-canvas-composer.png)
+
+## Why It Exists
+
+Most AI canvases make research visible for a human but awkward for local agents. Starlight Agent Canvas is built as a shared context surface: you can paste/drop material visually, and Codex/Claude/Gemini can use the same canvas through safe MCP tools.
+
 ## What v0.1 Does
 
 - Create local canvases and portable JSON/Markdown exports.
@@ -20,9 +26,24 @@ This is not a Poppy or Nodeflow clone. It is a local-first agent context layer: 
 
 ## Quick Start
 
+From a GitHub clone:
+
+```powershell
+git clone <repo-url>
+cd starlight-agent-canvas
+pnpm install
+pnpm doctor
+pnpm seed:starlight
+pnpm dev
+```
+
+From Frank's local estate:
+
 ```powershell
 cd C:\Users\frank\starlight\repos\starlight-agent-canvas
 pnpm install
+pnpm doctor
+pnpm seed:starlight
 pnpm dev
 ```
 
@@ -35,7 +56,7 @@ Optional local data path:
 $env:AGENT_CANVAS_HOME="C:\Users\frank\.starlight\agent-canvas"
 ```
 
-Seed the Starlight operating canvas:
+Seed or refresh the Starlight operating canvas:
 
 ```powershell
 pnpm seed:starlight
@@ -56,6 +77,8 @@ pnpm mcp:build
 pnpm mcp:smoke
 pnpm mcp:start
 ```
+
+For Codex-specific operating guidance, see `docs/codex-integration.md`.
 
 Example MCP client entry:
 
@@ -78,6 +101,7 @@ Example MCP client entry:
 ## Verify
 
 ```powershell
+pnpm doctor
 pnpm verify
 pnpm mcp:smoke
 pnpm test:e2e
@@ -98,6 +122,18 @@ pnpm test:e2e
 See `docs/technology-stack.md`, `docs/mcp-setup.md`, and `docs/production-readiness.md`.
 
 Client examples live in `examples/mcp`.
+
+## Docs
+
+- Install and first run: `docs/install.md`
+- PRD: `docs/prd.md`
+- User flows: `docs/user-flows.md`
+- Codex integration: `docs/codex-integration.md`
+- MCP setup: `docs/mcp-setup.md`
+- System design: `docs/system-design.md`
+- Technology stack: `docs/technology-stack.md`
+- GitHub readiness: `docs/github-readiness.md`
+- Production readiness: `docs/production-readiness.md`
 
 ## Repo Layout
 

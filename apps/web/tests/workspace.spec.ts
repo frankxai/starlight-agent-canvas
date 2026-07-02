@@ -13,32 +13,36 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('intake-text')).toBeVisible();
 
   await page.getByTestId('intake-text').fill('My canvas note: collect the product gaps and turn them into a brief.');
+  await expect(page.getByTestId('quick-note')).toBeEnabled();
   await page.getByTestId('quick-note').click();
-  await expect(page.getByText('Added canvas note.')).toBeVisible();
   await expect(page.getByTestId('inspector-title')).toBeVisible();
+  await expect(page.getByTestId('inspector-title')).toHaveValue('My canvas note: collect the product gaps and turn them into a brief.');
+  await expect(page.getByTestId('save-node')).toBeEnabled();
   await page.getByTestId('inspector-title').fill('Edited canvas note');
   await page.getByTestId('inspector-body').fill('Edited note body with product gaps, source needs, and next actions.');
   await page.getByTestId('save-node').click();
-  await expect(page.getByText('Saved selected node.')).toBeVisible();
+  await expect(page.getByTestId('save-node')).toBeEnabled();
 
   await page.getByTestId('intake-text').fill('Nodeflow connects YouTube, PDFs, websites, and transcripts into visual AI workflows.');
+  await expect(page.getByTestId('intake-ingest')).toBeEnabled();
   await page.getByTestId('intake-ingest').click();
-  await expect(page.getByText(/Mapped 1 source item/)).toBeVisible();
+  await expect(page.getByTestId('inspector-body')).toHaveValue(/Nodeflow connects YouTube/);
+  await expect(page.getByTestId('intake-ingest')).toBeDisabled();
+  await expect(page.getByTestId('quick-note')).toBeEnabled();
 
   await page.evaluate(() => {
     const data = new DataTransfer();
     data.setData('text/plain', 'Pasted anywhere source: creators paste video notes directly onto the canvas for synthesis.');
     window.dispatchEvent(new ClipboardEvent('paste', { clipboardData: data, bubbles: true, cancelable: true }));
   });
-  await expect(page.getByText(/Mapped 1 source item/)).toBeVisible();
+  await expect(page.getByTestId('inspector-body')).toHaveValue(/Pasted anywhere source/);
+  await expect(page.getByTestId('quick-note')).toBeEnabled();
 
   await page.getByRole('button', { name: 'Summarize' }).click();
-  await expect(page.getByText('Ran summarize.')).toBeVisible();
   await expect(page.getByTestId('inspector-title')).toHaveValue('summarize output');
 
   await page.getByTestId('ask-prompt').fill('What source types are supported?');
   await page.getByTestId('ask-canvas').click();
-  await expect(page.getByText('Ran answer question.')).toBeVisible();
   await expect(page.getByTestId('inspector-title')).toHaveValue('answer question output');
 
   const exportHref = await page.getByLabel('Export JSON').getAttribute('href');

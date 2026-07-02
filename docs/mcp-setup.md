@@ -28,6 +28,8 @@ AGENT_CANVAS_HOME = "C:/Users/frank/.starlight/agent-canvas"
 
 This keeps canvas data under `C:\Users\frank\.starlight\agent-canvas`.
 
+See `docs/codex-integration.md` for the recommended Codex operating contract, prompts, and shared human/agent workflow.
+
 ## Claude Desktop / MCP-Compatible Clients
 
 The repo includes `.mcp.json` with the same local server entry:
