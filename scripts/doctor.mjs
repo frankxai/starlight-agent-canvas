@@ -173,9 +173,9 @@ status(
   existsSync(coreSchemaDistPath) ? 'source/video/image kinds available' : 'run pnpm mcp:build after schema changes',
 );
 status(
-  await fileIncludes(mcpIndexDistPath, ['ingest_video', 'ingest_image', 'source_video', 'source_image']),
+  await fileIncludes(mcpIndexDistPath, ['ingest_video', 'ingest_image', 'ingest_anything', 'get_latest_canvas', 'source_video', 'source_image']),
   'built MCP media tools',
-  existsSync(mcpIndexDistPath) ? 'video/image ingest tools available' : 'run pnpm mcp:build after MCP changes',
+  existsSync(mcpIndexDistPath) ? 'video/image/anything ingest tools available' : 'run pnpm mcp:build after MCP changes',
 );
 
 const home = process.env.AGENT_CANVAS_HOME

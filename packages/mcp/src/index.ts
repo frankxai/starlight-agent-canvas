@@ -132,8 +132,8 @@ function registerOperatorPrompts(server: McpServer) {
           type: 'text',
           text: [
             'Use the starlight-agent-canvas MCP server as a local, typed operating canvas.',
-            'Start by calling list_canvases and get_canvas for canvas-starlight-agent-canvas-os when present.',
-            'Use ingest_url, ingest_youtube, ingest_video, ingest_image, or ingest_text_source for sources so artifacts, provenance, and typed nodes stay connected.',
+            'Start by calling get_latest_canvas, or list_canvases and get_canvas when you need a specific canvas.',
+            'Use ingest_anything when the human gives mixed pasted context. Use ingest_url, ingest_youtube, ingest_video, ingest_image, or ingest_text_source when the source type is already known.',
             'Add prompts, MCP tools, agent runs, and outputs as typed nodes. Connect evidence with references, derives_from, compares, runs, or exports edges.',
             'Run local actions for summaries, claims, comparisons, decision matrices, implementation briefs, and source-grounded answers.',
             'Prefer export_canvas with format "codex" for a ready-to-paste Codex continuation prompt, "context" for agent packets, JSON for portable rehydration, and Markdown for human-readable handoff.',
@@ -165,6 +165,19 @@ export function createAgentCanvasMcpServer() {
       annotations: READ_ONLY_LOCAL,
     },
     async () => handlers.list_canvases(),
+  );
+
+  server.registerTool(
+    'get_latest_canvas',
+    {
+      title: 'Get Latest Canvas',
+      description: 'Read the most recently updated local canvas so an agent can resume the same canvas the human was using.',
+      inputSchema: {
+        includeCanvas: z.boolean().optional(),
+      },
+      annotations: READ_ONLY_LOCAL,
+    },
+    async (args) => handlers.get_latest_canvas(args),
   );
 
   server.registerTool(
@@ -350,6 +363,24 @@ export function createAgentCanvasMcpServer() {
       annotations: SAFE_LOCAL_WRITE,
     },
     async (args) => handlers.ingest_pdf(args),
+  );
+
+  server.registerTool(
+    'ingest_anything',
+    {
+      title: 'Ingest Anything',
+      description: 'Mirror the web canvas paste-anything flow: detect YouTube, video links, image links, web URLs, and raw notes, then map them into typed local source nodes.',
+      inputSchema: {
+        canvasId: canvasIdSchema.optional(),
+        content: z.string().min(1),
+        title: z.string().min(1).optional(),
+        position: z.object({ x: z.number(), y: z.number() }).optional(),
+        runAction: z.enum(['none', 'summarize', 'extract_claims', 'compare_sources', 'decision_matrix', 'implementation_brief', 'answer_question']).optional(),
+        prompt: z.string().optional(),
+      },
+      annotations: SAFE_NETWORK_SOURCE_INTAKE,
+    },
+    async (args) => handlers.ingest_anything(args),
   );
 
   server.registerTool(

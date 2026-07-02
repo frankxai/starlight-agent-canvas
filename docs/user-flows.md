@@ -115,9 +115,9 @@ sequenceDiagram
   Human->>Canvas: Confirm Setup / MCP panel is wired
   Human->>Canvas: Paste notes, URLs, transcripts
   Canvas->>Canvas: Store nodes and artifacts locally
-  Codex->>MCP: list_canvases
+  Codex->>MCP: get_latest_canvas
   MCP->>Canvas: Read local canvas JSON
-  Codex->>MCP: ingest_text_source or add_node
+  Codex->>MCP: ingest_anything or typed ingest tool
   MCP->>Canvas: Add typed node
   Codex->>MCP: run_node_action
   MCP->>Canvas: Add output node and run log
@@ -125,7 +125,7 @@ sequenceDiagram
   Human->>Canvas: Inspect and edit output
 ```
 
-Expected result: human and agent work on the same local state with explicit, reviewable mutations.
+Expected result: human and agent work on the same local state with explicit, reviewable mutations. When the agent receives a messy pasted source blob, `ingest_anything` mirrors the web canvas intake and maps YouTube, video, image, URL, and note context without making the user pick a lower-level tool.
 
 ## Flow 5A: Guided Workflow Template
 

@@ -33,10 +33,10 @@ flowchart LR
 
 Agents should use the MCP server as a typed local operating surface, not as a generic note bucket.
 
-1. `list_canvases`
-2. `get_canvas`
-3. Read existing nodes/artifacts before writing.
-4. Use source-ingest tools when adding evidence: `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, or `ingest_pdf`.
+1. `get_latest_canvas` when the human means the active/recent canvas, or `list_canvases` and `get_canvas` when a specific canvas matters.
+2. Read existing nodes/artifacts before writing.
+3. Use `ingest_anything` for messy pasted context so MCP mirrors the human canvas intake.
+4. Use source-ingest tools when the source type is already known: `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, or `ingest_pdf`.
 5. Use `position` for generated nodes so the human opens a legible map.
 6. Use `connect_nodes` to make evidence relationships visible.
 7. Use `run_node_action` for summaries, claims, comparisons, matrices, implementation briefs, or cited answers.

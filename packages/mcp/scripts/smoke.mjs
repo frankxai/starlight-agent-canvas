@@ -11,12 +11,14 @@ const home = process.env.AGENT_CANVAS_HOME ?? path.join(repoRoot, '.agent-canvas
 
 const expectedTools = [
   'list_canvases',
+  'get_latest_canvas',
   'get_canvas',
   'create_canvas',
   'import_canvas',
   'add_node',
   'update_node',
   'ingest_text_source',
+  'ingest_anything',
   'ingest_url',
   'ingest_youtube',
   'ingest_video',
@@ -60,6 +62,14 @@ try {
   const canvasId = created.structuredContent?.canvas?.id;
   if (typeof canvasId !== 'string') {
     throw new Error('create_canvas did not return a canvas id.');
+  }
+
+  const latest = await client.callTool({
+    name: 'get_latest_canvas',
+    arguments: {},
+  });
+  if (latest.structuredContent?.canvas?.id !== canvasId) {
+    throw new Error('get_latest_canvas did not return the newly created smoke canvas.');
   }
 
   const ingested = await client.callTool({
@@ -135,6 +145,23 @@ try {
   }
   if (imageArtifact.metadata?.imageUrl !== 'https://example.com/workflow-screenshot.png') {
     throw new Error('ingest_image did not preserve image URL provenance.');
+  }
+
+  const anything = await client.callTool({
+    name: 'ingest_anything',
+    arguments: {
+      canvasId,
+      content: 'https://vimeo.com/987654321\nManual notes: paste-anything MCP intake maps generic video links into typed source_video context for Codex.',
+      runAction: 'summarize',
+      position: { x: 1040, y: 540 },
+    },
+  });
+  const anythingNodeIds = anything.structuredContent?.nodeIds;
+  if (!Array.isArray(anythingNodeIds) || anythingNodeIds.length !== 1 || anything.structuredContent?.results?.[0]?.node?.kind !== 'source_video') {
+    throw new Error('ingest_anything did not detect and map a generic video reference.');
+  }
+  if (!anything.structuredContent?.run?.outputNode?.id) {
+    throw new Error('ingest_anything did not run the requested local action.');
   }
 
   const urlSource = await client.callTool({

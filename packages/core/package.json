@@ -8,6 +8,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./intake": {
+      "types": "./dist/intake.d.ts",
+      "import": "./dist/intake.js"
     }
   },
   "scripts": {

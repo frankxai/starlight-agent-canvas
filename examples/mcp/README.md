@@ -21,8 +21,11 @@ Ask the MCP client:
 
 ```text
 Use starlight-agent-canvas as the shared local research canvas.
-List canvases and inspect the active canvas.
+Get the latest canvas, or list canvases and inspect the active canvas if you need a specific one.
 Create a new blank canvas titled "MCP agent workflow demo".
+Use ingest_anything for this pasted source blob and run summarize on the new nodes:
+"https://vimeo.com/987654321
+Manual notes: this generic video explains how a human and Codex share one context canvas."
 Ingest a YouTube URL with this manual transcript:
 "The canvas should accept video links, transcripts, notes, PDFs, and web sources, then export a cited context packet for Codex."
 Ingest a Vimeo URL with this manual transcript:
@@ -39,6 +42,8 @@ Return the node ids, artifact ids, chunk ids, and export format you used.
 
 Expected proof points:
 
+- `get_latest_canvas` resumes the active human/agent canvas.
+- `ingest_anything` mirrors the web paste-anything path and can run an action over newly mapped nodes.
 - `ingest_youtube` uses `manualTranscript`.
 - `ingest_video` creates a `source_video` node and `video` artifact.
 - `ingest_text_source` creates a durable artifact.

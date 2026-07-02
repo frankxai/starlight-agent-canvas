@@ -72,6 +72,8 @@ Codex should treat the canvas as a typed local context layer:
 - Pass `nodeIds` to `export_canvas` when the human has selected sources/notes and Codex should stay scoped to that evidence.
 - Import portable JSON when a user gives Codex a saved canvas snapshot that should become active local context again.
 - Never assume destructive tools exist; v0.1 intentionally has no delete or external-posting tools.
+- Prefer `get_latest_canvas` when the human says "use the canvas I was just working on" and no exact canvas id was provided.
+- Prefer `ingest_anything` when the human pastes mixed context and expects the same behavior as the web canvas intake.
 
 ## Recommended Prompt
 
@@ -87,8 +89,10 @@ For implementation continuation, prefer `export_canvas` with `format: "codex"` o
 ## Common Codex Moves
 
 - `list_canvases`: find the active local canvas.
+- `get_latest_canvas`: resume the most recently updated human/agent canvas without requiring the user to name a canvas id.
 - `get_canvas`: inspect current graph state before editing.
 - `import_canvas`: rehydrate a portable JSON canvas export without overwriting an existing local canvas.
+- `ingest_anything`: paste-anything MCP intake that detects YouTube, generic video links, image links, web URLs, and raw notes; optionally run a local action over only the newly mapped nodes.
 - `ingest_text_source`: add pasted research, transcripts, repo notes, or meeting notes.
 - `ingest_url`: add a public URL as source context.
 - `ingest_youtube`: add a YouTube URL plus optional manual transcript.
@@ -146,11 +150,22 @@ After the human has pasted or dropped sources in the UI, use:
 
 ```text
 Use starlight-agent-canvas.
-Find the most recently updated canvas.
-Read the canvas before writing.
+Call get_latest_canvas and read the canvas before writing.
 Identify the source nodes and artifacts that look most relevant.
 Run one useful action over the selected evidence.
 Export format "codex" and summarize the node ids, artifact ids, chunk ids, and changes you made.
+```
+
+## Paste-Anything MCP Prompt
+
+When the human gives Codex a messy source blob instead of asking them to choose a specific MCP ingest tool:
+
+```text
+Use starlight-agent-canvas.
+Call get_latest_canvas.
+Call ingest_anything with the pasted content and runAction "summarize".
+Read the newly created node ids, artifact ids, and chunks.
+Export the canvas with format "codex" scoped to the newly created nodes when the next turn should stay focused.
 ```
 
 ## Selected Evidence Prompt

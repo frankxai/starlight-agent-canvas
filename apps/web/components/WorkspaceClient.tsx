@@ -49,6 +49,7 @@ import {
   TriangleAlert,
   Youtube,
 } from 'lucide-react';
+import { detectIntakeText } from '@starlight-agent-canvas/core/intake';
 import type { CanvasActionType, CanvasArtifact, CanvasEdge, CanvasEdgeKind, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
 
 type CanvasSummary = {
@@ -374,9 +375,6 @@ function selectedContextPacket(node: CanvasNode, artifact?: CanvasArtifact | nul
   return lines.join('\n');
 }
 
-const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
-const YOUTUBE_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
-const VIDEO_FILE_PATTERN = /\.(mp4|m4v|mov|webm|mkv)(\?.*)?$/i;
 const IMAGE_FILE_PATTERN = /\.(png|jpe?g|webp|gif|avif)(\?.*)?$/i;
 const SOURCE_FILE_ACCEPT = 'application/pdf,image/png,image/jpeg,image/webp,image/gif,image/avif,text/*,.txt,.md,.markdown,.json,.csv,.log';
 const SUPPORTED_IMAGE_MIME_TYPES = new Set([
@@ -386,63 +384,6 @@ const SUPPORTED_IMAGE_MIME_TYPES = new Set([
   'image/gif',
   'image/avif',
 ]);
-const VIDEO_HOSTS = [
-  'loom.com',
-  'vimeo.com',
-  'wistia.com',
-  'tiktok.com',
-  'twitch.tv',
-  'dailymotion.com',
-  'streamable.com',
-  'frame.io',
-  'instagram.com',
-  'facebook.com',
-  'x.com',
-  'twitter.com',
-  'linkedin.com',
-  'drive.google.com',
-  'dropbox.com',
-];
-
-function extractUrls(value: string): string[] {
-  return Array.from(new Set((value.match(URL_PATTERN) ?? [])
-    .map((item) => item.replace(/[),.;]+$/, ''))
-    .filter(Boolean)));
-}
-
-function removeUrls(value: string, urls: string[]): string {
-  return urls.reduce((text, url) => text.replace(url, ' '), value).replace(/\s+/g, ' ').trim();
-}
-
-function isYoutubeLink(value: string): boolean {
-  try {
-    const host = new URL(value).hostname.toLowerCase();
-    return host.includes('youtube.com') || host.includes('youtu.be');
-  } catch {
-    return false;
-  }
-}
-
-function isKnownVideoLink(value: string): boolean {
-  if (isYoutubeLink(value)) return true;
-  try {
-    const parsed = new URL(value);
-    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
-    return VIDEO_HOSTS.some((knownHost) => host === knownHost || host.endsWith(`.${knownHost}`))
-      || VIDEO_FILE_PATTERN.test(parsed.pathname);
-  } catch {
-    return false;
-  }
-}
-
-function isKnownImageLink(value: string): boolean {
-  try {
-    return IMAGE_FILE_PATTERN.test(new URL(value).pathname);
-  } catch {
-    return false;
-  }
-}
-
 function isSupportedImageFile(file: File): boolean {
   return SUPPORTED_IMAGE_MIME_TYPES.has(file.type) || IMAGE_FILE_PATTERN.test(file.name);
 }
@@ -451,15 +392,6 @@ function imageSourceFromMetadata(metadata: Record<string, unknown> | undefined):
   const dataUrl = metadataString(metadata, 'imageDataUrl');
   const imageUrl = metadataString(metadata, 'imageUrl');
   return dataUrl ?? imageUrl;
-}
-
-function isYoutubeVideoId(value: string): boolean {
-  return YOUTUBE_ID_PATTERN.test(value.trim());
-}
-
-function normalizeYoutubeReference(value: string): string {
-  const trimmed = value.trim();
-  return isYoutubeVideoId(trimmed) ? `https://www.youtube.com/watch?v=${trimmed}` : trimmed;
 }
 
 function buildIntakePlan(value: string): IntakePlanItem[] {
@@ -475,62 +407,61 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
     ];
   }
 
-  const urls = isYoutubeVideoId(text) ? [normalizeYoutubeReference(text)] : extractUrls(text);
-  const youtubeUrls = urls.filter(isYoutubeLink);
-  const videoUrls = urls.filter((item) => !isYoutubeLink(item) && isKnownVideoLink(item));
-  const imageUrls = urls.filter((item) => !isYoutubeLink(item) && !isKnownVideoLink(item) && isKnownImageLink(item));
-  const webUrls = urls.filter((item) => !isYoutubeLink(item) && !isKnownVideoLink(item) && !isKnownImageLink(item));
-  const remaining = removeUrls(text, urls);
-  const textChars = (remaining || (!urls.length ? text : '')).length;
-  const singleMediaWithAttachedText = urls.length === 1 && (youtubeUrls.length === 1 || videoUrls.length === 1 || imageUrls.length === 1);
+  const detected = detectIntakeText(text);
+  const youtubeItems = detected.items.filter((item) => item.kind === 'youtube');
+  const videoItems = detected.items.filter((item) => item.kind === 'video');
+  const imageItems = detected.items.filter((item) => item.kind === 'image');
+  const webItems = detected.items.filter((item) => item.kind === 'url');
+  const textItem = detected.items.find((item) => item.kind === 'text');
+  const attachedText = detected.items.some((item) => item.attachedText && item.attachedText.length > 24);
   const plan: IntakePlanItem[] = [];
 
-  if (youtubeUrls.length) {
+  if (youtubeItems.length) {
     plan.push({
       id: 'youtube',
-      label: youtubeUrls.length === 1 ? 'Video source' : `${youtubeUrls.length} video sources`,
-      detail: remaining.length > 24 ? 'manual transcript attached' : 'captions first',
+      label: youtubeItems.length === 1 ? 'Video source' : `${youtubeItems.length} video sources`,
+      detail: attachedText ? 'manual transcript attached' : 'captions first',
       active: true,
     });
   }
 
-  if (videoUrls.length) {
+  if (videoItems.length) {
     plan.push({
       id: 'video',
-      label: videoUrls.length === 1 ? 'Video link' : `${videoUrls.length} video links`,
-      detail: remaining.length > 24 ? 'manual notes attached' : 'reference plus notes',
+      label: videoItems.length === 1 ? 'Video link' : `${videoItems.length} video links`,
+      detail: attachedText ? 'manual notes attached' : 'reference plus notes',
       active: true,
     });
   }
 
-  if (imageUrls.length) {
+  if (imageItems.length) {
     plan.push({
       id: 'image',
-      label: imageUrls.length === 1 ? 'Image source' : `${imageUrls.length} image sources`,
-      detail: remaining.length > 24 ? 'visual notes attached' : 'reference plus notes',
+      label: imageItems.length === 1 ? 'Image source' : `${imageItems.length} image sources`,
+      detail: attachedText ? 'visual notes attached' : 'reference plus notes',
       active: true,
     });
   }
 
-  if (webUrls.length) {
+  if (webItems.length) {
     plan.push({
       id: 'url',
-      label: webUrls.length === 1 ? 'Web source' : `${webUrls.length} web sources`,
+      label: webItems.length === 1 ? 'Web source' : `${webItems.length} web sources`,
       detail: 'fetch readable text',
       active: true,
     });
   }
 
-  if ((textChars > 24 && !singleMediaWithAttachedText) || !urls.length) {
+  if (textItem) {
     plan.push({
       id: 'text',
-      label: urls.length ? 'Source notes' : 'Text source',
-      detail: `${Math.max(textChars, text.length)} chars`,
+      label: detected.urls.length ? 'Source notes' : 'Text source',
+      detail: `${textItem.body.length} chars`,
       active: true,
     });
   }
 
-  return plan.length ? plan : [{ id: 'url', label: `${urls.length} source link${urls.length === 1 ? '' : 's'}`, detail: 'reference node', active: true }];
+  return plan.length ? plan : [{ id: 'url', label: `${detected.urls.length} source link${detected.urls.length === 1 ? '' : 's'}`, detail: 'reference node', active: true }];
 }
 
 function intakePlanIcon(id: IntakePlanItem['id']) {
@@ -1213,7 +1144,7 @@ function WorkspaceInner() {
             position: nodePosition,
           }),
         });
-        if (last.node?.id) createdNodeIds.push(last.node.id);
+        if (last?.node?.id) createdNodeIds.push(last.node.id);
         count += 1;
       }
       await finishIntake(createdNodeIds, last, actionMode, `Ingested ${count} file source(s).`);
@@ -1226,53 +1157,48 @@ function WorkspaceInner() {
 
   const intakeAnything = useCallback(async (value: string, position?: FlowPosition, actionMode: IntakeActionMode = intakeAction) => {
     if (!canvas || !value.trim()) return;
-    const trimmedValue = value.trim();
-    const directYoutubeId = isYoutubeVideoId(trimmedValue);
-    const urls = directYoutubeId ? [normalizeYoutubeReference(trimmedValue)] : extractUrls(value);
-    const remaining = directYoutubeId ? '' : removeUrls(value, urls);
+    const detected = detectIntakeText(value);
     setBusy(true);
     try {
       const createdNodeIds: string[] = [];
       let last: CanvasMutationResponse | null = null;
       let count = 0;
-      for (const sourceUrl of urls) {
-        const youtube = isYoutubeLink(sourceUrl);
-        const videoReference = !youtube && isKnownVideoLink(sourceUrl);
-        const imageReference = !youtube && !videoReference && isKnownImageLink(sourceUrl);
-        const nodePosition = offsetPosition(position, count);
-        last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            kind: youtube ? 'source_youtube' : videoReference ? 'source_video' : imageReference ? 'source_image' : 'source_url',
-            body: (youtube || videoReference || imageReference) && urls.length === 1 ? remaining : '',
-            position: nodePosition,
-            metadata: {
-              url: sourceUrl,
-              imageUrl: imageReference ? sourceUrl : undefined,
-              media: videoReference ? 'video_reference' : imageReference ? 'image_reference' : undefined,
-            },
-          }),
-        });
-        if (last.node?.id) createdNodeIds.push(last.node.id);
-        count += 1;
-      }
 
-      const singleMediaReferenceWithAttachedText = urls.length === 1 && (isYoutubeLink(urls[0]) || isKnownVideoLink(urls[0]) || isKnownImageLink(urls[0]));
-      const shouldKeepText = !urls.length || (remaining.length > 24 && !singleMediaReferenceWithAttachedText);
-      if (shouldKeepText) {
+      for (const item of detected.items) {
         const nodePosition = offsetPosition(position, count);
-        last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/text`, {
-          method: 'POST',
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            title: textTitle(remaining || value),
-            body: remaining || value,
-            metadata: { intake: urls.length ? 'text_with_links' : 'manual_text' },
-            position: nodePosition,
-          }),
-        });
-        if (last.node?.id) createdNodeIds.push(last.node.id);
+
+        if (item.kind === 'text') {
+          last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/text`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              title: textTitle(item.body),
+              body: item.body,
+              metadata: { intake: detected.urls.length ? 'text_with_links' : 'manual_text' },
+              position: nodePosition,
+            }),
+          });
+        } else if (item.url) {
+          const videoReference = item.kind === 'video';
+          const imageReference = item.kind === 'image';
+          last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              kind: item.kind === 'youtube' ? 'source_youtube' : videoReference ? 'source_video' : imageReference ? 'source_image' : 'source_url',
+              title: item.title,
+              body: item.attachedText ?? item.body,
+              position: nodePosition,
+              metadata: {
+                url: item.url,
+                imageUrl: imageReference ? item.url : undefined,
+                media: videoReference ? 'video_reference' : imageReference ? 'image_reference' : undefined,
+              },
+            }),
+          });
+        }
+
+        if (last?.node?.id) createdNodeIds.push(last.node.id);
         count += 1;
       }
 

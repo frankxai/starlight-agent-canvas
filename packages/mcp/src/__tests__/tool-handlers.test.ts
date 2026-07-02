@@ -19,6 +19,10 @@ describe('MCP tool handlers', () => {
     const canvas = created.structuredContent?.canvas as { id: string };
     expect(canvas.id).toBeTruthy();
 
+    const latest = await handlers.get_latest_canvas();
+    expect(latest.content[0].text).toContain('MCP smoke');
+    expect((latest.structuredContent?.canvas as { id: string }).id).toBe(canvas.id);
+
     const added = await handlers.ingest_text_source({
       canvasId: canvas.id,
       title: 'Local node',
@@ -85,6 +89,18 @@ describe('MCP tool handlers', () => {
     const imageUploadArtifact = imageUpload.structuredContent?.artifact as { kind: string; metadata: Record<string, unknown> };
     expect(imageUploadArtifact.kind).toBe('image');
     expect(imageUploadArtifact.metadata.imageDataUrl).toContain('data:image/png;base64');
+
+    const anything = await handlers.ingest_anything({
+      canvasId: canvas.id,
+      content: 'https://vimeo.com/987654321\nManual notes from a pasted generic video about shared human and Codex context.',
+      runAction: 'summarize',
+      position: { x: 1120, y: 520 },
+    });
+    const anythingNodeIds = anything.structuredContent?.nodeIds as string[];
+    const anythingRun = anything.structuredContent?.run as { outputNode?: { id: string } };
+    expect(anything.content[0].text).toContain('video');
+    expect(anythingNodeIds).toHaveLength(1);
+    expect(anythingRun.outputNode?.id).toBeTruthy();
 
     const url = await handlers.ingest_url({
       canvasId: canvas.id,
@@ -170,5 +186,25 @@ describe('MCP tool handlers', () => {
 
     const importedAgain = await handlers.import_canvas({ canvas: portable });
     expect(importedAgain.content[0].text).toContain('(imported)');
+  });
+
+  it('can ingest anything into a newly created capture canvas when no canvas id is supplied', async () => {
+    const home = await mkdtemp(path.join(os.tmpdir(), 'agent-canvas-mcp-anything-'));
+    const handlers = createToolHandlers(new FileCanvasStore(home));
+
+    const result = await handlers.ingest_anything({
+      content: 'Standalone pasted research note for a fresh agent capture.',
+      title: 'Standalone capture',
+      position: { x: 100, y: 120 },
+    });
+
+    const canvasId = result.structuredContent?.canvasId as string;
+    const nodeIds = result.structuredContent?.nodeIds as string[];
+    expect(canvasId).toBeTruthy();
+    expect(nodeIds).toHaveLength(1);
+
+    const latest = await handlers.get_latest_canvas();
+    expect((latest.structuredContent?.canvas as { id: string }).id).toBe(canvasId);
+    expect(JSON.stringify(latest.structuredContent)).toContain('Standalone pasted research note');
   });
 });

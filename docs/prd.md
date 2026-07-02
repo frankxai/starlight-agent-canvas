@@ -45,7 +45,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can follow a live activation runway from install health to proof canvas, mapped source context, context export, and Codex MCP wiring.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
 - Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
-- MCP clients can list, read, create, import, add/update positioned nodes, ingest text/URL/YouTube/video/image/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
+- MCP clients can list, read, get the latest canvas, create, import, add/update positioned nodes, ingest mixed paste-anything content, ingest text/URL/YouTube/video/image/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
 
 ## Non-Goals
@@ -107,6 +107,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
 - A user can add an image URL or uploaded screenshot, see a thumbnail in the graph/inspector, and preserve the image artifact/provenance in JSON/context export.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context/Codex handoff for the whole canvas or selected node ids, and import portable JSON through smoke tests.
+- An MCP client can mirror the human paste-anything flow with one `ingest_anything` call that detects YouTube, generic video, image, URL, and text context, optionally running an action on only the newly mapped nodes.
 - Contributors can identify the right issue template and local verification command without reading code.
 
 ## Roadmap

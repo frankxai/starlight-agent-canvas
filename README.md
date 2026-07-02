@@ -70,7 +70,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 - Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect a selected source receipt with ingest mode/chunks/provenance, run source-scoped actions, copy selected source context, export selected or whole-canvas context/Codex handoff packets, export the result, and re-import portable canvas JSON.
 - Inspect local setup, data home, MCP build, and Codex MCP wiring from the in-app `Setup / MCP` panel.
 - Auto-select and open newly created sources, notes, files, and action answers in the inspector so the captured context is immediately usable.
-- Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/video/image/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
+- Expose safe stdio MCP tools so coding agents can get the latest canvas, ingest mixed pasted context with one `ingest_anything` call, ingest positioned text/URL/YouTube/video/image/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
 - Keep runtime data outside the repo by default.
 
 ## Quick Start
@@ -197,6 +197,14 @@ pnpm canvas:smoke
 ```
 
 The CLI uses the same local data home as the web app and MCP server. It gives terminal users a safe way to import the demo, list local canvases, export JSON/Markdown/context/Codex handoff for the full canvas or selected node ids, and search artifacts without opening the browser. See `docs/cli.md`.
+
+For MCP agents, the shortest equivalent to the human paste-anything path is:
+
+```text
+get_latest_canvas
+ingest_anything(content: "<YouTube/video/image/URL/text plus notes>", runAction: "summarize")
+export_canvas(format: "codex")
+```
 
 ## Verify
 

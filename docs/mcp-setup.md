@@ -13,7 +13,7 @@ pnpm mcp:install:codex
 pnpm mcp:smoke
 ```
 
-The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests text, URL fallback, YouTube/manual transcript, generic video reference, image reference, and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context/Codex handoff, asserts chunk-manifest output, and imports the portable JSON back as local context.
+The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, reads the latest canvas, ingests text, paste-anything mixed context, URL fallback, YouTube/manual transcript, generic video reference, image reference, and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context/Codex handoff, asserts chunk-manifest output, and imports the portable JSON back as local context.
 
 The terminal CLI is a companion, not a replacement:
 
@@ -105,11 +105,13 @@ Use the same stdio shape when the host supports MCP servers:
 ## Tools
 
 - `list_canvases`
+- `get_latest_canvas`
 - `get_canvas`
 - `create_canvas`
 - `import_canvas`
 - `add_node`
 - `update_node`
+- `ingest_anything`
 - `ingest_text_source`
 - `ingest_url`
 - `ingest_youtube`
@@ -132,7 +134,11 @@ Use the same stdio shape when the host supports MCP servers:
 
 `export_canvas` also accepts optional `nodeIds`. When present, every export format is scoped to those selected nodes, their linked artifacts/chunks, edges where both ends are selected, and action runs that used or produced selected nodes. Missing node ids are rejected instead of silently producing misleading context.
 
-`add_node`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
+`get_latest_canvas` is the fastest read path for agents resuming a human-populated canvas. It returns the most recently updated canvas by default, or just its summary when `includeCanvas: false`.
+
+`ingest_anything` mirrors the web app's paste-anything behavior for MCP clients. It accepts mixed pasted content, detects YouTube links, generic video links, image links, web URLs, and plain notes, then creates typed nodes and artifacts. It accepts optional `canvasId`; when omitted, it uses the latest local canvas and creates a fresh local capture canvas only when none exists. It also accepts optional `runAction` when the agent should immediately summarize, extract claims, build a brief, or answer a question over only the newly mapped nodes.
+
+`add_node`, `ingest_anything`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
 
 `search_artifacts` searches node text and durable source artifacts. Results include artifact ids, chunk ids, scores, and source metadata when available.
 
