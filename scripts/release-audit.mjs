@@ -97,6 +97,8 @@ function checkPackageScripts() {
     'setup:local',
     'doctor',
     'doctor:json',
+    'first-success',
+    'first-success:json',
     'adoption:report',
     'adoption:report:json',
     'first-run:check',
@@ -118,8 +120,12 @@ function checkPackageScripts() {
 function checkCi() {
   const ci = readText('.github/workflows/ci.yml');
   const requiredSteps = [
+    'node-version: [20.11.0, 22]',
+    'node-version: ${{ matrix.node-version }}',
+    'pnpm mcp:build',
     'pnpm doctor',
     'pnpm doctor:json',
+    'pnpm first-success:json',
     'pnpm adoption:report:json',
     'pnpm release:audit',
     'pnpm typecheck',
@@ -160,6 +166,42 @@ function checkDoctorJson() {
     }
   } catch (error) {
     fail('doctor json contract', `doctor --json did not emit valid JSON: ${error.message}`);
+  }
+}
+
+function checkFirstSuccessJson() {
+  const result = spawnSync(process.execPath, ['scripts/first-success-contract.mjs', '--json'], { cwd: repoRoot, encoding: 'utf8' });
+  if (result.status !== 0) {
+    fail('first success json contract', `first-success --json exited with ${result.status}.`, {
+      stderr: result.stderr.trim(),
+    });
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(result.stdout);
+    const requiredKeys = ['schemaVersion', 'promise', 'successDefinition', 'phases', 'inputContracts', 'commands', 'codexPrompt', 'knownLimits'];
+    const missing = requiredKeys.filter((key) => !(key in parsed));
+    const phaseIds = Array.isArray(parsed.phases) ? parsed.phases.map((phase) => phase.id) : [];
+    const expectedPhaseIds = ['install', 'open', 'capture', 'inspect', 'handoff', 'codex'];
+    const phasesOk = expectedPhaseIds.every((id) => phaseIds.includes(id));
+    const inputOk = Array.isArray(parsed.inputContracts) && parsed.inputContracts.length >= 7;
+    const codexOk = typeof parsed.codexPrompt === 'string'
+      && parsed.codexPrompt.includes('get_latest_canvas')
+      && parsed.codexPrompt.includes('export_canvas');
+    if (missing.length || !phasesOk || !inputOk || !codexOk) {
+      fail('first success json contract', 'first-success --json is missing required shape.', {
+        missing,
+        phaseIds,
+        phasesOk,
+        inputOk,
+        codexOk,
+      });
+    } else {
+      pass('first success json contract', `${parsed.phases.length} phases and ${parsed.inputContracts.length} input contract(s) verified.`);
+    }
+  } catch (error) {
+    fail('first success json contract', `first-success --json did not emit valid JSON: ${error.message}`);
   }
 }
 
@@ -307,6 +349,7 @@ checkFiles('oss surface files', [
 checkFiles('operator scripts', [
   'scripts/adoption-report.mjs',
   'scripts/doctor.mjs',
+  'scripts/first-success-contract.mjs',
   'scripts/release-audit.mjs',
   'scripts/setup.mjs',
 ]);
@@ -332,6 +375,7 @@ checkFiles('github templates', [
 checkFiles('docs surface', [
   'docs/install.md',
   'docs/activation.md',
+  'docs/first-success.md',
   'docs/adoption-report.md',
   'docs/cli.md',
   'docs/prd.md',
@@ -377,6 +421,7 @@ checkTrackedFiles('required tracked files', [
   'pnpm-lock.yaml',
   'scripts/adoption-report.mjs',
   'scripts/doctor.mjs',
+  'scripts/first-success-contract.mjs',
   'scripts/release-audit.mjs',
   'scripts/setup.mjs',
   '.github/CODEOWNERS',
@@ -389,6 +434,7 @@ checkTrackedFiles('required tracked files', [
   '.github/ISSUE_TEMPLATE/setup_help.yml',
   'docs/install.md',
   'docs/activation.md',
+  'docs/first-success.md',
   'docs/adoption-report.md',
   'docs/cli.md',
   'docs/prd.md',
@@ -422,6 +468,7 @@ if (!dirExists('docs/visual-qa')) {
 checkPackageScripts();
 checkCi();
 checkDoctorJson();
+checkFirstSuccessJson();
 checkDemoCanvas();
 checkDesignEvidence();
 checkCriticalScreenshots();

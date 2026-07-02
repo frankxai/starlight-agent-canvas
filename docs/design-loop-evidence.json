@@ -3,7 +3,7 @@
   "task": "Starlight Agent Canvas v0.1 workspace",
   "surface": "local-first web app",
   "audience": "Codex, Claude, Gemini, Starlight operators, and creator/builders",
-  "firstRead": "A working MCP-native research canvas where the first viewport offers New, Demo, Source, Note, Ask, and active paste/drop intake over an inspectable agent graph.",
+  "firstRead": "A working MCP-native research canvas where the first viewport offers New, Demo, Source, Note, Ask, active paste/drop intake, and a clear promise that sources become Codex-readable context.",
   "standards": [
     "DESIGN_TASTE.md",
     "WEB_EXPERIENCE_STANDARD.md",
@@ -412,6 +412,26 @@
       "path_or_url": "docs/visual-qa/desktop-operator-loop-reduced-motion.png",
       "kind": "desktop reduced-motion live operator loop screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-first-viewport.png",
+      "kind": "desktop first viewport with Codex-readable intake helper",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-first-viewport.png",
+      "kind": "mobile first viewport with Codex-readable intake helper",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-first-success-contract.png",
+      "kind": "desktop first-success contract card screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-first-success-contract.png",
+      "kind": "mobile first-success contract card screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -519,6 +539,24 @@
       "name": "first-viewport-operator-loop",
       "status": "pass",
       "notes": "The first-viewport composer now exposes Capture, Map, Inspect, Ask, and Handoff as live state/action chips backed by current canvas nodes, sources, outputs, selected scope, and Codex export readiness; desktop, mobile, and reduced-motion screenshots were inspected."
+    },
+    {
+      "id": "first-success-contract",
+      "status": "pass",
+      "evidence": "Setup / MCP exposes install, open, capture, inspect, handoff, and Codex phases with contract/proof copy controls.",
+      "name": "first-success-contract"
+    },
+    {
+      "id": "codex-readable-intake-helper",
+      "status": "pass",
+      "evidence": "Persistent composer states YouTube links, any video URL, files, or notes become Codex-readable context.",
+      "name": "codex-readable-intake-helper"
+    },
+    {
+      "id": "mobile-first-viewport-cleanup",
+      "status": "pass",
+      "evidence": "Mobile first viewport prioritizes the top composer and hides the duplicate center empty-state card to avoid blur/overlap.",
+      "name": "mobile-first-viewport-cleanup"
     }
   ],
   "score": {
@@ -615,7 +653,9 @@
       "docs/visual-qa/desktop-codex-export-preview-reduced-motion.png",
       "docs/visual-qa/desktop-operator-loop-active.png",
       "docs/visual-qa/mobile-operator-loop-active.png",
-      "docs/visual-qa/desktop-operator-loop-reduced-motion.png"
+      "docs/visual-qa/desktop-operator-loop-reduced-motion.png",
+      "docs/visual-qa/desktop-first-success-contract.png",
+      "docs/visual-qa/mobile-first-success-contract.png"
     ],
     "productionMetrics": {
       "desktop": {

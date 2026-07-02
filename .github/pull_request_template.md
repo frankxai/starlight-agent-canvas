@@ -15,6 +15,8 @@
 
 - [ ] `pnpm doctor`
 - [ ] `pnpm doctor:json`
+- [ ] `pnpm first-success`
+- [ ] `pnpm first-success:json`
 - [ ] `pnpm verify`
 - [ ] `pnpm mcp:smoke`
 - [ ] `pnpm test:e2e`

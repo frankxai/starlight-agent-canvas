@@ -73,6 +73,12 @@ function registerGuideResources(server: McpServer) {
       file: 'docs/operator-loop.md',
     },
     {
+      name: 'first-success',
+      uri: 'starlight-agent-canvas://docs/first-success',
+      title: 'First Success Contract',
+      file: 'docs/first-success.md',
+    },
+    {
       name: 'demo-walkthrough',
       uri: 'starlight-agent-canvas://docs/demo-walkthrough',
       title: 'Demo Walkthrough',

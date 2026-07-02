@@ -16,7 +16,7 @@ An active research graph where every source, action, and agent output becomes in
 
 - Left rail: always-visible "Add To Canvas" intake with detected-source preview chips, templates, canvases, and direct source controls.
 - Center: React Flow typed graph with first-viewport `Add Anything` composer, live `Capture -> Map -> Inspect -> Ask -> Handoff` operator loop, fresh blank-canvas action, clipboard paste with manual fallback, detected-source preview chips, responsive empty-input primary actions, interactive empty-state actions, paste-anywhere intake, drop-to-position mapping, toolbar note creation, double-click note creation, drag persistence, direct node connections, context copy, explicit import preview/cancel/confirm, and import/export controls.
-- Right rail: selected-context tray, Codex export preview, live Workflow Map, handoff readiness lane, source-grounded ask box, action drawer, editable selected node inspector with context receipt, clickable citation-to-source cards, selected-source commands immediately after the action drawer, setup/MCP status, Agent toolbelt for `get_latest_canvas -> ingest_anything -> run_node_action -> export_canvas`, adoption report commands, local search, run log with clickable citation chips.
+- Right rail: selected-context tray, Codex export preview, live Workflow Map, handoff readiness lane, source-grounded ask box, action drawer, editable selected node inspector with context receipt, clickable citation-to-source cards, selected-source commands immediately after the action drawer, setup/MCP status, first-success contract, Agent toolbelt for `get_latest_canvas -> ingest_anything -> run_node_action -> export_canvas`, adoption report commands, local search, run log with clickable citation chips.
 - Top bar: product identity, local data path, export route, MCP status.
 
 ## Motion
@@ -28,6 +28,7 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 - First viewport is the product, not a landing page.
 - A user can create a fresh blank canvas from the first viewport when the latest local canvas is already populated.
 - User can paste a YouTube link, image URL, URL, transcript, or raw note directly into the canvas composer.
+- The persistent composer states that YouTube links, any video URL, files, or notes become Codex-readable context.
 - If browser clipboard access is blocked or empty, `Paste & Map` focuses the right composer, shows the manual paste fallback, and keeps drop-to-canvas available.
 - Empty `Map`/`Ask` clicks focus the correct composer and update status, not silently fail.
 - The live operator loop shows current stage state from real canvas data and exposes direct actions for capture, mapping, inspection, asking, and Codex handoff.
@@ -40,7 +41,7 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 - Newly created source/action nodes are selected and opened in the inspector.
 - Codex export preview shows scope mode, exact included nodes, sources, chunks, edges, runs, excluded nodes, and scope rules before context/Codex copy.
 - Handoff readiness makes evidence, synthesis, selected scope, and Codex/MCP status visible before export.
-- Setup / MCP shows the agent tool path, adoption report command, agent prompt, and terminal Codex handoff command so human and Codex can share the same local context loop.
+- Setup / MCP shows first-success phases, proof commands, the agent tool path, adoption report command, agent prompt, and terminal Codex handoff command so human and Codex can share the same local context loop.
 - Selected sources show ingest method, artifact kind, chunks, source URL/file path, chars, and source-scoped actions.
 - Citation cards and run-log citation chips refocus the cited source node and highlighted chunk.
 - Markdown context copy and JSON import/export are available from the canvas toolbar.

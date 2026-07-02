@@ -66,8 +66,8 @@ try {
   if (!args.has('--skip-install')) {
     await runPnpm(['install'], 'Install dependencies');
   }
-  await runPnpm(['doctor'], 'Doctor');
   await runPnpm(['mcp:build'], 'Build MCP server');
+  await runPnpm(['doctor'], 'Doctor');
   if (!args.has('--skip-smoke')) {
     await runPnpm(['mcp:smoke'], 'MCP smoke test');
   }
@@ -85,6 +85,7 @@ try {
 
   console.log('');
   console.log('[ok] Setup complete.');
+  console.log('Proof contract: pnpm first-success');
   console.log('Next: pnpm dev');
   console.log('Then open: http://localhost:3000');
   console.log('Production preview: pnpm preview:prod');

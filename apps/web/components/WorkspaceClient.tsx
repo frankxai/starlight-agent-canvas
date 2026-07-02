@@ -164,6 +164,17 @@ type SetupStatus = {
     jsonCommand: string;
     docs: string[];
   };
+  firstSuccess: {
+    contractCommand: string;
+    jsonCommand: string;
+    docs: string[];
+    proofCommands: string[];
+    phases: Array<{
+      id: string;
+      label: string;
+      detail: string;
+    }>;
+  };
   agent: {
     prompt: string;
     terminalHandoffCommand: string;
@@ -2129,6 +2140,9 @@ function WorkspaceInner() {
                   <span className="rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1">{canvas?.runs.length ?? 0} runs</span>
                 </div>
               </div>
+              <p className="mt-2 text-xs leading-5 text-starlight-muted" data-testid="live-intake-helper">
+                Paste a YouTube link, any video URL, file, or notes. Agent Canvas turns it into Codex-readable context.
+              </p>
               <div className="mt-2 grid gap-2 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
                 <div className="flex flex-wrap gap-1.5" data-testid="canvas-quick-start">
                   <button
@@ -2560,7 +2574,7 @@ function WorkspaceInner() {
             </div>
             <div className="absolute inset-0 pt-[250px] sm:pt-0">
               {!canvas?.nodes.length ? (
-                <div className="absolute left-1/2 top-[54%] z-10 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-starlight-accent/25 bg-starlight-surface/88 p-5 text-center shadow-command backdrop-blur" data-testid="empty-canvas-actions">
+                <div className="absolute left-1/2 top-[54%] z-10 hidden w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-starlight-accent/25 bg-starlight-surface/88 p-5 text-center shadow-command backdrop-blur md:block" data-testid="empty-canvas-actions">
                   <UploadCloud className="mx-auto h-7 w-7 text-starlight-accent" aria-hidden="true" />
                   <h2 className="mt-3 text-base font-semibold text-starlight-ink">Drop context here</h2>
                   <p className="mt-2 text-sm leading-6 text-starlight-muted">
@@ -3170,6 +3184,60 @@ function WorkspaceInner() {
                       </button>
                       <button type="button" onClick={() => copyCommand(setupStatus.activation.previewCommand, 'production preview command')} className="rounded-md border border-starlight-border bg-starlight-bg px-2 py-1 transition hover:border-starlight-accent hover:text-starlight-ink">
                         prod preview
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-3 rounded-md border border-starlight-mint/25 bg-starlight-mint/10 p-3" data-testid="first-success-contract">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                        <ShieldCheck className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
+                        First success
+                      </span>
+                      <button
+                        type="button"
+                        data-testid="first-success-copy"
+                        onClick={() => copyCommand(setupStatus.firstSuccess.contractCommand, 'first success contract command')}
+                        className="inline-flex shrink-0 items-center gap-1 rounded-md border border-starlight-mint/35 bg-starlight-bg px-2 py-1 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-mint"
+                      >
+                        <Copy className="h-3 w-3" aria-hidden="true" />
+                        Contract
+                      </button>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5">
+                      {setupStatus.firstSuccess.phases.map((phase, index) => (
+                        <div
+                          key={phase.id}
+                          data-testid={`first-success-phase-${phase.id}`}
+                          className="min-w-0 rounded-md border border-starlight-border bg-starlight-bg/85 p-2"
+                        >
+                          <div className="flex items-center gap-1.5">
+                            <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded border border-starlight-mint/35 text-[9px] font-semibold text-starlight-mint">
+                              {index + 1}
+                            </span>
+                            <span className="truncate text-[11px] font-semibold text-starlight-ink">{phase.label}</span>
+                          </div>
+                          <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-starlight-muted">{phase.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        data-testid="first-success-json"
+                        onClick={() => copyCommand(setupStatus.firstSuccess.jsonCommand, 'first success JSON command')}
+                        className="inline-flex items-center justify-center gap-1 rounded-md border border-starlight-border bg-starlight-bg px-2 py-1.5 text-[10px] font-semibold text-starlight-muted transition hover:border-starlight-mint hover:text-starlight-ink"
+                      >
+                        <Braces className="h-3 w-3" aria-hidden="true" />
+                        JSON
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="first-success-proof"
+                        onClick={() => copyCommand(setupStatus.firstSuccess.proofCommands.join(' && '), 'first success proof commands')}
+                        className="inline-flex items-center justify-center gap-1 rounded-md border border-starlight-border bg-starlight-bg px-2 py-1.5 text-[10px] font-semibold text-starlight-muted transition hover:border-starlight-mint hover:text-starlight-ink"
+                      >
+                        <Terminal className="h-3 w-3" aria-hidden="true" />
+                        Proof
                       </button>
                     </div>
                   </div>

@@ -34,6 +34,7 @@ body:
       placeholder: |
         pnpm install
         pnpm doctor
+        pnpm first-success
         pnpm mcp:build
         pnpm mcp:smoke
     validations:
@@ -42,6 +43,14 @@ body:
     id: doctor
     attributes:
       label: `pnpm doctor` output
+      description: Redact private usernames or local paths if needed.
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: first_success
+    attributes:
+      label: `pnpm first-success` output
       description: Redact private usernames or local paths if needed.
       render: text
     validations:

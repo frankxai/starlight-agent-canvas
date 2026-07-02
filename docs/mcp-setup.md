@@ -35,6 +35,8 @@ Generate a Codex config block for your machine:
 pnpm mcp:config -- --client codex
 ```
 
+Use generated config for real clients because it prints absolute paths for the current machine. `.mcp.json` is a repo-local development hint for tools that understand project-relative MCP config; do not treat it as the preferred copy/paste block for Codex, Claude Desktop, or Gemini on another machine.
+
 Or use the safe Codex installer:
 
 ```powershell
@@ -152,6 +154,7 @@ The server also exposes local guide resources:
 - `starlight-agent-canvas://docs/mcp-setup`
 - `starlight-agent-canvas://docs/codex-integration`
 - `starlight-agent-canvas://docs/operator-loop`
+- `starlight-agent-canvas://docs/first-success`
 - `starlight-agent-canvas://docs/demo-walkthrough`
 - `starlight-agent-canvas://docs/technology-stack`
 - `starlight-agent-canvas://docs/production-readiness`

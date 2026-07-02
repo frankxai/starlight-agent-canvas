@@ -21,6 +21,12 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
     mcp: { smokeCommand: string };
     codex: { installWriteCommand: string };
     adoption: { reportCommand: string; jsonCommand: string };
+    firstSuccess: {
+      contractCommand: string;
+      jsonCommand: string;
+      proofCommands: string[];
+      phases: Array<{ id: string; label: string; detail: string }>;
+    };
     agent: { prompt: string; terminalHandoffCommand: string; tools: Array<{ name: string; detail: string }> };
     activation: { firstRunCheckCommand: string; codexPrompt: string; steps: Array<{ id: string; label: string }> };
   };
@@ -29,6 +35,10 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   expect(setupJson.codex.installWriteCommand).toBe('pnpm mcp:install:codex -- --write');
   expect(setupJson.adoption.reportCommand).toBe('pnpm adoption:report');
   expect(setupJson.adoption.jsonCommand).toBe('pnpm adoption:report:json');
+  expect(setupJson.firstSuccess.contractCommand).toBe('pnpm first-success');
+  expect(setupJson.firstSuccess.jsonCommand).toBe('pnpm first-success:json');
+  expect(setupJson.firstSuccess.proofCommands).toContain('pnpm first-run:check');
+  expect(setupJson.firstSuccess.phases.map((phase) => phase.id)).toEqual(['install', 'open', 'capture', 'inspect', 'handoff', 'codex']);
   expect(setupJson.agent.prompt).toContain('get_latest_canvas');
   expect(setupJson.agent.terminalHandoffCommand).toContain('format codex');
   expect(setupJson.agent.tools.map((tool) => tool.name)).toEqual(['get_latest_canvas', 'ingest_anything', 'run_node_action', 'export_canvas']);
@@ -37,10 +47,15 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   expect(setupJson.activation.steps.map((step) => step.id)).toEqual(['install', 'proof', 'context', 'handoff', 'codex']);
   await page.getByRole('button', { name: new RegExp(title) }).click();
   await expect(page.getByTestId('intake-text')).toBeVisible();
-  await expect(page.getByTestId('empty-canvas-actions')).toBeVisible();
-  await expect(page.getByTestId('empty-intake-text')).toBeVisible();
+  if (testInfo.project.name === 'mobile') {
+    await expect(page.getByTestId('empty-canvas-actions')).toBeHidden();
+  } else {
+    await expect(page.getByTestId('empty-canvas-actions')).toBeVisible();
+    await expect(page.getByTestId('empty-intake-text')).toBeVisible();
+  }
   await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
   await expect(page.getByTestId('live-intake-heading')).toContainText('Add Anything');
+  await expect(page.getByTestId('live-intake-helper')).toContainText('Codex-readable context');
   await expect(page.getByTestId('codex-export-preview')).toContainText('Codex export preview');
   await expect(page.getByTestId('codex-export-mode')).toContainText('canvas');
   await expect(page.getByTestId('codex-export-rules')).toContainText('Whole canvas exports all nodes');
@@ -68,6 +83,13 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('activation-step-codex')).toContainText('Wire Codex MCP');
   await expect(page.getByTestId('activation-copy-prompt')).toBeEnabled();
   await expect(page.getByTestId('activation-action-proof')).toBeEnabled();
+  await expect(page.getByTestId('first-success-contract')).toContainText('First success');
+  await expect(page.getByTestId('first-success-phase-install')).toContainText('Install');
+  await expect(page.getByTestId('first-success-phase-capture')).toContainText('Capture');
+  await expect(page.getByTestId('first-success-phase-codex')).toContainText('Codex');
+  await expect(page.getByTestId('first-success-copy')).toContainText('Contract');
+  await expect(page.getByTestId('first-success-json')).toContainText('JSON');
+  await expect(page.getByTestId('first-success-proof')).toContainText('Proof');
   await expect(page.getByTestId('workflow-map')).toContainText('Workflow map');
   await expect(page.getByTestId('template-steps-competitor_teardown')).toContainText('Capture evidence');
   await expect(page.getByTestId('template-competitor_teardown')).toContainText('Codex implementation brief');
@@ -128,7 +150,8 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('intake-text')).toBeFocused();
   await page.getByTestId('canvas-quick-start').getByRole('button', { name: /Video/ }).click();
   await expect(page.getByTestId('status')).toContainText('Ready for a video link');
-  await page.getByTestId('empty-intake-text').fill('https://example.com/demo.mp4\nManual video notes about workflow intake.');
+  const firstInputSurface = testInfo.project.name === 'mobile' ? page.getByTestId('intake-text') : page.getByTestId('empty-intake-text');
+  await firstInputSurface.fill('https://example.com/demo.mp4\nManual video notes about workflow intake.');
   await expect(page.getByTestId('intake-preview')).toContainText('Video link');
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();
   await page.getByTestId('intake-ingest').click();

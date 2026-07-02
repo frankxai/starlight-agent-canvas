@@ -63,8 +63,8 @@ This builds the production app, starts it on a temporary localhost port with a t
 The setup script:
 
 1. Runs `pnpm install`.
-2. Runs `pnpm doctor`.
-3. Builds the MCP server.
+2. Builds the MCP server.
+3. Runs `pnpm doctor`.
 4. Runs the MCP smoke test against a throwaway local data home.
 5. Seeds the `Starlight Agent Canvas OS` local canvas.
 6. Prints the Codex MCP config block as a dry-run.
@@ -94,9 +94,13 @@ The JSON output includes `ok`, `summary`, `repoRoot`, `canvasHome`, `mcpCliPath`
 For the broader adoption snapshot that combines install health, release audit health, demo proof, visual QA evidence, Git/GitHub state, and Codex MCP wiring, run:
 
 ```powershell
+pnpm first-success
+pnpm first-success:json
 pnpm adoption:report
 pnpm adoption:report:json
 ```
+
+`pnpm first-success` is the maintained install-to-Codex contract: it names each phase, the human action, the proof command, the supported input types, and the MCP loop Codex should use.
 
 Use `pnpm adoption:report -- --out .agent-canvas/adoption-report.md` when you want a local handoff artifact for Codex, a PR, or a setup issue.
 
@@ -144,33 +148,34 @@ pnpm dev
 
 ## First Ten Minutes
 
-1. Open the web app.
-2. Check the `Setup / MCP` panel for data home, MCP build, and Codex wiring status.
-3. Use the `Activation runway` in that panel to move through install health, proof canvas, source mapping, context export, and Codex MCP wiring.
-4. Click `Demo` when you want an immediate working proof canvas.
-5. In the demo, inspect the selected YouTube source receipt: source kind, ingest method, chunks, source URL, and character count.
-6. Use `Context` to copy a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
-7. Click `New` when you want a fresh blank graph for your own material.
-8. Use the first-viewport quick starters: `Video`, `Web`, `Note`, or `Ask`.
-9. Watch the live `Capture -> Map -> Inspect -> Ask -> Handoff` loop in the composer. On a blank canvas it starts empty, then updates as nodes, sources, outputs, and selected handoff scope become available.
-10. If you click `Map + Brief` before adding context, confirm it focuses the composer and status line instead of silently failing.
-11. Paste or drop YouTube links, Loom/Vimeo/direct video links, image URLs/screenshots, URLs, transcripts, PDFs, files, and raw source text. Use `Paste & Map` when the clipboard should become canvas context immediately.
-12. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
-13. Inspect the new source/output pair on the canvas and the selected node in the inspector.
-14. Select a source node and inspect the context receipt: source kind, ingest method, chunks, URL/file, and character count.
-15. Run `Source summary`, `Extract claims`, or `Ask selected` when you want the action scoped to only that source.
-16. Use the action drawer for multi-node or whole-canvas `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
-17. Click `Copy source` for selected-source context, or `Context` when you want the full canvas packet.
-18. Export JSON or Markdown from the canvas toolbar.
-19. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
-20. Review the import preview before confirming: it shows counts, sample nodes, node kinds, and whether the import will preserve the id or create a copy. After confirmation, the app selects the first useful source node so its receipt is ready to inspect.
-21. Manual import of `examples/demo-canvas.json` remains available when you want to test portable JSON import directly.
-22. Build the MCP server with `pnpm mcp:build`.
-23. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
-24. Run `pnpm doctor` to confirm Codex points at this MCP server.
-25. Run `pnpm adoption:report` to confirm the install, proof canvas, visual evidence, and Codex handoff path are coherent.
-26. Ask the agent to list canvases and add a source node.
-27. Keep building with the same shared canvas context.
+1. Run `pnpm dev` if the setup script just finished and the app is not already running.
+2. Open the web app.
+3. Check the `Setup / MCP` panel for data home, MCP build, Codex wiring status, and the first-success contract.
+4. Use the `Activation runway` in that panel to move through install health, proof canvas, source mapping, context export, and Codex MCP wiring.
+5. Click `Demo` when you want an immediate working proof canvas.
+6. In the demo, inspect the selected YouTube source receipt: source kind, ingest method, chunks, source URL, and character count.
+7. Use `Context` to copy a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
+8. Click `New` when you want a fresh blank graph for your own material.
+9. Use the first-viewport quick starters: `Video`, `Web`, `Note`, or `Ask`.
+10. Watch the live `Capture -> Map -> Inspect -> Ask -> Handoff` loop in the composer. On a blank canvas it starts empty, then updates as nodes, sources, outputs, and selected handoff scope become available.
+11. If you click `Map + Brief` before adding context, confirm it focuses the composer and status line instead of silently failing.
+12. Paste or drop YouTube links, Loom/Vimeo/direct video links, image URLs/screenshots, URLs, transcripts, PDFs, files, and raw source text. Use `Paste & Map` when the clipboard should become canvas context immediately.
+13. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
+14. Inspect the new source/output pair on the canvas and the selected node in the inspector.
+15. Select a source node and inspect the context receipt: source kind, ingest method, chunks, URL/file, and character count.
+16. Run `Source summary`, `Extract claims`, or `Ask selected` when you want the action scoped to only that source.
+17. Use the action drawer for multi-node or whole-canvas `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
+18. Click `Copy source` for selected-source context, or `Context` when you want the full canvas packet.
+19. Export JSON or Markdown from the canvas toolbar.
+20. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
+21. Review the import preview before confirming: it shows counts, sample nodes, node kinds, and whether the import will preserve the id or create a copy. After confirmation, the app selects the first useful source node so its receipt is ready to inspect.
+22. Manual import of `examples/demo-canvas.json` remains available when you want to test portable JSON import directly.
+23. Build the MCP server with `pnpm mcp:build`.
+24. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
+25. Run `pnpm doctor` to confirm Codex points at this MCP server.
+26. Run `pnpm first-success` and `pnpm adoption:report` to confirm the install, proof canvas, visual evidence, and Codex handoff path are coherent.
+27. Ask the agent to list canvases and add a source node.
+28. Keep building with the same shared canvas context.
 
 ## Input Behavior
 
@@ -205,7 +210,16 @@ pnpm mcp:smoke
 
 `pnpm mcp:install:codex` is a dry-run. It prints the target config path and the exact TOML block. Add `-- --write` to install or replace only the `starlight-agent-canvas` MCP sections in Codex config, preserving unrelated settings and creating a backup first.
 
-You can still copy the relevant config from:
+Use generated config for real MCP clients because it prints absolute paths for the current machine:
+
+```powershell
+pnpm mcp:config -- --client codex
+pnpm mcp:config -- --client json
+```
+
+`.mcp.json` is a repo-local development hint for tools that understand relative project config. Do not treat it as the preferred copy/paste block for Codex, Claude Desktop, or Gemini on another machine.
+
+Reference examples remain available at:
 
 - `.mcp.json`
 - `examples/mcp/codex.toml`

@@ -112,6 +112,8 @@ function packageScriptState() {
     'setup:local',
     'doctor',
     'doctor:json',
+    'first-success',
+    'first-success:json',
     'adoption:report',
     'adoption:report:json',
     'release:audit',
@@ -158,6 +160,7 @@ function proofState() {
     docs: [
       'docs/install.md',
       'docs/activation.md',
+      'docs/first-success.md',
       'docs/adoption-report.md',
       'docs/operator-loop.md',
       'docs/codex-integration.md',
@@ -183,12 +186,38 @@ function codexState(doctor) {
   };
 }
 
+function firstSuccessState(run) {
+  const data = run.data;
+  const phaseIds = Array.isArray(data?.phases) ? data.phases.map((phase) => phase.id) : [];
+  const expectedPhaseIds = ['install', 'open', 'capture', 'inspect', 'handoff', 'codex'];
+  const ready = Boolean(
+    run.ok
+      && data?.schemaVersion === 'starlight.agentCanvas.firstSuccess.v1'
+      && expectedPhaseIds.every((id) => phaseIds.includes(id))
+      && Array.isArray(data?.inputContracts)
+      && data.inputContracts.length >= 7
+      && typeof data?.codexPrompt === 'string'
+      && data.codexPrompt.includes('get_latest_canvas')
+      && data.codexPrompt.includes('export_canvas'),
+  );
+  return {
+    ready,
+    error: run.error,
+    phaseCount: Array.isArray(data?.phases) ? data.phases.length : 0,
+    inputContractCount: Array.isArray(data?.inputContracts) ? data.inputContracts.length : 0,
+    phases: phaseIds,
+    command: 'pnpm first-success',
+    jsonCommand: 'pnpm first-success:json',
+  };
+}
+
 function commandSets() {
   return {
     firstRun: [
       'corepack enable',
       'corepack prepare pnpm@11.7.0 --activate',
       'node scripts/setup.mjs',
+      'pnpm first-success',
       'pnpm adoption:report',
       'pnpm dev',
     ],
@@ -205,6 +234,7 @@ function commandSets() {
     ],
     proof: [
       'pnpm doctor:json',
+      'pnpm first-success:json',
       'pnpm adoption:report:json',
       'pnpm release:audit',
       'pnpm canvas:smoke',
@@ -220,6 +250,7 @@ function commandSets() {
 
 function buildReport() {
   const doctorRun = runJsonNode('scripts/doctor.mjs', ['--json']);
+  const firstSuccessRun = runJsonNode('scripts/first-success-contract.mjs', ['--json']);
   const releaseRun = runJsonNode('scripts/release-audit.mjs', ['--json']);
   const doctor = doctorRun.data;
   const release = releaseRun.data;
@@ -230,14 +261,16 @@ function buildReport() {
   const github = githubState();
   const proof = proofState();
   const codex = codexState(doctor);
+  const firstSuccess = firstSuccessState(firstSuccessRun);
   const scripts = packageScriptState();
   const warnings = [
     ...((doctor?.checks ?? []).filter((check) => check.level === 'warn').map((check) => `doctor: ${check.label} - ${check.detail}`)),
     ...releaseWarnings.map((warning) => `release: ${warning.name} - ${warning.detail}`),
+    ...(firstSuccess.ready ? [] : [`first-success: ${firstSuccess.error || 'contract shape is incomplete'}`]),
     ...(github.available ? [] : ['github: gh metadata unavailable; local report still valid']),
     ...(statusPorcelain ? ['repo: working tree has local changes'] : []),
   ];
-  const ok = Boolean(doctorRun.ok && releaseRun.ok && doctor?.ok && release?.ok && releaseFailures.length === 0);
+  const ok = Boolean(doctorRun.ok && firstSuccess.ready && releaseRun.ok && doctor?.ok && release?.ok && releaseFailures.length === 0);
 
   return {
     schemaVersion: 'starlight.agentCanvas.adoptionReport.v1',
@@ -267,6 +300,7 @@ function buildReport() {
       failures: releaseFailures,
       warnings: releaseWarnings,
     },
+    firstSuccess,
     codex,
     proof,
     scripts,
@@ -314,6 +348,7 @@ function renderMarkdown(report) {
     table([
       ['Local install', marker(report.install.doctorOk), `doctor ${JSON.stringify(report.install.doctorSummary ?? {})}`],
       ['Release posture', marker(report.release.auditOk), `release audit ${JSON.stringify(report.release.auditSummary ?? {})}`],
+      ['First success', marker(report.firstSuccess.ready), `${report.firstSuccess.phaseCount} phases, ${report.firstSuccess.inputContractCount} input contracts`],
       ['Codex MCP', marker(report.codex.wired), `${codexLabel}; home ${slash(report.codex.canvasHome) || '(unknown)'}`],
       ['Proof canvas', marker(report.proof.demoCanvas.exists), `${report.proof.demoCanvas.nodes} nodes, ${report.proof.demoCanvas.artifacts} artifacts, ${report.proof.demoCanvas.runs} runs`],
       ['Visual QA', marker((visual.score ?? 0) >= 26 && missingCritical.length === 0), `${visual.score ?? 'n/a'}/30; ${visual.inspectedCount}/${visual.artifactCount} inspected artifacts`],
@@ -325,6 +360,7 @@ function renderMarkdown(report) {
     '',
     `The bundled demo canvas contains ${report.proof.demoCanvas.nodeKinds.join(', ')} nodes and is portable JSON at \`examples/demo-canvas.json\`.`,
     `The current visual evidence score is \`${visual.score ?? 'n/a'}/30\` with real product screenshots under \`docs/visual-qa\`.`,
+    `The first-success contract is \`${report.firstSuccess.ready ? 'ready' : 'not ready'}\` at \`docs/first-success.md\`.`,
     `The MCP CLI path is \`${slash(report.codex.mcpCliPath) || '(not built)'}\`.`,
     `The Codex config path is \`${slash(report.codex.codexConfigPath) || '(unknown)'}\`.`,
     '',

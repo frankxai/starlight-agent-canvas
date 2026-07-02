@@ -6,7 +6,7 @@
 flowchart LR
   open["Open blank canvas"] --> paste["Paste source into canvas composer"]
   paste --> preview["Review detected source chips"]
-  preview --> map["Click Map"]
+  preview --> map["Click Map + Brief or Map only"]
   map --> inspect["Inspect receipt and edit node"]
   inspect --> scope["Confirm selected context and Codex export preview"]
   scope --> ready["Check handoff readiness"]
@@ -20,17 +20,18 @@ Expected result: the user can use either the top composer or the center empty-ca
 
 1. Open any canvas.
 2. Click `New` when you want a fresh blank graph instead of the latest local canvas.
-3. Click `Video`, `Image`, `Web`, `Note`, or `Ask` in the first-viewport composer.
-4. Confirm the composer focuses and the status explains the selected mode.
-5. If the primary `Map + Brief` action is clicked before adding context, confirm it focuses the composer instead of silently doing nothing.
-6. Paste or drop context.
-7. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
-8. Confirm the live operator loop advances from `Capture` to `Map` after source nodes exist.
-9. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-10. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
-11. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
-12. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
-13. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
+3. Confirm the persistent composer helper says sources become Codex-readable context.
+4. Click `Video`, `Image`, `Web`, `Note`, or `Ask` in the first-viewport composer.
+5. Confirm the composer focuses and the status explains the selected mode.
+6. If the primary `Map + Brief` action is clicked before adding context, confirm it focuses the composer instead of silently doing nothing.
+7. Paste or drop context.
+8. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
+9. Confirm the live operator loop advances from `Capture` to `Map` after source nodes exist.
+10. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+11. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
+12. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
+13. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
+14. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
 
@@ -50,7 +51,7 @@ Expected result: a first-time user can see the complete product loop in seconds 
 1. Paste a YouTube URL into the canvas composer.
 2. Add a manual transcript or notes in the same box when captions are unavailable.
 3. Confirm the intake preview shows `Video source` and `manual transcript attached`.
-4. Click `Map`.
+4. Click `Map + Brief` for immediate synthesis, or `Map only` for the raw source node.
 5. Confirm the created video node is selected and visible in the inspector.
 6. Confirm the context receipt shows `youtube`, `manual transcript`, source URL, chunks, and character count.
 7. Run `Ask selected`, `Source summary`, or `Extract claims`.
@@ -149,15 +150,16 @@ Expected result: templates are not decorative examples; they are reusable operat
 2. Inspect the `Setup / MCP` panel.
 3. Confirm data home, MCP build, Codex config, and Codex server status.
 4. Follow the `Activation runway`: install health, proof canvas, source mapping, context export, and Codex MCP wiring.
-5. Copy `Setup`, `Codex`, `Smoke`, `first-run check`, or `prod preview` commands when a status needs action.
-6. Inspect the `Agent toolbelt`: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
-7. Copy the agent prompt, adoption report command, or terminal Codex handoff command when the next step should move from UI to Codex.
-8. Copy the Codex activation prompt when Codex should continue from the current local canvas.
-9. Restart Codex after installing MCP config.
-10. Run `pnpm doctor:json` or `pnpm adoption:report:json` when an agent, CI job, or setup helper needs parseable readiness.
-11. Ask Codex to list canvases through MCP.
+5. Inspect the `First success` card: install, open, capture, inspect, handoff, and Codex.
+6. Copy `Setup`, `Codex`, `Smoke`, `first-run check`, `first-success`, or `prod preview` commands when a status needs action.
+7. Inspect the `Agent toolbelt`: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
+8. Copy the agent prompt, adoption report command, or terminal Codex handoff command when the next step should move from UI to Codex.
+9. Copy the Codex activation prompt when Codex should continue from the current local canvas.
+10. Restart Codex after installing MCP config.
+11. Run `pnpm doctor:json`, `pnpm first-success:json`, or `pnpm adoption:report:json` when an agent, CI job, or setup helper needs parseable readiness.
+12. Ask Codex to list canvases through MCP.
 
-Expected result: install and agent wiring status are visible inside the product surface, the next human action is obvious, and the write path remains explicit and backed by local scripts.
+Expected result: install, first-success, and agent wiring status are visible inside the product surface, the next human action is obvious, and the write path remains explicit and backed by local scripts.
 
 ## Flow 7: Mobile Review
 
@@ -189,10 +191,12 @@ Expected result: a canvas can move between human review, repo artifacts, Codex/C
 2. Run `node scripts/setup.mjs` for the full first-run path.
 3. Run `pnpm doctor` for human-readable readiness.
 4. Run `pnpm doctor:json` for machine-readable readiness.
-5. Run `pnpm adoption:report` for the combined install, release, demo, visual, GitHub, and Codex snapshot.
-6. Run `pnpm adoption:report:json` when Codex, CI, or another automation needs to parse that same adoption state.
-7. Confirm `summary.fail` is `0` in doctor and release audit sections.
-8. Treat Codex config warnings as optional until MCP is intentionally installed.
-9. Run `pnpm release:audit`, `pnpm canvas:smoke`, and `pnpm mcp:smoke` before a release or important handoff.
+5. Run `pnpm first-success` for the maintained install-to-Codex contract.
+6. Run `pnpm first-success:json` when Codex, CI, or setup helpers need to parse that contract.
+7. Run `pnpm adoption:report` for the combined install, release, demo, visual, GitHub, and Codex snapshot.
+8. Run `pnpm adoption:report:json` when Codex, CI, or another automation needs to parse that same adoption state.
+9. Confirm `summary.fail` is `0` in doctor and release audit sections.
+10. Treat Codex config warnings as optional until MCP is intentionally installed.
+11. Run `pnpm release:audit`, `pnpm canvas:smoke`, and `pnpm mcp:smoke` before a release or important handoff.
 
 Expected result: a contributor, operator, or agent can prove local health without reading implementation files or guessing which warnings are release blockers.

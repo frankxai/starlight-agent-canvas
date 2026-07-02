@@ -63,6 +63,8 @@ Use these commands as the operator confidence loop:
 ```powershell
 pnpm doctor
 pnpm doctor:json
+pnpm first-success
+pnpm first-success:json
 pnpm release:audit
 pnpm canvas:smoke
 pnpm mcp:smoke
@@ -70,7 +72,7 @@ pnpm verify
 pnpm test:e2e
 ```
 
-`pnpm doctor` is the human-readable status check. `pnpm doctor:json` is the machine-readable contract for agents, CI, and future setup UI. It reports:
+`pnpm first-success` is the maintained install-to-Codex operating contract. `pnpm doctor` is the human-readable status check. `pnpm doctor:json` is the machine-readable health contract for agents, CI, and future setup UI. It reports:
 
 - repo root
 - canvas data home
@@ -84,7 +86,7 @@ Warnings are allowed for optional wiring, such as Codex not yet pointing at this
 ## GitHub Contributor Loop
 
 1. Clone and run `node scripts/setup.mjs`.
-2. Run `pnpm doctor:json` and inspect `summary.fail`.
+2. Run `pnpm first-success:json` and `pnpm doctor:json`; inspect the contract plus `summary.fail`.
 3. Use the issue template that matches the work: bug, feature, integration, or setup/MCP help.
 4. Keep runtime data out of Git: no `.agent-canvas`, `.env`, `.next`, `node_modules`, or private exports.
 5. Use the PR template to declare which surface changed: UI, core/store/actions, MCP, ingestion, docs/GitHub, tests/CI.

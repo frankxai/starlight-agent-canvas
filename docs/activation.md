@@ -6,8 +6,9 @@ The activation runway is the first successful loop for Starlight Agent Canvas. I
 
 1. Install and health
    - Run `node scripts/setup.mjs`.
-   - This installs dependencies, runs doctor, builds MCP, smoke-tests MCP, seeds the Starlight canvas, and prints Codex config as a dry-run.
+   - This installs dependencies, builds MCP, runs doctor, smoke-tests MCP, seeds the Starlight canvas, and prints Codex config as a dry-run.
    - Proof: `pnpm doctor:json` has `summary.fail === 0`.
+   - First-success contract: `pnpm first-success` shows the maintained install-to-Codex path.
    - Adoption snapshot: `pnpm adoption:report` shows install, release, demo, visual, GitHub, and Codex status in one place.
 
 2. Load proof canvas
@@ -51,6 +52,8 @@ Look for:
 - `activation.firstRunCheckCommand`
 - `activation.previewCommand`
 - `activation.codexPrompt`
+- `firstSuccess.phases`
+- `firstSuccess.proofCommands`
 
 This lets browser tests, local agents, and setup automation verify the same journey a human sees in the UI.
 
@@ -58,6 +61,7 @@ This lets browser tests, local agents, and setup automation verify the same jour
 
 ```powershell
 pnpm doctor:json
+pnpm first-success:json
 pnpm adoption:report:json
 pnpm first-run:check
 pnpm canvas:smoke

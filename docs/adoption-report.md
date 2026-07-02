@@ -29,6 +29,7 @@ pnpm adoption:report -- --out .agent-canvas/adoption-report.md
 ## What It Reads
 
 - `scripts/doctor.mjs --json` for local install health, data home, MCP CLI path, and Codex config status.
+- `scripts/first-success-contract.mjs --json` for the maintained human plus Codex first-success contract.
 - `scripts/release-audit.mjs --json` for OSS/release readiness.
 - `package.json` for maintained proof scripts.
 - `examples/demo-canvas.json` for portable canvas proof counts and node kinds.
@@ -56,6 +57,7 @@ Use the JSON output when:
 The report is `ready` when:
 
 - `doctor --json` exits cleanly and has no required failures.
+- `first-success --json` has the expected install/open/capture/inspect/handoff/Codex phases and input contracts.
 - `release:audit --json` exits cleanly and has no failures.
 - Required scripts, docs, demo proof, and visual evidence are present.
 

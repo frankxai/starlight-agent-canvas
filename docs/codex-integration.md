@@ -10,7 +10,7 @@ Fast path:
 node scripts/setup.mjs --codex-write
 ```
 
-This installs dependencies, runs doctor, builds and smoke-tests the MCP server, seeds the Starlight OS canvas, then updates Codex config with a timestamped backup.
+This installs dependencies, builds the MCP server, runs doctor, smoke-tests MCP, seeds the Starlight OS canvas, then updates Codex config with a timestamped backup.
 
 Manual path:
 
@@ -38,15 +38,17 @@ Run `pnpm doctor` any time the local setup feels uncertain.
 It verifies that Codex has the `starlight-agent-canvas` server/env blocks and that they point at this repo's current built MCP CLI plus the active `AGENT_CANVAS_HOME`.
 It also verifies that the built core/MCP artifacts include the current video and image node/tool schema, which catches stale MCP builds after source media support changes.
 The in-app `Setup / MCP` panel also exposes the activation runway and a copyable Codex activation prompt backed by `/api/setup/status`.
+It also exposes the First Success contract so Codex and the human share the same install/open/capture/inspect/handoff/Codex loop.
 It also exposes the Agent toolbelt so the human can see the MCP sequence Codex should use: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
 
 When Codex or another agent needs parseable setup state, run:
 
 ```powershell
 pnpm doctor:json
+pnpm first-success:json
 ```
 
-Use `summary.fail === 0` as the local health gate. Optional Codex wiring can still appear as warnings until the user chooses `pnpm mcp:install:codex -- --write` and restarts Codex.
+Use `summary.fail === 0` as the local health gate, and use `first-success:json` to understand the maintained human plus Codex operating loop. Optional Codex wiring can still appear as warnings until the user chooses `pnpm mcp:install:codex -- --write` and restarts Codex.
 
 When Codex needs the broader adoption state before deciding how to operate, run:
 
@@ -74,6 +76,7 @@ Codex should treat the canvas as a typed local context layer:
 
 - Read before writing when a canvas already exists.
 - Check `pnpm doctor:json` when MCP setup or data-home state is uncertain.
+- Check `pnpm first-success:json` when the task is about install, onboarding, first use, or the human-to-Codex operating loop.
 - Check `pnpm adoption:report:json` when install, GitHub, visual proof, or release readiness is part of the handoff.
 - Add source nodes for durable evidence, not one-off chat snippets.
 - Run actions to create output nodes that the human can inspect.

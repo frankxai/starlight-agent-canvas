@@ -41,14 +41,16 @@ The web app and MCP server operate over the same local data home. A source added
 ## First Ten Minutes
 
 1. Run `node scripts/setup.mjs`.
-2. Open `http://localhost:3000`.
-3. Confirm the in-app `Setup / MCP` panel.
-4. Click `New` for a fresh blank graph, `Demo` for a working proof canvas, or `Video`, `Image`, `Web`, `Note`, or `Ask` to start from your own material.
-5. Use the live `Capture -> Map -> Inspect -> Ask -> Handoff` loop in the first viewport to see what is ready and trigger the next move.
-6. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-7. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
-8. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP. When nodes are selected, these exports stay scoped to the selected evidence.
+2. Run `pnpm dev`.
+3. Open `http://localhost:3000`.
+4. Confirm the in-app `Setup / MCP` panel.
+5. Click `New` for a fresh blank graph, `Demo` for a working proof canvas, or `Video`, `Image`, `Web`, `Note`, or `Ask` to start from your own material.
+6. Use the live `Capture -> Map -> Inspect -> Ask -> Handoff` loop in the first viewport to see what is ready and trigger the next move.
+7. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+8. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
+9. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP. When nodes are selected, these exports stay scoped to the selected evidence.
 
+For the maintained first-success contract, run `pnpm first-success` or `pnpm first-success:json`.
 For the full human plus agent operating loop, see `docs/operator-loop.md`.
 For the install-to-Codex first success path, see `docs/activation.md`.
 
@@ -97,9 +99,10 @@ node scripts/setup.mjs --skip-install
 pnpm dev
 ```
 
-`node scripts/setup.mjs` runs dependency install, doctor, MCP build, MCP smoke, Starlight OS canvas seed, and a dry-run Codex MCP config print. Use `node scripts/setup.mjs --codex-write` when you want it to update `~/.codex/config.toml` with a timestamped backup.
+`node scripts/setup.mjs` runs dependency install, MCP build, doctor, MCP smoke, Starlight OS canvas seed, and a dry-run Codex MCP config print. Use `node scripts/setup.mjs --codex-write` when you want it to update `~/.codex/config.toml` with a timestamped backup.
 
 `pnpm doctor` now verifies local prerequisites, workspace files, the built MCP server, `.mcp.json`, and whether Codex is wired to this exact MCP CLI path and `AGENT_CANVAS_HOME`.
+`pnpm first-success` prints the maintained human plus Codex activation contract; `pnpm first-success:json` emits the same contract for agents, setup helpers, issue triage, and CI.
 `pnpm adoption:report` turns doctor, release audit, demo proof, visual evidence, GitHub metadata, and Codex MCP status into one human-readable adoption snapshot; `pnpm adoption:report:json` emits the same contract for agents and CI.
 
 Manual setup remains available:
@@ -215,6 +218,8 @@ export_canvas(format: "codex")
 ```powershell
 pnpm doctor
 pnpm doctor:json
+pnpm first-success
+pnpm first-success:json
 pnpm adoption:report
 pnpm adoption:report:json
 pnpm release:audit
@@ -225,7 +230,7 @@ pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm adoption:report` is the single adoption snapshot for humans and agents. It reads doctor JSON, release audit JSON, demo canvas proof, visual evidence, Git/GitHub status, and Codex MCP path/home without mutating local data. `pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health; `pnpm doctor:json` emits the same health contract for agents, CI, and setup automation. `pnpm first-run:check` builds the production app, uses a temporary data home, starts a local preview, verifies setup status, imports the demo canvas, checks context export, and shuts the preview down. `pnpm canvas:smoke` proves terminal demo import, list, search, context export, and Codex handoff export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context/Codex export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm first-success` is the explicit install-to-Codex success contract. `pnpm adoption:report` is the single adoption snapshot for humans and agents. It reads doctor JSON, first-success JSON, release audit JSON, demo canvas proof, visual evidence, Git/GitHub status, and Codex MCP path/home without mutating local data. `pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, first-success shape, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health; `pnpm doctor:json` emits the same health contract for agents, CI, and setup automation. `pnpm first-run:check` builds the production app, uses a temporary data home, starts a local preview, verifies setup status, imports the demo canvas, checks context export, and shuts the preview down. `pnpm canvas:smoke` proves terminal demo import, list, search, context export, and Codex handoff export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context/Codex export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 
@@ -254,6 +259,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 
 - Install and first run: `docs/install.md`
 - Activation runway: `docs/activation.md`
+- First success contract: `docs/first-success.md`
 - Adoption report: `docs/adoption-report.md`
 - Human/agent operator loop: `docs/operator-loop.md`
 - PRD: `docs/prd.md`

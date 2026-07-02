@@ -22,6 +22,7 @@ README first-read requirements before public announcement:
 - Shows the first-viewport human operating loop: `Capture -> Map -> Inspect -> Ask -> Handoff`.
 - Links to install, PRD, user flows, Codex integration, MCP setup, and readiness evidence.
 - Links to the human/agent operator loop and documents `pnpm doctor:json` as the parseable local health contract.
+- Links to the first-success contract and documents `pnpm first-success:json` as the parseable install-to-Codex operating contract.
 - Links to the adoption report and documents `pnpm adoption:report` as the combined install, release, proof, visual, GitHub, and Codex status snapshot.
 - Links to `docs/activation.md` and shows the in-app activation runway as the first install-to-Codex success path.
 - Avoids comparing itself as a clone of Poppy, Nodeflow, or another closed product.
@@ -67,24 +68,26 @@ Use labels:
 
 1. Run `pnpm doctor` and confirm it reports Node/pnpm, workspaces, built MCP server, `.mcp.json`, and Codex MCP path/home checks.
 2. Run `pnpm doctor:json` and confirm `summary.fail` is `0`; Codex wiring warnings are acceptable until the user opts into config writes.
-3. Run `pnpm adoption:report` and confirm it shows ready state or only understood warnings.
-4. Run `pnpm release:audit` and address failures. The public GitHub remote should be attached before public release.
-5. Run `pnpm verify`.
-6. Run `pnpm canvas:smoke`.
-7. Run `pnpm mcp:smoke`.
-8. Run `pnpm first-run:check` to prove a fresh production preview can boot, import the demo canvas, and export context from a temporary data home.
-9. Run `pnpm test:e2e`.
-10. Confirm `/api/setup/status` exposes `activation.steps`, proof commands, and the Codex activation prompt.
-11. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
-12. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
-13. Run the Starlight staged/full security scan.
-14. Confirm visual QA screenshots are current.
-15. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
-16. Confirm `.env` and private canvas exports are not staged.
-17. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
-18. Update README links and docs index.
-19. Keep CODEOWNERS pointed at the active maintainer account or team before enforcing owner review.
-20. Tag release only after GitHub CI passes.
+3. Run `pnpm first-success` and confirm the install/open/capture/inspect/handoff/Codex phases match the product.
+4. Run `pnpm first-success:json` when an agent or setup helper needs the same contract.
+5. Run `pnpm adoption:report` and confirm it shows ready state or only understood warnings.
+6. Run `pnpm release:audit` and address failures. The public GitHub remote should be attached before public release.
+7. Run `pnpm verify`.
+8. Run `pnpm canvas:smoke`.
+9. Run `pnpm mcp:smoke`.
+10. Run `pnpm first-run:check` to prove a fresh production preview can boot, import the demo canvas, and export context from a temporary data home.
+11. Run `pnpm test:e2e`.
+12. Confirm `/api/setup/status` exposes `activation.steps`, `firstSuccess.phases`, proof commands, and the Codex activation prompt.
+13. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
+14. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
+15. Run the Starlight staged/full security scan.
+16. Confirm visual QA screenshots are current.
+17. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
+18. Confirm `.env` and private canvas exports are not staged.
+19. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
+20. Update README links and docs index.
+21. Keep CODEOWNERS pointed at the active maintainer account or team before enforcing owner review.
+22. Tag release only after GitHub CI passes.
 
 Public install proof to keep current:
 

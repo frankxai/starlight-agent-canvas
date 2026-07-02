@@ -45,10 +45,12 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
 - User can see the in-app agent tool path for Codex/MCP work: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
 - User can copy the adoption report command, agent prompt, and terminal Codex handoff command from inside the workspace.
+- User can see a maintained first-success contract in the workspace: install, open, capture, inspect, handoff, and Codex.
 - User can follow a live activation runway from install health to proof canvas, mapped source context, context export, and Codex MCP wiring.
 - User can follow a live human workflow loop from blank canvas to Codex handoff without discovering hidden shortcuts or reading docs first.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
 - Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
+- Operators, GitHub contributors, setup helpers, and agents can parse the first-success contract through `pnpm first-success:json`.
 - Operators, GitHub contributors, and agents can parse adoption readiness through `pnpm adoption:report:json`, not only scattered docs and screenshots.
 - MCP clients can list, read, get the latest canvas, create, import, add/update positioned nodes, ingest mixed paste-anything content, ingest text/URL/YouTube/video/image/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
@@ -74,9 +76,11 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - `pnpm doctor` explains local readiness and missing build steps.
 - `pnpm doctor:json` emits a stable pass/warn/fail health contract with repo root, canvas home, MCP CLI path, Codex config path, checks, and next steps.
 - `pnpm adoption:report` and `pnpm adoption:report:json` combine doctor health, release audit health, demo proof, visual evidence, Git/GitHub state, Codex MCP path/home, first-success commands, and a compact Codex prompt.
+- `pnpm first-success` and `pnpm first-success:json` expose the install/open/capture/inspect/handoff/Codex contract and supported input contracts.
 - The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
 - The setup/MCP status panel exposes the adoption report command and agent toolbelt from `/api/setup/status`.
 - `/api/setup/status` exposes an activation contract with steps, proof commands, and a Codex activation prompt.
+- `/api/setup/status` exposes `firstSuccess` with phases, proof commands, and first-success command copies.
 - `pnpm verify`, `pnpm test:e2e`, and `pnpm mcp:smoke` pass.
 - `pnpm canvas:smoke` passes and proves demo import, list, search, context export, and Codex handoff export from the terminal.
 - README links to install, PRD, user flows, MCP setup, Codex integration, system design, and production readiness.
@@ -104,8 +108,10 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A new local user can install, seed, and open the app in under 10 minutes.
 - A local operator can confirm data home, MCP build, Codex config, and Codex server wiring without leaving the workspace.
 - A local operator can see the exact MCP tool path Codex should use and copy the adoption report or terminal handoff command without leaving the workspace.
+- A local operator can see the first-success contract and copy the human or JSON form without leaving the workspace.
 - A new user can follow the activation runway and understand the next install, demo, mapping, export, or Codex action without reading code.
 - An agent or CI job can parse `pnpm doctor:json` and distinguish required failures from optional wiring warnings.
+- A setup helper, issue triage agent, or Codex session can parse `pnpm first-success:json` and understand the install-to-Codex loop before choosing tools.
 - A contributor or Codex session can parse `pnpm adoption:report:json` and understand install, release, proof, visual, GitHub, and Codex state before choosing the next workflow.
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
 - A user can click a citation from an answer or run log and land back on the cited source/chunk.

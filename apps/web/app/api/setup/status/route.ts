@@ -152,6 +152,44 @@ export async function GET() {
       jsonCommand: 'pnpm adoption:report:json',
       docs: ['docs/adoption-report.md', 'docs/readiness-evidence.md'],
     },
+    firstSuccess: {
+      contractCommand: 'pnpm first-success',
+      jsonCommand: 'pnpm first-success:json',
+      docs: ['docs/first-success.md', 'docs/operator-loop.md'],
+      proofCommands: ['pnpm first-run:check', 'pnpm canvas:smoke', 'pnpm mcp:smoke'],
+      phases: [
+        {
+          id: 'install',
+          label: 'Install',
+          detail: 'Setup script, doctor, MCP build, smoke, seed, dry-run MCP config.',
+        },
+        {
+          id: 'open',
+          label: 'Open',
+          detail: 'Start the app directly in the local canvas workspace.',
+        },
+        {
+          id: 'capture',
+          label: 'Capture',
+          detail: 'Paste, drop, upload, or type source context into the first viewport.',
+        },
+        {
+          id: 'inspect',
+          label: 'Inspect',
+          detail: 'Review source receipts, provenance, chunks, citations, and outputs.',
+        },
+        {
+          id: 'handoff',
+          label: 'Handoff',
+          detail: 'Copy Context or Codex, or export JSON/Markdown from CLI or app.',
+        },
+        {
+          id: 'codex',
+          label: 'Codex',
+          detail: 'Use MCP tools to read, ingest, run actions, and export the same canvas.',
+        },
+      ],
+    },
     agent: {
       prompt: [
         'Use starlight-agent-canvas as shared local context.',
