@@ -46,6 +46,17 @@ describe('FileCanvasStore', () => {
     const markdown = await store.exportCanvas(canvas.id, 'markdown');
     expect(markdown).toContain('# Planning');
     expect(markdown).toContain('MCP note');
+
+    const portable = JSON.parse(await store.exportCanvas(canvas.id, 'json')) as typeof canvas;
+    portable.id = 'canvas-imported-planning';
+    portable.title = 'Imported planning';
+    const imported = await store.importCanvas(portable);
+    expect(imported.id).toBe('canvas-imported-planning');
+    expect(imported.nodes.length).toBe(afterConcurrentWrites.nodes.length + 1);
+
+    const importedCopy = await store.importCanvas(portable);
+    expect(importedCopy.id).not.toBe(imported.id);
+    expect(importedCopy.title).toBe('Imported planning (imported)');
   });
 
   it('serializes writes across store instances', async () => {

@@ -43,5 +43,15 @@ describe('MCP tool handlers', () => {
 
     const exported = await handlers.export_canvas({ canvasId: canvas.id, format: 'markdown' });
     expect(exported.content[0].text).toContain('# MCP smoke');
+
+    const exportedJson = await handlers.export_canvas({ canvasId: canvas.id, format: 'json' });
+    const portable = JSON.parse(exportedJson.content[0].text) as { id: string; title: string };
+    portable.id = 'canvas-imported-mcp-smoke';
+    portable.title = 'Imported MCP smoke';
+    const imported = await handlers.import_canvas({ canvas: portable });
+    expect(imported.content[0].text).toContain('Imported canvas Imported MCP smoke');
+
+    const importedAgain = await handlers.import_canvas({ canvas: portable });
+    expect(importedAgain.content[0].text).toContain('(imported)');
   });
 });

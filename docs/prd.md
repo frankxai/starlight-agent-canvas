@@ -24,8 +24,8 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
 - User can create notes directly on the canvas and edit selected node title/body.
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, answer question.
-- User can export portable JSON and Markdown.
-- MCP clients can list, read, create, add/update nodes, ingest sources, connect nodes, run actions, search artifacts, and export.
+- User can export portable JSON/Markdown and re-import portable JSON.
+- MCP clients can list, read, create, import, add/update nodes, ingest sources, connect nodes, run actions, search artifacts, and export.
 - Runtime data lives outside Git by default.
 
 ## Non-Goals
@@ -66,7 +66,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 - A new local user can install, seed, and open the app in under 10 minutes.
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` in under 2 minutes after launch.
-- An MCP client can ingest a text source, run an action, and export Markdown through smoke tests.
+- An MCP client can ingest a text source, run an action, export Markdown/JSON, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.
 
 ## Roadmap
@@ -92,4 +92,3 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Live URL/video ingestion is inherently unreliable. Mitigation: graceful fallback nodes and manual transcript support.
 - MCP tools can create messy canvases if too broad. Mitigation: safe, typed tools and no destructive actions in v0.1.
 - OSS users may expect hosted collaboration. Mitigation: position clearly as local-first v0.1.
-

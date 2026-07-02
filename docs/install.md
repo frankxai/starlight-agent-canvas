@@ -6,7 +6,7 @@ This guide is for people trying Starlight Agent Canvas from GitHub and for local
 
 - A local web canvas for notes, URLs, YouTube transcripts, PDFs, text files, and agent outputs.
 - A file-backed data home outside the repo.
-- A safe stdio MCP server so agents can read, add to, run actions on, and export the same canvas.
+- A safe stdio MCP server so agents can read, add to, run actions on, import, and export the same canvas.
 - Deterministic local actions that work without model provider keys.
 
 ## Requirements
@@ -66,11 +66,13 @@ pnpm dev
 3. Click `Map`.
 4. Select the new node and edit its title/body in the inspector if needed.
 5. Run `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
-6. Export JSON or Markdown from the canvas toolbar.
-7. Build the MCP server with `pnpm mcp:build`.
-8. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
-9. Ask the agent to list canvases and add a source node.
-10. Keep building with the same shared canvas context.
+6. Click `Context` when you want a clipboard-ready Markdown packet for an agent prompt.
+7. Export JSON or Markdown from the canvas toolbar.
+8. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
+9. Build the MCP server with `pnpm mcp:build`.
+10. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
+11. Ask the agent to list canvases and add a source node.
+12. Keep building with the same shared canvas context.
 
 ## Production Local Preview
 
@@ -100,6 +102,7 @@ See `docs/mcp-setup.md` and `docs/codex-integration.md` for the operating workfl
 
 - `pnpm doctor` warns that the MCP server is not built: run `pnpm mcp:build`.
 - The app cannot find canvases: check `AGENT_CANVAS_HOME`.
+- Import creates a duplicate title: this is intentional when a JSON export has the same canvas id as an existing local canvas.
 - Browser says the API is blocked from a remote host: this is intentional. Set `AGENT_CANVAS_ALLOW_REMOTE=1` only for a protected deployment.
 - YouTube has no transcript: paste a manual transcript or notes with the URL.
 - URL ingestion rejects a private host: local/private network URLs are blocked by default to prevent SSRF.

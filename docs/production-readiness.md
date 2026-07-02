@@ -33,6 +33,8 @@ C:\Users\frank\.starlight\agent-canvas
 
 The seed canvas lays out the north star, technology stack, MCP boundary, workflows, mobile access, production gates, and implementation brief output.
 
+Portable JSON import/export is part of the production boundary. Import must never silently overwrite an existing canvas; same-id imports are saved as copies unless a future explicit replace mode is added to a trusted admin path.
+
 ## Environment
 
 Required:

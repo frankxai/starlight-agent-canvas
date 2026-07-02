@@ -1,8 +1,18 @@
 {
+  "version": "1.0",
   "task": "Starlight Agent Canvas v0.1 workspace",
   "surface": "local-first web app",
   "audience": "Codex, Claude, Gemini, Starlight operators, and creator/builders",
   "firstRead": "A working MCP-native research canvas with source nodes, actions, run logs, and local state.",
+  "standards": [
+    "DESIGN_TASTE.md",
+    "WEB_EXPERIENCE_STANDARD.md",
+    "MOTION_TASTE_RUBRIC.md",
+    "VISUAL_QA_GATE.md",
+    "_intelligence Premium Web OS",
+    "design-agent-standards/DESIGN.md",
+    "design-agent-standards/AGENTIC_DESIGN_LOOP.md"
+  ],
   "standardsLoaded": [
     "DESIGN_TASTE.md",
     "WEB_EXPERIENCE_STANDARD.md",
@@ -38,6 +48,69 @@
     "destructive MCP tools",
     "decorative motion"
   ],
+  "direction": {
+    "keep": "Dense local-first command workspace with visible source intake, typed graph state, inspector, action drawer, and MCP-safe context controls.",
+    "avoid": "Generic SaaS landing shell, fake metrics, decorative 3D, hidden primary actions, or destructive agent controls.",
+    "signature": "Nocturnal Starlight command graph where human source mapping and agent actions share the same inspectable canvas.",
+    "system": "Premium Web OS, React Flow, local file store, safe MCP tools, deterministic source-grounded actions."
+  },
+  "asset_quality": {
+    "tier": "A",
+    "source_method": "browser-capture",
+    "provenance": "owned",
+    "why_premium": "Screenshots show the real production UI and real local canvas state, not mockups or decorative filler.",
+    "shortcut_risk": "low",
+    "context_tested": true
+  },
+  "artifacts": [
+    {
+      "path_or_url": "docs/visual-qa/desktop-context-import-toolbar.png",
+      "kind": "desktop product screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-context-import-toolbar.png",
+      "kind": "mobile product screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-production-reduced-motion.png",
+      "kind": "reduced-motion product screenshot",
+      "inspected": true
+    }
+  ],
+  "checks": [
+    {
+      "name": "asset-tier",
+      "status": "pass",
+      "notes": "Tier A real product captures from the local production preview."
+    },
+    {
+      "name": "export-inspection",
+      "status": "pass",
+      "notes": "Desktop and mobile screenshots inspected through Codex image viewer."
+    },
+    {
+      "name": "desktop-layout",
+      "status": "pass",
+      "notes": "Composer, graph, rails, toolbar, context, export, and import controls are visible without incoherent overlap."
+    },
+    {
+      "name": "mobile-layout",
+      "status": "pass",
+      "notes": "Mobile stacks graph and rails; bottom toolbar exposes JSON, MD, Context, and Import."
+    },
+    {
+      "name": "reduced-motion",
+      "status": "pass",
+      "notes": "Track A only; reduced-motion screenshot exists and no heavy scroll/3D path is used."
+    }
+  ],
+  "score": {
+    "total": 27,
+    "max": 30
+  },
+  "decision": "ship",
   "visualQaScore": {
     "firstReadHierarchy": 5,
     "brandFitDistinctiveness": 4,
@@ -64,6 +137,8 @@
       "docs/visual-qa/desktop-live-pasted-youtube.png",
       "docs/visual-qa/desktop-live-editable-inspector.png",
       "docs/visual-qa/mobile-live-canvas-composer.png",
+      "docs/visual-qa/desktop-context-import-toolbar.png",
+      "docs/visual-qa/mobile-context-import-toolbar.png",
       "docs/visual-qa/desktop-first-viewport.png",
       "docs/visual-qa/mobile-first-viewport.png",
       "docs/visual-qa/mobile-graph-viewport.png",
@@ -103,6 +178,8 @@
       "autoSelectNewSourcesAndOutputs": true,
       "youtubeManualTranscriptMapped": true,
       "askCanvasOutputCreated": true,
+      "contextCopyAvailable": true,
+      "jsonImportAvailable": true,
       "mobileToolbarReduced": true
     },
     "metrics": {
@@ -125,6 +202,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport composer controls, paste-anywhere, double-click notes, editable inspector, source/action auto-selection, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport composer controls, paste-anywhere, double-click notes, editable inspector, source/action auto-selection, context copy, JSON/Markdown export, JSON import, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

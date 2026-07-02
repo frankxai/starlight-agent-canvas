@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { canvasIdSchema } from '@starlight-agent-canvas/core';
+import { canvasIdSchema, canvasRecordSchema } from '@starlight-agent-canvas/core';
 import { createToolHandlers } from './tool-handlers.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -149,6 +149,19 @@ export function createAgentCanvasMcpServer() {
       annotations: SAFE_LOCAL_WRITE,
     },
     async (args) => handlers.create_canvas({ ...args, template: args.template ?? 'blank' }),
+  );
+
+  server.registerTool(
+    'import_canvas',
+    {
+      title: 'Import Canvas',
+      description: 'Import a portable canvas JSON export. If the id already exists, it is imported as a non-destructive copy.',
+      inputSchema: {
+        canvas: canvasRecordSchema,
+      },
+      annotations: SAFE_LOCAL_WRITE,
+    },
+    async (args) => handlers.import_canvas(args),
   );
 
   server.registerTool(

@@ -13,6 +13,7 @@ const expectedTools = [
   'list_canvases',
   'get_canvas',
   'create_canvas',
+  'import_canvas',
   'add_node',
   'update_node',
   'ingest_text_source',
@@ -102,6 +103,31 @@ try {
     throw new Error('export_canvas did not return markdown for the smoke canvas.');
   }
 
+  const exportedJson = await client.callTool({
+    name: 'export_canvas',
+    arguments: {
+      canvasId,
+      format: 'json',
+    },
+  });
+  const jsonBody = exportedJson.structuredContent?.body;
+  if (typeof jsonBody !== 'string') {
+    throw new Error('export_canvas did not return JSON for import smoke.');
+  }
+  const portableCanvas = JSON.parse(jsonBody);
+  portableCanvas.id = `canvas-mcp-smoke-import-${new Date().toISOString().replace(/[^A-Za-z0-9_-]/g, '-')}`;
+  portableCanvas.title = 'MCP smoke imported';
+  const imported = await client.callTool({
+    name: 'import_canvas',
+    arguments: {
+      canvas: portableCanvas,
+    },
+  });
+  const importedCanvasId = imported.structuredContent?.canvas?.id;
+  if (typeof importedCanvasId !== 'string') {
+    throw new Error('import_canvas did not return an imported canvas id.');
+  }
+
   console.log(JSON.stringify({
     ok: true,
     home,
@@ -109,6 +135,7 @@ try {
     platform: `${os.platform()} ${os.release()}`,
     toolCount: names.length,
     canvasId,
+    importedCanvasId,
   }, null, 2));
 } finally {
   await client.close();

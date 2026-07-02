@@ -1,3 +1,4 @@
+import { writeFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
 test('workspace maps sources and answers from the canvas', async ({ page }, testInfo) => {
@@ -44,11 +45,25 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('ask-prompt').fill('What source types are supported?');
   await page.getByTestId('ask-canvas').click();
   await expect(page.getByTestId('inspector-title')).toHaveValue('answer question output');
+  await expect(page.getByTestId('copy-context')).toBeEnabled();
 
   const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
   expect(exportHref).toBeTruthy();
   const exportResponse = await page.request.get(exportHref!);
   await expect(exportResponse).toBeOK();
   expect(exportResponse.headers()['content-type']).toContain('application/json');
-  expect(await exportResponse.text()).toContain('Edited canvas note');
+  const exportedCanvas = await exportResponse.json() as { id: string; title: string };
+  expect(JSON.stringify(exportedCanvas)).toContain('Edited canvas note');
+
+  const importTitle = `imported ${testInfo.project.name} ${Date.now()}`;
+  exportedCanvas.id = `canvas-${importTitle.replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase()}`;
+  exportedCanvas.title = importTitle;
+  const importPath = testInfo.outputPath(`${importTitle.replace(/\s+/g, '-')}.json`);
+  await writeFile(importPath, JSON.stringify(exportedCanvas, null, 2), 'utf8');
+
+  await page.getByTestId('import-canvas-file').setInputFiles(importPath);
+  await expect(page.getByRole('button', { name: new RegExp(importTitle) })).toBeVisible();
+  await expect.poll(async () => {
+    return await page.getByLabel('Export JSON').getAttribute('href') ?? '';
+  }).toContain(exportedCanvas.id);
 });

@@ -557,6 +557,43 @@ function WorkspaceInner() {
     setIntakeText('');
   }, [addCanvasNoteAt, intakeText]);
 
+  const importCanvasFile = useCallback(async (file?: File) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      const raw = await file.text();
+      const result = await api<{ canvas: CanvasRecord }>('/api/canvases/import', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: raw,
+      });
+      setCanvas(result.canvas);
+      setSelectedIds([]);
+      await refreshList();
+      setStatus(`Imported ${result.canvas.title}.`);
+    } catch (error) {
+      setStatus((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }, [refreshList]);
+
+  const copyCanvasContext = useCallback(async () => {
+    if (!canvas) return;
+    setBusy(true);
+    try {
+      const response = await fetch(`/api/canvases/${canvas.id}/export?format=markdown`);
+      if (!response.ok) throw new Error(await response.text());
+      const text = await response.text();
+      await navigator.clipboard.writeText(text);
+      setStatus('Copied Markdown context packet.');
+    } catch (error) {
+      setStatus((error as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }, [canvas]);
+
   useEffect(() => {
     const onPaste = (event: ClipboardEvent) => {
       const target = event.target;
@@ -956,6 +993,25 @@ function WorkspaceInner() {
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 MD
               </a>
+              <button type="button" data-testid="copy-context" onClick={copyCanvasContext} disabled={!canvas || busy} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
+                <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
+                Context
+              </button>
+              <label className={`flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink ${canMutate ? 'cursor-pointer hover:border-starlight-accent' : 'cursor-not-allowed opacity-45'}`}>
+                <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
+                Import
+                <input
+                  data-testid="import-canvas-file"
+                  type="file"
+                  accept="application/json,.json"
+                  disabled={!canMutate}
+                  onChange={(event) => {
+                    void importCanvasFile(event.currentTarget.files?.[0]);
+                    event.currentTarget.value = '';
+                  }}
+                  className="sr-only"
+                />
+              </label>
             </div>
             <div className="absolute inset-0 pt-[188px] sm:pt-0">
               <ReactFlow

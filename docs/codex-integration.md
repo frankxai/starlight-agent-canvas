@@ -34,6 +34,7 @@ Codex should treat the canvas as a typed local context layer:
 - Run actions to create output nodes that the human can inspect.
 - Prefer `update_node` for human-readable cleanup over creating duplicate nodes.
 - Export Markdown when handing a canvas result back into a PRD, issue, or implementation brief.
+- Import portable JSON when a user gives Codex a saved canvas snapshot that should become active local context again.
 - Never assume destructive tools exist; v0.1 intentionally has no delete or external-posting tools.
 
 ## Recommended Prompt
@@ -49,6 +50,7 @@ Keep mutations explicit and summarize every node/action you changed.
 
 - `list_canvases`: find the active local canvas.
 - `get_canvas`: inspect current graph state before editing.
+- `import_canvas`: rehydrate a portable JSON canvas export without overwriting an existing local canvas.
 - `ingest_text_source`: add pasted research, transcripts, repo notes, or meeting notes.
 - `ingest_url`: add a public URL as source context.
 - `ingest_youtube`: add a YouTube URL plus optional manual transcript.
@@ -66,6 +68,7 @@ Keep mutations explicit and summarize every node/action you changed.
 3. Human approves or edits nodes directly.
 4. Codex runs an action and creates an output node.
 5. Human exports or asks Codex to continue implementation from the output.
+6. Later, either side can import the JSON export to resume the same graph as durable context.
 
 ## Safety Notes
 
@@ -73,4 +76,3 @@ Keep mutations explicit and summarize every node/action you changed.
 - Tools do not post externally, spend money, mutate accounts, or delete canvases.
 - URL ingestion blocks private/localhost targets by default.
 - Provider-backed AI is intentionally deferred; v0.1 actions are deterministic.
-

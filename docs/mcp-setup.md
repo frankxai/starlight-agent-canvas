@@ -10,7 +10,7 @@ pnpm mcp:build
 pnpm mcp:smoke
 ```
 
-The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests a text source, updates node position, runs an action, and exports Markdown.
+The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests a text source, updates node position, runs an action, exports Markdown/JSON, and imports the portable JSON back as local context.
 
 ## Codex
 
@@ -65,6 +65,7 @@ Use the same stdio shape when the host supports MCP servers:
 - `list_canvases`
 - `get_canvas`
 - `create_canvas`
+- `import_canvas`
 - `add_node`
 - `update_node`
 - `ingest_text_source`
@@ -74,6 +75,8 @@ Use the same stdio shape when the host supports MCP servers:
 - `run_node_action`
 - `search_artifacts`
 - `export_canvas`
+
+`import_canvas` is intentionally non-destructive by default: if the incoming JSON uses an id that already exists in the local home, the server saves it as a copy with a fresh id.
 
 ## Resources And Prompt
 

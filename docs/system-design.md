@@ -30,6 +30,8 @@ Each canvas stores:
 
 Source ingestion writes both an artifact record and a typed node. The node is what users manipulate on the graph; the artifact is the durable source/provenance record used by search, export, and future chunk/citation work.
 
+Portable JSON import validates the same canvas record schema used by exports. Imports preserve the incoming id when it is new to the local home; when that id already exists, the store creates a non-destructive copy with a fresh canvas id and updated timestamps.
+
 ## Node Kinds
 
 `note`, `source_url`, `source_pdf`, `source_youtube`, `prompt`, `mcp_tool`, `agent_run`, `output`
@@ -44,7 +46,7 @@ v0.1 ships deterministic local actions: summarize, extract claims, compare sourc
 
 ## MCP Boundary
 
-The MCP server exposes safe local tools only. It can list/get/create canvases, add/update/ingest nodes, connect nodes, run actions, search artifacts, and export. It never posts, pays, scrapes social platforms, or deletes data.
+The MCP server exposes safe local tools only. It can list/get/create/import canvases, add/update/ingest nodes, connect nodes, run actions, search artifacts, and export. It never posts, pays, scrapes social platforms, or deletes data.
 
 ## Network Boundary
 

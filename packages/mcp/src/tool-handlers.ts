@@ -1,5 +1,6 @@
 import {
   addNodeInputSchema,
+  canvasRecordSchema,
   connectNodesInputSchema,
   createCanvasInputSchema,
   FileCanvasStore,
@@ -64,6 +65,11 @@ export function createToolHandlers(store = new FileCanvasStore()) {
     async create_canvas(args: CreateCanvasInput): Promise<ToolResult> {
       const canvas = await store.createCanvas(createCanvasInputSchema.parse(args));
       return ok(`Created canvas ${canvas.title} (${canvas.id})`, { canvas });
+    },
+
+    async import_canvas(args: { canvas: unknown }): Promise<ToolResult> {
+      const canvas = await store.importCanvas(canvasRecordSchema.parse(args.canvas));
+      return ok(`Imported canvas ${canvas.title} (${canvas.id})`, { canvas });
     },
 
     async add_node(args: { canvasId: string } & AddNodeInput): Promise<ToolResult> {

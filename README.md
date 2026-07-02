@@ -12,16 +12,16 @@ Most AI canvases make research visible for a human but awkward for local agents.
 
 ## What v0.1 Does
 
-- Create local canvases and portable JSON/Markdown exports.
+- Create local canvases with portable JSON import/export and Markdown handoff exports.
 - Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
 - Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
 - Ingest YouTube links with title lookup, best-effort public captions, and manual transcript fallback.
 - Run local actions: summarize, extract claims, compare sources, make a decision matrix, generate an implementation brief, and ask source-grounded questions.
-- Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect source bodies, and export the result.
+- Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect source bodies, copy an agent-ready context packet, export the result, and re-import portable canvas JSON.
 - Auto-open newly created sources and action answers in the inspector so the captured context is immediately usable.
-- Expose safe stdio MCP tools so coding agents can ingest sources, update nodes, run actions, and export canvas state.
+- Expose safe stdio MCP tools so coding agents can ingest sources, update nodes, run actions, import portable context, and export canvas state.
 - Keep runtime data outside the repo by default.
 
 ## Quick Start
@@ -107,7 +107,7 @@ pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm mcp:smoke` proves stdio source ingest, node update, action, and export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 

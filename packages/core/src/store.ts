@@ -18,6 +18,10 @@ export interface CanvasSummary {
   runCount: number;
 }
 
+export interface ImportCanvasOptions {
+  onConflict?: 'copy' | 'replace';
+}
+
 async function renameWithRetry(from: string, to: string): Promise<void> {
   let lastError: unknown;
   for (let attempt = 0; attempt < 6; attempt += 1) {
@@ -139,9 +143,28 @@ export class FileCanvasStore {
     return this.withCanvasLock(parsed.id, async () => this.saveCanvasFile(parsed));
   }
 
-  async importCanvas(raw: unknown): Promise<CanvasRecord> {
+  async importCanvas(raw: unknown, options: ImportCanvasOptions = {}): Promise<CanvasRecord> {
     const parsed = canvasRecordSchema.parse(raw);
-    return this.withCanvasLock(parsed.id, async () => this.saveCanvasFile({ ...parsed, updatedAt: nowIso() }));
+    const onConflict = options.onConflict ?? 'copy';
+    let next = { ...parsed, updatedAt: nowIso() };
+
+    if (onConflict === 'copy') {
+      try {
+        await this.getCanvas(parsed.id);
+        const timestamp = nowIso();
+        next = {
+          ...parsed,
+          id: makeId('canvas', parsed.title),
+          title: `${parsed.title} (imported)`,
+          createdAt: timestamp,
+          updatedAt: timestamp,
+        };
+      } catch {
+        // No existing canvas with this id; preserve the portable id.
+      }
+    }
+
+    return this.withCanvasLock(next.id, async () => this.saveCanvasFile(next));
   }
 
   async addNode(canvasId: string, input: AddNodeInput): Promise<{ canvas: CanvasRecord; node: CanvasNode }> {
