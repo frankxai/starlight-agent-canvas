@@ -5,9 +5,11 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   test.setTimeout(90_000);
 
   const title = `e2e ${testInfo.project.name} ${Date.now()}`;
-  await page.request.post('/api/canvases', {
+  const createdResponse = await page.request.post('/api/canvases', {
     data: { title, template: 'blank' },
   });
+  await expect(createdResponse).toBeOK();
+  const created = await createdResponse.json() as { canvas: { id: string } };
 
   await page.goto('/');
   await expect(page.getByTestId('workspace')).toBeVisible();
@@ -31,6 +33,10 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('empty-canvas-actions')).toBeVisible();
   await expect(page.getByTestId('empty-intake-text')).toBeVisible();
   await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
+  await expect(page.getByTestId('live-intake-heading')).toContainText('Add Anything');
+  await expect(page.getByTestId('codex-export-preview')).toContainText('Codex export preview');
+  await expect(page.getByTestId('codex-export-mode')).toContainText('canvas');
+  await expect(page.getByTestId('codex-export-rules')).toContainText('Whole canvas exports all nodes');
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
   await expect(page.getByTestId('setup-codex-handoff')).toBeEnabled();
@@ -281,11 +287,33 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   const searchInput = page.getByPlaceholder('Search canvases');
   await searchInput.scrollIntoViewIfNeeded();
   await searchInput.fill('Nodeflow');
+  await expect(searchInput).toHaveValue('Nodeflow');
+  const currentCanvasResponse = await page.request.get(`/api/canvases/${created.canvas.id}`);
+  await expect(currentCanvasResponse).toBeOK();
+  const currentCanvas = await currentCanvasResponse.json() as {
+    canvas: { nodes: Array<{ id: string; body: string; title: string }> };
+  };
+  const nodeflowNode = currentCanvas.canvas.nodes.find((node) => node.body.includes('Nodeflow connects YouTube'));
+  if (!nodeflowNode) throw new Error('Expected current canvas to contain the Nodeflow source node.');
+  const searchResponse = page.waitForResponse((response) =>
+    response.url().includes('/api/search?q=Nodeflow') && response.request().method() === 'GET',
+  );
   await page.getByRole('button', { name: 'Go' }).click();
-  await expect(page.getByRole('button', { name: /Nodeflow connects YouTube/ }).first()).toBeVisible();
-  await page.getByRole('button', { name: /Nodeflow connects YouTube/ }).first().click();
+  expect((await searchResponse).ok()).toBe(true);
+  const currentSearchResult = page.getByTestId(`search-result-${created.canvas.id}-${nodeflowNode.id}`).first();
+  await expect(page.getByTestId('search-results')).toContainText('Nodeflow connects YouTube');
+  await expect(currentSearchResult).toBeVisible();
+  await currentSearchResult.click();
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Nodeflow connects YouTube/);
   await expect(page.getByTestId('selected-context')).toContainText('1 node context');
+  await expect(page.getByTestId('codex-export-preview')).toContainText('Codex export preview');
+  await expect(page.getByTestId('codex-export-mode')).toContainText('selected');
+  await expect(page.getByTestId('codex-export-nodes')).toContainText('Nodeflow connects YouTube');
+  await expect(page.getByTestId('codex-export-counts')).toContainText('Nodes');
+  await expect(page.getByTestId('codex-export-counts')).toContainText('Chunks');
+  await expect(page.getByTestId('codex-export-rules')).toContainText('Excludes');
+  await expect(page.getByTestId('codex-export-rules')).toContainText('Edges export only when both endpoints are selected');
+  await expect(page.getByTestId('codex-preview-handoff')).toBeEnabled();
 
   const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
   expect(exportHref).toBeTruthy();

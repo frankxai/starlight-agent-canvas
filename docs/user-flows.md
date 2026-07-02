@@ -8,7 +8,7 @@ flowchart LR
   paste --> preview["Review detected source chips"]
   preview --> map["Click Map"]
   map --> inspect["Inspect receipt and edit node"]
-  inspect --> scope["Confirm selected context tray"]
+  inspect --> scope["Confirm selected context and Codex export preview"]
   scope --> ready["Check handoff readiness"]
   ready --> action["Run selected-source action"]
   action --> export["Export JSON or Markdown"]
@@ -27,7 +27,8 @@ Expected result: the user can use either the top composer or the center empty-ca
 7. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
 8. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 9. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
-10. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
+10. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
+11. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
 
@@ -115,6 +116,7 @@ sequenceDiagram
   Human->>Canvas: Confirm Setup / MCP panel is wired
   Human->>Canvas: Paste notes, URLs, transcripts
   Canvas->>Canvas: Store nodes and artifacts locally
+  Human->>Canvas: Review Codex export preview
   Codex->>MCP: get_latest_canvas
   MCP->>Canvas: Read local canvas JSON
   Codex->>MCP: ingest_anything or typed ingest tool
@@ -167,12 +169,13 @@ Mobile is intended for review and light intake in v0.1, not dense graph authorin
 1. Complete source mapping and actions.
 2. Click `Context` for an agent packet, `Codex` for a ready-to-paste Codex prompt, `JSON` for portable state, or `MD` for readable handoff.
 3. Select one or more nodes first when the export should include only those sources/notes/outputs and their linked artifacts.
-4. Attach the export to a PR, issue, Codex task, or project brief.
-5. Re-import the JSON from the canvas toolbar or through MCP when you want to rehydrate the exact graph later.
-6. Review the import preview before local state changes: title, file name, node/artifact/edge/run counts, node-kind mix, sample nodes, and conflict status.
-7. Cancel if the file is wrong, or confirm to import.
-8. Confirmed imports select the first useful source node so the receipt, chunks, provenance, and selected context are inspectable immediately.
-9. If the canvas id already exists locally, import creates a non-destructive copy instead of overwriting active work.
+4. Review the Codex export preview: exact nodes, source/chunk counts, internal edges, related runs, excluded nodes, and scope rules.
+5. Attach the export to a PR, issue, Codex task, or project brief.
+6. Re-import the JSON from the canvas toolbar or through MCP when you want to rehydrate the exact graph later.
+7. Review the import preview before local state changes: title, file name, node/artifact/edge/run counts, node-kind mix, sample nodes, and conflict status.
+8. Cancel if the file is wrong, or confirm to import.
+9. Confirmed imports select the first useful source node so the receipt, chunks, provenance, and selected context are inspectable immediately.
+10. If the canvas id already exists locally, import creates a non-destructive copy instead of overwriting active work.
 
 Expected result: a canvas can move between human review, repo artifacts, Codex/Claude/Gemini MCP sessions, and later local rehydration without becoming a dead screenshot. The context packet gives agents metadata, a node index, source chunk manifest, evidence corpus, recent runs, and a continuation prompt; the Codex export wraps that packet in an explicit MCP resume instruction.
 

@@ -12,6 +12,10 @@
     "./intake": {
       "types": "./dist/intake.d.ts",
       "import": "./dist/intake.js"
+    },
+    "./exporters": {
+      "types": "./dist/exporters.d.ts",
+      "import": "./dist/exporters.js"
     }
   },
   "scripts": {

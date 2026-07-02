@@ -1,6 +1,22 @@
 import type { CanvasRecord } from './schemas.js';
 import { chunksForArtifact } from './chunks.js';
 
+export type CanvasExportScopeSummary = {
+  mode: 'canvas' | 'selection';
+  nodeIds: string[];
+  nodes: Array<{ id: string; kind: string; title: string }>;
+  artifactIds: string[];
+  artifactCount: number;
+  chunkCount: number;
+  edgeCount: number;
+  runCount: number;
+  sourceCount: number;
+  charCount: number;
+  excludedNodeCount: number;
+  nearbyNodeCount: number;
+  rules: string[];
+};
+
 export function scopeCanvasToNodes(canvas: CanvasRecord, nodeIds: string[] = []): CanvasRecord {
   const uniqueNodeIds = [...new Set(nodeIds.map((id) => id.trim()).filter(Boolean))];
   if (!uniqueNodeIds.length) return canvas;
@@ -36,6 +52,47 @@ export function scopeCanvasToNodes(canvas: CanvasRecord, nodeIds: string[] = [])
       || run.inputNodeIds.some((id) => selectedSet.has(id))
     )),
     artifacts: canvas.artifacts.filter((artifact) => artifactIds.has(artifact.id)),
+  };
+}
+
+export function describeCanvasExportScope(canvas: CanvasRecord, nodeIds: string[] = []): CanvasExportScopeSummary {
+  const uniqueNodeIds = [...new Set(nodeIds.map((id) => id.trim()).filter(Boolean))];
+  const scoped = scopeCanvasToNodes(canvas, uniqueNodeIds);
+  const selectedSet = new Set(scoped.nodes.map((node) => node.id));
+  const artifacts = scoped.artifacts;
+  const nearbyNodeIds = new Set<string>();
+
+  if (uniqueNodeIds.length) {
+    for (const edge of canvas.edges) {
+      if (selectedSet.has(edge.source) && !selectedSet.has(edge.target)) nearbyNodeIds.add(edge.target);
+      if (selectedSet.has(edge.target) && !selectedSet.has(edge.source)) nearbyNodeIds.add(edge.source);
+    }
+  }
+
+  return {
+    mode: uniqueNodeIds.length ? 'selection' : 'canvas',
+    nodeIds: scoped.nodes.map((node) => node.id),
+    nodes: scoped.nodes.map((node) => ({ id: node.id, kind: node.kind, title: node.title })),
+    artifactIds: artifacts.map((artifact) => artifact.id),
+    artifactCount: artifacts.length,
+    chunkCount: artifacts.reduce((total, artifact) => total + chunksForArtifact(artifact).length, 0),
+    edgeCount: scoped.edges.length,
+    runCount: scoped.runs.length,
+    sourceCount: scoped.nodes.filter((node) => node.kind.startsWith('source_')).length,
+    charCount: scoped.nodes.reduce((total, node) => total + node.body.length, 0),
+    excludedNodeCount: uniqueNodeIds.length ? Math.max(canvas.nodes.length - scoped.nodes.length, 0) : 0,
+    nearbyNodeCount: nearbyNodeIds.size,
+    rules: uniqueNodeIds.length
+      ? [
+        'Only selected nodes export.',
+        'Linked artifacts and chunks export with their selected nodes.',
+        'Edges export only when both endpoints are selected.',
+        'Runs export when they touch selected nodes.',
+      ]
+      : [
+        'Whole canvas exports all nodes.',
+        'All linked artifacts, chunks, edges, and runs export.',
+      ],
   };
 }
 

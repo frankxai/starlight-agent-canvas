@@ -372,6 +372,21 @@
       "path_or_url": "docs/visual-qa/desktop-clipboard-fallback-reduced-motion.png",
       "kind": "desktop reduced-motion clipboard-denied fallback screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-add-anything-codex-preview.png",
+      "kind": "desktop Add Anything and selected Codex export preview screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-codex-export-preview.png",
+      "kind": "mobile selected Codex export preview screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-codex-export-preview-reduced-motion.png",
+      "kind": "desktop reduced-motion selected Codex export preview screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -464,6 +479,11 @@
       "name": "import-preview-loop",
       "status": "pass",
       "notes": "Portable JSON imports now open a review modal with file identity, counts, node kinds, sample nodes, explicit cancel/confirm actions, fresh duplicate-id detection, non-destructive copy messaging, and source-evidence focus after confirmation; desktop, mobile, and reduced-motion screenshots were inspected."
+    },
+    {
+      "name": "codex-export-preview-loop",
+      "status": "pass",
+      "notes": "Selected Codex export preview now shows scope mode, included nodes, source/chunk/edge/run/char counts, excluded/nearby nodes, scope rules, and Context/Codex actions; desktop, mobile, and reduced-motion screenshots were inspected."
     }
   ],
   "score": {
@@ -484,7 +504,7 @@
     "desktopInspected": true,
     "mobileInspected": true,
     "reducedMotionInspected": true,
-    "server": "local Next preview/dev verification on 127.0.0.1:3102 during QA; stopped before handoff unless Frank explicitly asks to keep it running",
+    "server": "local Next preview/dev verification on 127.0.0.1:3102 and production preview on 127.0.0.1:3114 during QA; stopped before handoff unless Frank explicitly asks to keep it running",
     "screenshots": [
       "docs/visual-qa/desktop-production-os.png",
       "docs/visual-qa/mobile-production-os.png",
@@ -552,7 +572,10 @@
       "docs/visual-qa/mobile-import-source-focused.png",
       "docs/visual-qa/desktop-clipboard-fallback.png",
       "docs/visual-qa/mobile-clipboard-fallback.png",
-      "docs/visual-qa/desktop-clipboard-fallback-reduced-motion.png"
+      "docs/visual-qa/desktop-clipboard-fallback-reduced-motion.png",
+      "docs/visual-qa/desktop-add-anything-codex-preview.png",
+      "docs/visual-qa/mobile-codex-export-preview.png",
+      "docs/visual-qa/desktop-codex-export-preview-reduced-motion.png"
     ],
     "productionMetrics": {
       "desktop": {
@@ -626,7 +649,8 @@
       "mcpMediaReadyStatus": true,
       "importPreviewDiff": true,
       "importFocusesSourceEvidence": true,
-      "clipboardPermissionFallback": true
+      "clipboardPermissionFallback": true,
+      "codexExportPreview": true
     },
     "metrics": {
       "desktop": {
@@ -648,6 +672,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, guided workflow templates with clickable stages, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste with blocked/empty clipboard fallback, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, clickable answer/run-log citations with highlighted source chunks, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, reviewable JSON import preview with fresh duplicate-id detection and source-evidence focus after confirmation, in-app Setup/MCP status for local home, MCP build, Codex wiring, and the five-step activation runway from install health to proof canvas, source mapping, context export, and Codex MCP wiring; mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Add Anything, Source / Note / Ask composer controls, guided workflow templates with clickable stages, one-click Demo proof canvas loading, quick starters for Video/Web/Note/Ask, clipboard paste with blocked/empty clipboard fallback, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected Codex export preview with visible scope rules and exact included/excluded material, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, clickable answer/run-log citations with highlighted source chunks, editable inspector immediately after actions, source/action auto-selection, context copy, Codex handoff copy, JSON/Markdown/context/Codex export, reviewable JSON import preview with fresh duplicate-id detection and source-evidence focus after confirmation, in-app Setup/MCP status for local home, MCP build, Codex wiring, and the five-step activation runway from install health to proof canvas, source mapping, context export, and Codex MCP wiring; mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

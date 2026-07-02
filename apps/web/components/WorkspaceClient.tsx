@@ -49,6 +49,7 @@ import {
   TriangleAlert,
   Youtube,
 } from 'lucide-react';
+import { describeCanvasExportScope } from '@starlight-agent-canvas/core/exporters';
 import { detectIntakeText } from '@starlight-agent-canvas/core/intake';
 import type { CanvasActionType, CanvasArtifact, CanvasEdge, CanvasEdgeKind, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
 
@@ -677,6 +678,14 @@ function WorkspaceInner() {
   const selectedNode = useMemo(() => canvas?.nodes.find((node) => node.id === selectedIds[0]) ?? null, [canvas, selectedIds]);
   const selectedNodes = useMemo(() => canvas?.nodes.filter((node) => selectedIds.includes(node.id)) ?? [], [canvas, selectedIds]);
   const selectedChars = useMemo(() => selectedNodes.reduce((total, node) => total + node.body.length, 0), [selectedNodes]);
+  const contextScope = useMemo(() => {
+    if (!canvas) return null;
+    try {
+      return describeCanvasExportScope(canvas, selectedIds);
+    } catch {
+      return describeCanvasExportScope(canvas, []);
+    }
+  }, [canvas, selectedIds]);
   const selectedExportQuery = useMemo(() => (
     selectedIds.length ? `&nodeIds=${encodeURIComponent(selectedIds.join(','))}` : ''
   ), [selectedIds]);
@@ -1764,7 +1773,11 @@ function WorkspaceInner() {
                     multiple
                     accept={SOURCE_FILE_ACCEPT}
                     disabled={!canMutate}
-                    onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
+                    onChange={(event) => {
+                      const files = Array.from(event.currentTarget.files ?? []);
+                      event.currentTarget.value = '';
+                      void ingestFiles(files);
+                    }}
                     className="sr-only"
                   />
                 </label>
@@ -1934,7 +1947,11 @@ function WorkspaceInner() {
                 multiple
                 accept={SOURCE_FILE_ACCEPT}
                 disabled={!canMutate}
-                onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
+                onChange={(event) => {
+                  const files = Array.from(event.currentTarget.files ?? []);
+                  event.currentTarget.value = '';
+                  void ingestFiles(files);
+                }}
                 className="w-full rounded-md border border-starlight-border bg-starlight-panel px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-starlight-ink file:px-2 file:py-1 file:text-xs file:text-starlight-bg disabled:cursor-not-allowed disabled:opacity-45"
               />
             </section>
@@ -1956,7 +1973,7 @@ function WorkspaceInner() {
             ) : null}
             {canvas?.nodes.length ? (
               <div
-                className="pointer-events-none absolute right-4 top-[188px] z-10 hidden max-w-[260px] rounded-lg border border-starlight-border bg-starlight-surface/82 p-3 shadow-command backdrop-blur xl:block"
+                className="pointer-events-none absolute right-4 top-[188px] z-10 hidden max-w-[260px] rounded-lg border border-starlight-border bg-starlight-surface/82 p-3 shadow-command backdrop-blur lg:block"
                 data-testid="canvas-drop-affordance"
               >
                 <div className="flex items-center gap-2 text-xs font-semibold text-starlight-ink">
@@ -1970,24 +1987,30 @@ function WorkspaceInner() {
             ) : null}
             <div className="absolute left-3 right-3 top-3 z-20 rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:w-[min(760px,calc(100%-2rem))]" data-testid="live-composer">
               <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="grid grid-cols-3 gap-1 rounded-md border border-starlight-border bg-starlight-bg/80 p-1" data-testid="composer-mode">
-                  {COMPOSER_MODES.map((mode) => (
-                    <button
-                      key={mode.id}
-                      type="button"
-                      aria-pressed={composerMode === mode.id}
-                      onClick={() => setComposerMode(mode.id)}
-                      className={`flex min-h-8 items-center justify-center gap-1.5 rounded px-2 text-[11px] font-semibold transition ${
-                        composerMode === mode.id
-                          ? 'bg-starlight-ink text-starlight-bg'
-                          : 'text-starlight-muted hover:bg-starlight-surface hover:text-starlight-ink'
-                      }`}
-                      title={mode.detail}
-                    >
-                      {composerModeIcon(mode.id)}
-                      {mode.label}
-                    </button>
-                  ))}
+                <div className="flex min-w-0 flex-wrap items-center gap-2">
+                  <div className="inline-flex items-center gap-1.5 rounded-md border border-starlight-mint/35 bg-starlight-mint/10 px-2.5 py-1 text-xs font-semibold text-starlight-ink" data-testid="live-intake-heading">
+                    <UploadCloud className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
+                    Add Anything
+                  </div>
+                  <div className="grid grid-cols-3 gap-1 rounded-md border border-starlight-border bg-starlight-bg/80 p-1" data-testid="composer-mode">
+                    {COMPOSER_MODES.map((mode) => (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        aria-pressed={composerMode === mode.id}
+                        onClick={() => setComposerMode(mode.id)}
+                        className={`flex min-h-8 items-center justify-center gap-1.5 rounded px-2 text-[11px] font-semibold transition ${
+                          composerMode === mode.id
+                            ? 'bg-starlight-ink text-starlight-bg'
+                            : 'text-starlight-muted hover:bg-starlight-surface hover:text-starlight-ink'
+                        }`}
+                        title={mode.detail}
+                      >
+                        {composerModeIcon(mode.id)}
+                        {mode.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-starlight-muted" data-testid="canvas-live-state">
                   <span className="rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1">{canvas?.nodes.length ?? 0} nodes</span>
@@ -2066,6 +2089,7 @@ function WorkspaceInner() {
                       void submitActiveComposer();
                     }
                   }}
+                  aria-label="Add source, note, or question to canvas"
                   className="min-h-16 w-full resize-none rounded-md border border-starlight-border bg-starlight-bg/80 px-3 py-2 text-sm leading-5 text-starlight-ink"
                   placeholder={composerPlaceholder(composerMode)}
                 />
@@ -2156,7 +2180,11 @@ function WorkspaceInner() {
                         multiple
                         accept={SOURCE_FILE_ACCEPT}
                         disabled={!canMutate}
-                        onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
+                        onChange={(event) => {
+                          const files = Array.from(event.currentTarget.files ?? []);
+                          event.currentTarget.value = '';
+                          void ingestFiles(files);
+                        }}
                         className="sr-only"
                       />
                     </label>
@@ -2441,7 +2469,11 @@ function WorkspaceInner() {
                         multiple
                         accept={SOURCE_FILE_ACCEPT}
                         disabled={!canMutate}
-                        onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []), { x: 120, y: 140 })}
+                        onChange={(event) => {
+                          const files = Array.from(event.currentTarget.files ?? []);
+                          event.currentTarget.value = '';
+                          void ingestFiles(files, { x: 120, y: 140 });
+                        }}
                         className="sr-only"
                       />
                     </label>
@@ -2513,6 +2545,95 @@ function WorkspaceInner() {
               <p className="mt-2 text-xs leading-5 text-starlight-muted">
                 Runs are local and deterministic in v0.1. Select nodes to scope an action, or leave empty to use the canvas.
               </p>
+              {contextScope ? (
+                <div className="mt-3 rounded-md border border-starlight-gold/35 bg-starlight-gold/10 p-3" data-testid="codex-export-preview">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                      <Bot className="h-3.5 w-3.5 text-starlight-gold" aria-hidden="true" />
+                      Codex export preview
+                    </span>
+                    <span className="rounded-md border border-starlight-gold/35 bg-starlight-bg px-2 py-1 text-[10px] font-semibold uppercase text-starlight-gold" data-testid="codex-export-mode">
+                      {contextScope.mode === 'selection' ? 'selected' : 'canvas'}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2" data-testid="codex-export-counts">
+                    {[
+                      { label: 'Nodes', value: contextScope.nodes.length },
+                      { label: 'Sources', value: contextScope.sourceCount },
+                      { label: 'Chunks', value: contextScope.chunkCount },
+                      { label: 'Edges', value: contextScope.edgeCount },
+                      { label: 'Runs', value: contextScope.runCount },
+                      { label: 'Chars', value: contextScope.charCount.toLocaleString() },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-md border border-starlight-border bg-starlight-bg/80 p-2">
+                        <div className="text-[10px] uppercase text-starlight-muted">{item.label}</div>
+                        <div className="mt-1 truncate text-xs font-semibold text-starlight-ink">{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 space-y-1.5" data-testid="codex-export-nodes">
+                    {contextScope.nodes.slice(0, 5).map((node) => (
+                      <button
+                        key={node.id}
+                        type="button"
+                        onClick={() => {
+                          const target = canvas?.nodes.find((candidate) => candidate.id === node.id);
+                          if (target) focusNode(target);
+                        }}
+                        className="grid w-full grid-cols-[auto_minmax(0,1fr)] gap-2 rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1.5 text-left transition hover:border-starlight-gold/70"
+                      >
+                        <span className="rounded border border-starlight-gold/35 px-1.5 py-0.5 text-[10px] text-starlight-gold">{formatKind(node.kind)}</span>
+                        <span className="min-w-0">
+                          <span className="block truncate text-[11px] font-semibold text-starlight-ink">{node.title}</span>
+                          <span className="block truncate font-mono text-[10px] text-starlight-muted">{node.id}</span>
+                        </span>
+                      </button>
+                    ))}
+                    {contextScope.nodes.length > 5 ? (
+                      <div className="rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1.5 text-[11px] text-starlight-muted">
+                        +{contextScope.nodes.length - 5} more included node(s)
+                      </div>
+                    ) : null}
+                    {!contextScope.nodes.length ? (
+                      <div className="rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1.5 text-[11px] text-starlight-muted">
+                        No mapped context yet.
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="mt-3 rounded-md border border-starlight-border bg-starlight-bg/80 p-2 text-[11px] leading-5 text-starlight-muted" data-testid="codex-export-rules">
+                    {contextScope.mode === 'selection' ? (
+                      <div className="mb-1 font-semibold text-starlight-ink">
+                        Excludes {contextScope.excludedNodeCount} other node(s){contextScope.nearbyNodeCount ? `; ${contextScope.nearbyNodeCount} connected neighbor(s) stay out unless selected` : ''}.
+                      </div>
+                    ) : null}
+                    {contextScope.rules.map((rule) => (
+                      <div key={rule}>{rule}</div>
+                    ))}
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button
+                      type="button"
+                      data-testid="codex-preview-context"
+                      disabled={!canvas || busy}
+                      onClick={copyCanvasContext}
+                      className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-2 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
+                      Context
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="codex-preview-handoff"
+                      disabled={!canvas || busy}
+                      onClick={copyCodexHandoff}
+                      className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-2 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <Bot className="h-3.5 w-3.5" aria-hidden="true" />
+                      Codex
+                    </button>
+                  </div>
+                </div>
+              ) : null}
               <div className="mt-3 rounded-md border border-starlight-border bg-starlight-surface/70 p-3" data-testid="workflow-map">
                 <div className="flex items-center justify-between gap-3">
                   <span className="flex items-center gap-1.5 text-xs font-semibold text-starlight-ink">
@@ -2954,10 +3075,11 @@ function WorkspaceInner() {
                   Go
                 </button>
               </div>
-              <div className="mt-3 space-y-2">
+              <div className="mt-3 space-y-2" data-testid="search-results">
                 {searchResults.map((result, index) => (
                   <button
                     key={`${result.canvasId}-${result.nodeId}-${result.chunkId ?? index}`}
+                    data-testid={`search-result-${result.canvasId}-${result.nodeId || 'artifact'}`}
                     type="button"
                     disabled={!result.nodeId}
                     onClick={() => focusSearchResult(result)}
