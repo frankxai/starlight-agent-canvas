@@ -157,6 +157,26 @@
       "path_or_url": "docs/visual-qa/desktop-live-composer-reduced-motion.png",
       "kind": "desktop reduced-motion live composer screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-self-serve-video-intake.png",
+      "kind": "desktop self-serve video reference intake screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-self-serve-video-mapped.png",
+      "kind": "desktop mapped video reference with source receipt screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-self-serve-note-intake.png",
+      "kind": "mobile self-serve note intake screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-self-serve-reduced-motion.png",
+      "kind": "desktop reduced-motion self-serve ask screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -250,6 +270,10 @@
       "docs/visual-qa/desktop-live-ask-mode.png",
       "docs/visual-qa/mobile-live-composer-modes.png",
       "docs/visual-qa/desktop-live-composer-reduced-motion.png",
+      "docs/visual-qa/desktop-self-serve-video-intake.png",
+      "docs/visual-qa/desktop-self-serve-video-mapped.png",
+      "docs/visual-qa/mobile-self-serve-note-intake.png",
+      "docs/visual-qa/desktop-self-serve-reduced-motion.png",
       "docs/visual-qa/desktop-first-viewport.png",
       "docs/visual-qa/mobile-first-viewport.png",
       "docs/visual-qa/mobile-graph-viewport.png",
@@ -299,6 +323,10 @@
       "selectedSourceReceipt": true,
       "selectedSourceActions": true,
       "dropToCanvasBrowserTested": true,
+      "dragOverlayBrowserTested": true,
+      "videoReferenceQuickStarter": true,
+      "contextLoopVisibleOnMobile": true,
+      "namedUploadControlTested": true,
       "mobileToolbarReduced": true
     },
     "metrics": {
@@ -321,6 +349,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, JSON/Markdown export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, quick starters for Video/Web/Note/Ask, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, drag overlay, named upload control, video-reference mapping, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, JSON/Markdown export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

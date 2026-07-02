@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState, type DragEvent, type MouseEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type MouseEvent } from 'react';
 import {
   Background,
   Controls,
@@ -28,6 +28,7 @@ import {
   Copy,
   Crosshair,
   Download,
+  Film,
   FileText,
   FileUp,
   GitBranch,
@@ -35,6 +36,7 @@ import {
   Link,
   Loader2,
   MessageSquarePlus,
+  MousePointerClick,
   Network,
   Play,
   Search,
@@ -128,7 +130,7 @@ type SetupStatus = {
 };
 
 type IntakePlanItem = {
-  id: 'youtube' | 'url' | 'text' | 'pdf' | 'file';
+  id: 'youtube' | 'video' | 'url' | 'text' | 'pdf' | 'file';
   label: string;
   detail: string;
   active: boolean;
@@ -136,6 +138,7 @@ type IntakePlanItem = {
 
 type IntakeActionMode = 'map' | 'summarize' | 'claims' | 'ask';
 type ComposerMode = 'source' | 'note' | 'ask';
+type QuickStarterId = 'video' | 'web' | 'note' | 'ask';
 
 const INTAKE_ACTIONS: Array<{ id: IntakeActionMode; label: string; detail: string }> = [
   { id: 'summarize', label: 'Brief', detail: 'summary output' },
@@ -148,6 +151,20 @@ const COMPOSER_MODES: Array<{ id: ComposerMode; label: string; detail: string }>
   { id: 'source', label: 'Source', detail: 'links, transcripts, files' },
   { id: 'note', label: 'Note', detail: 'human thoughts' },
   { id: 'ask', label: 'Ask', detail: 'canvas question' },
+];
+
+const QUICK_STARTERS: Array<{ id: QuickStarterId; label: string; detail: string }> = [
+  { id: 'video', label: 'Video', detail: 'YouTube, Loom, Vimeo' },
+  { id: 'web', label: 'Web', detail: 'articles and docs' },
+  { id: 'note', label: 'Note', detail: 'your synthesis' },
+  { id: 'ask', label: 'Ask', detail: 'query canvas' },
+];
+
+const CONTEXT_LOOP_STEPS = [
+  { label: 'Drop', detail: 'link, file, note' },
+  { label: 'Map', detail: 'typed nodes' },
+  { label: 'Ask', detail: 'cited output' },
+  { label: 'Handoff', detail: 'MCP context' },
 ];
 
 const KIND_STYLE: Record<CanvasNodeKind, { label: string; accent: string; bg: string }> = {
@@ -321,6 +338,15 @@ function selectedContextPacket(node: CanvasNode, artifact?: CanvasArtifact | nul
 
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
 const YOUTUBE_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
+const VIDEO_FILE_PATTERN = /\.(mp4|m4v|mov|webm|mkv)(\?.*)?$/i;
+const VIDEO_HOSTS = [
+  'loom.com',
+  'vimeo.com',
+  'wistia.com',
+  'tiktok.com',
+  'drive.google.com',
+  'dropbox.com',
+];
 
 function extractUrls(value: string): string[] {
   return Array.from(new Set((value.match(URL_PATTERN) ?? [])
@@ -341,6 +367,18 @@ function isYoutubeLink(value: string): boolean {
   }
 }
 
+function isKnownVideoLink(value: string): boolean {
+  if (isYoutubeLink(value)) return true;
+  try {
+    const parsed = new URL(value);
+    const host = parsed.hostname.toLowerCase().replace(/^www\./, '');
+    return VIDEO_HOSTS.some((knownHost) => host === knownHost || host.endsWith(`.${knownHost}`))
+      || VIDEO_FILE_PATTERN.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
 function isYoutubeVideoId(value: string): boolean {
   return YOUTUBE_ID_PATTERN.test(value.trim());
 }
@@ -355,6 +393,7 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
   if (!text) {
     return [
       { id: 'youtube', label: 'YouTube', detail: 'captions or transcript', active: false },
+      { id: 'video', label: 'Video link', detail: 'reference plus notes', active: false },
       { id: 'url', label: 'URL', detail: 'readable text', active: false },
       { id: 'pdf', label: 'PDF', detail: 'file upload', active: false },
       { id: 'text', label: 'Notes', detail: 'source text', active: false },
@@ -363,7 +402,8 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
 
   const urls = isYoutubeVideoId(text) ? [normalizeYoutubeReference(text)] : extractUrls(text);
   const youtubeUrls = urls.filter(isYoutubeLink);
-  const webUrls = urls.filter((item) => !isYoutubeLink(item));
+  const videoUrls = urls.filter((item) => !isYoutubeLink(item) && isKnownVideoLink(item));
+  const webUrls = urls.filter((item) => !isYoutubeLink(item) && !isKnownVideoLink(item));
   const remaining = removeUrls(text, urls);
   const textChars = (remaining || (!urls.length ? text : '')).length;
   const singleYoutubeWithAttachedText = urls.length === 1 && youtubeUrls.length === 1;
@@ -374,6 +414,15 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
       id: 'youtube',
       label: youtubeUrls.length === 1 ? 'Video source' : `${youtubeUrls.length} video sources`,
       detail: remaining.length > 24 ? 'manual transcript attached' : 'captions first',
+      active: true,
+    });
+  }
+
+  if (videoUrls.length) {
+    plan.push({
+      id: 'video',
+      label: videoUrls.length === 1 ? 'Video link' : `${videoUrls.length} video links`,
+      detail: 'reference plus notes',
       active: true,
     });
   }
@@ -401,8 +450,16 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
 
 function intakePlanIcon(id: IntakePlanItem['id']) {
   if (id === 'youtube') return <Youtube className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'video') return <Film className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'url') return <Link className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'pdf' || id === 'file') return <FileText className="h-3.5 w-3.5" aria-hidden="true" />;
+  return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
+}
+
+function quickStarterIcon(id: QuickStarterId) {
+  if (id === 'video') return <Film className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'web') return <Link className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'ask') return <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />;
   return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
 }
 
@@ -517,6 +574,7 @@ function WorkspaceInner() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
+  const composerRef = useRef<HTMLTextAreaElement>(null);
   const compactCanvas = useCompactCanvas();
 
   const selectedNode = useMemo(() => canvas?.nodes.find((node) => node.id === selectedIds[0]) ?? null, [canvas, selectedIds]);
@@ -580,6 +638,36 @@ function WorkspaceInner() {
       setCenter(node.position.x + 130, node.position.y + 80, { zoom: compactCanvas ? 0.72 : 1, duration: 350 });
     }, 0);
   }, [compactCanvas, setCenter]);
+
+  const focusComposer = useCallback(() => {
+    window.setTimeout(() => composerRef.current?.focus(), 0);
+  }, []);
+
+  const applyQuickStarter = useCallback((id: QuickStarterId) => {
+    if (id === 'video') {
+      setComposerMode('source');
+      setIntakeAction('summarize');
+      setStatus('Ready for a video link. Paste YouTube, Loom, Vimeo, or transcript notes.');
+      focusComposer();
+      return;
+    }
+    if (id === 'web') {
+      setComposerMode('source');
+      setIntakeAction('claims');
+      setStatus('Ready for a web source. Paste a URL with optional notes.');
+      focusComposer();
+      return;
+    }
+    if (id === 'ask') {
+      setComposerMode('ask');
+      setStatus('Ask mode uses selected nodes, or the whole canvas when nothing is selected.');
+      focusComposer();
+      return;
+    }
+    setComposerMode('note');
+    setStatus('Note mode captures your own thinking as a movable canvas node.');
+    focusComposer();
+  }, [focusComposer]);
 
   useEffect(() => {
     setFlowNodes(baseFlow.nodes);
@@ -884,16 +972,17 @@ function WorkspaceInner() {
       let last: CanvasMutationResponse | null = null;
       let count = 0;
       for (const sourceUrl of urls) {
-        const video = isYoutubeLink(sourceUrl);
+        const youtube = isYoutubeLink(sourceUrl);
+        const videoReference = !youtube && isKnownVideoLink(sourceUrl);
         const nodePosition = offsetPosition(position, count);
         last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            kind: video ? 'source_youtube' : 'source_url',
-            body: video && urls.length === 1 ? remaining : '',
+            kind: youtube ? 'source_youtube' : 'source_url',
+            body: youtube && urls.length === 1 ? remaining : '',
             position: nodePosition,
-            metadata: { url: sourceUrl },
+            metadata: { url: sourceUrl, media: videoReference ? 'video_reference' : undefined },
           }),
         });
         if (last.node?.id) createdNodeIds.push(last.node.id);
@@ -1310,9 +1399,20 @@ function WorkspaceInner() {
             </section>
 
             <section className="mt-6 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <Boxes className="h-4 w-4 text-starlight-accent" aria-hidden="true" />
-                Canvases
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Boxes className="h-4 w-4 text-starlight-accent" aria-hidden="true" />
+                  Canvases
+                </div>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => createTemplate('blank')}
+                  className="inline-flex items-center gap-1.5 rounded-md border border-starlight-accent/45 bg-starlight-accent/10 px-2 py-1 text-[11px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
+                  New
+                </button>
               </div>
               <div className="space-y-2">
                 {apiState.canvases.map((summary) => (
@@ -1434,6 +1534,20 @@ function WorkspaceInner() {
                 Drop to map onto this canvas
               </div>
             ) : null}
+            {canvas?.nodes.length ? (
+              <div
+                className="pointer-events-none absolute right-4 top-[188px] z-10 hidden max-w-[260px] rounded-lg border border-starlight-border bg-starlight-surface/82 p-3 shadow-command backdrop-blur xl:block"
+                data-testid="canvas-drop-affordance"
+              >
+                <div className="flex items-center gap-2 text-xs font-semibold text-starlight-ink">
+                  <MousePointerClick className="h-4 w-4 text-starlight-mint" aria-hidden="true" />
+                  Drop or paste onto the graph
+                </div>
+                <p className="mt-1 text-[11px] leading-4 text-starlight-muted">
+                  Video links, URLs, PDFs, markdown, transcripts, and notes become typed context nodes at the drop point.
+                </p>
+              </div>
+            ) : null}
             <div className="absolute left-3 right-3 top-3 z-20 rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:w-[min(760px,calc(100%-2rem))]" data-testid="live-composer">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="grid grid-cols-3 gap-1 rounded-md border border-starlight-border bg-starlight-bg/80 p-1" data-testid="composer-mode">
@@ -1461,9 +1575,37 @@ function WorkspaceInner() {
                   <span className="rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1">{canvas?.runs.length ?? 0} runs</span>
                 </div>
               </div>
+              <div className="mt-2 grid gap-2 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+                <div className="flex flex-wrap gap-1.5" data-testid="canvas-quick-start">
+                  {QUICK_STARTERS.map((starter) => (
+                    <button
+                      key={starter.id}
+                      type="button"
+                      onClick={() => applyQuickStarter(starter.id)}
+                      className="inline-flex min-h-8 items-center gap-1.5 rounded-md border border-starlight-border bg-starlight-bg/70 px-2.5 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-accent hover:bg-starlight-accent/10"
+                      title={starter.detail}
+                    >
+                      {quickStarterIcon(starter.id)}
+                      <span>{starter.label}</span>
+                      <span className="hidden font-normal text-starlight-muted sm:inline">{starter.detail}</span>
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-starlight-muted" data-testid="context-loop">
+                  {CONTEXT_LOOP_STEPS.map((step, index) => (
+                    <div key={step.label} className="flex items-center gap-1.5">
+                      {index ? <span className="text-starlight-border">/</span> : null}
+                      <span className="rounded-md border border-starlight-border bg-starlight-bg/70 px-2 py-1">
+                        <span className="font-semibold text-starlight-ink">{step.label}</span> {step.detail}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
               <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-start">
                 <textarea
                   data-testid="intake-text"
+                  ref={composerRef}
                   value={composerText}
                   onChange={(event) => {
                     if (composerMode === 'ask') {
@@ -1546,9 +1688,11 @@ function WorkspaceInner() {
                     ))}
                     <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink">
                       <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
-                      File
+                      Upload
                       <input
+                        data-testid="composer-upload-source"
                         type="file"
+                        aria-label="Upload source"
                         multiple
                         accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
                         disabled={!canMutate}

@@ -32,7 +32,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         title: body.title || source.title,
         body: source.body,
         source: source.source,
-        metadata: source.metadata,
+        metadata: { ...source.metadata, media: metadata.media },
         position: body.position,
       });
       return NextResponse.json(result);
@@ -46,7 +46,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         title: body.title || source.title,
         body: source.body,
         source: source.source,
-        metadata: source.metadata,
+        metadata: { ...source.metadata, media: metadata.media },
         position: body.position,
       });
       return NextResponse.json(result);

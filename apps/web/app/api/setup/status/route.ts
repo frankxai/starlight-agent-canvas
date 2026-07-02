@@ -18,12 +18,18 @@ async function exists(filePath: string): Promise<boolean> {
   }
 }
 
-function repoRootFromCwd(cwd: string): string {
-  const resolved = path.resolve(/*turbopackIgnore: true*/ process.env.AGENT_CANVAS_REPO_ROOT || cwd);
-  if (path.basename(resolved) === 'web' && path.basename(path.dirname(resolved)) === 'apps') {
-    return path.resolve(resolved, '..', '..');
+function normalizeRuntimePath(value: string): string {
+  const normalized = slash(path.normalize(value)).replace(/\/+$/, '');
+  return process.platform === 'win32' ? normalized.toLowerCase() : normalized;
+}
+
+function repoRootFromRuntime(): string {
+  const configured = process.env.AGENT_CANVAS_REPO_ROOT?.trim();
+  const base = path.normalize(configured || process.cwd());
+  if (path.basename(base) === 'web' && path.basename(path.dirname(base)) === 'apps') {
+    return path.dirname(path.dirname(base));
   }
-  return resolved;
+  return base;
 }
 
 function slash(value: string): string {
@@ -85,15 +91,15 @@ async function codexConfigStatus(configPath: string) {
 }
 
 export async function GET() {
-  const repoRoot = repoRootFromCwd(/*turbopackIgnore: true*/ process.cwd());
+  const repoRoot = repoRootFromRuntime();
   const mcpCliPath = path.join(repoRoot, 'packages', 'mcp', 'dist', 'cli.js');
   const codexConfigPath = path.join(os.homedir(), '.codex', 'config.toml');
   const codex = await codexConfigStatus(codexConfigPath);
   const canvasHome = getAgentCanvasHome();
   const serverPathMatches = Boolean(codex.configuredCliPath)
-    && slash(path.resolve(codex.configuredCliPath)) === slash(path.resolve(mcpCliPath));
+    && normalizeRuntimePath(codex.configuredCliPath) === normalizeRuntimePath(mcpCliPath);
   const homeMatches = Boolean(codex.configuredHome)
-    && slash(path.resolve(codex.configuredHome)) === slash(path.resolve(canvasHome));
+    && normalizeRuntimePath(codex.configuredHome) === normalizeRuntimePath(canvasHome);
 
   return NextResponse.json({
     repoRoot,
