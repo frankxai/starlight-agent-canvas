@@ -169,7 +169,10 @@ Mobile is intended for review and light intake in v0.1, not dense graph authorin
 3. Select one or more nodes first when the export should include only those sources/notes/outputs and their linked artifacts.
 4. Attach the export to a PR, issue, Codex task, or project brief.
 5. Re-import the JSON from the canvas toolbar or through MCP when you want to rehydrate the exact graph later.
-6. If the canvas id already exists locally, import creates a non-destructive copy instead of overwriting active work.
+6. Review the import preview before local state changes: title, file name, node/artifact/edge/run counts, node-kind mix, sample nodes, and conflict status.
+7. Cancel if the file is wrong, or confirm to import.
+8. Confirmed imports select the first useful source node so the receipt, chunks, provenance, and selected context are inspectable immediately.
+9. If the canvas id already exists locally, import creates a non-destructive copy instead of overwriting active work.
 
 Expected result: a canvas can move between human review, repo artifacts, Codex/Claude/Gemini MCP sessions, and later local rehydration without becoming a dead screenshot. The context packet gives agents metadata, a node index, source chunk manifest, evidence corpus, recent runs, and a continuation prompt; the Codex export wraps that packet in an explicit MCP resume instruction.
 

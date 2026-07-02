@@ -93,6 +93,15 @@ type ImportCanvasResponse = {
   };
 };
 
+type ImportPreview = {
+  fileName: string;
+  raw: string;
+  canvas: CanvasRecord;
+  conflict: CanvasSummary | null;
+  kindCounts: Array<{ kind: string; count: number }>;
+  nodePreview: Array<{ id: string; kind: string; title: string }>;
+};
+
 type AgentNodeData = {
   title: string;
   kind: CanvasNodeKind;
@@ -253,7 +262,7 @@ async function api<T>(url: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
-function AgentNode({ data, selected }: NodeProps<Node<AgentNodeData>>) {
+function AgentNode({ id, data, selected }: NodeProps<Node<AgentNodeData>>) {
   const style = KIND_STYLE[data.kind];
   const source = typeof data.metadata.url === 'string'
     ? data.metadata.url
@@ -263,6 +272,7 @@ function AgentNode({ data, selected }: NodeProps<Node<AgentNodeData>>) {
   const imageSrc = imageSourceFromMetadata(data.metadata);
   return (
     <div
+      data-testid={`graph-node-${id}`}
       className={`w-[260px] rounded-lg border bg-starlight-surface/95 shadow-command backdrop-blur transition ${
         selected ? 'ring-2 ring-starlight-accent/70' : ''
       }`}
@@ -301,7 +311,7 @@ function toFlow(canvas: CanvasRecord, compact = false): { nodes: Node<AgentNodeD
       id: node.id,
       type: 'agentNode',
       position: compact
-        ? { x: 48 + (index % 2) * 330, y: 96 + Math.floor(index / 2) * 220 }
+        ? { x: 48 + (index % 2) * 330, y: 300 + Math.floor(index / 2) * 220 }
         : node.position,
       data: {
         title: node.title,
@@ -561,6 +571,50 @@ function textTitle(value: string): string {
   return first.length > 72 ? `${first.slice(0, 69)}...` : first;
 }
 
+function parseImportCandidate(raw: string): CanvasRecord {
+  const payload = JSON.parse(raw) as { canvas?: unknown } | unknown;
+  const candidate = typeof payload === 'object' && payload !== null && 'canvas' in payload
+    ? (payload as { canvas: unknown }).canvas
+    : payload;
+  if (!candidate || typeof candidate !== 'object') {
+    throw new Error('Canvas import JSON must contain a canvas object.');
+  }
+  const canvas = candidate as Partial<CanvasRecord>;
+  if (
+    typeof canvas.id !== 'string'
+    || typeof canvas.title !== 'string'
+    || !Array.isArray(canvas.nodes)
+    || !Array.isArray(canvas.edges)
+    || !Array.isArray(canvas.artifacts)
+    || !Array.isArray(canvas.runs)
+  ) {
+    throw new Error('Canvas import JSON is missing required canvas fields.');
+  }
+  return canvas as CanvasRecord;
+}
+
+function buildImportPreview(fileName: string, raw: string, summaries: CanvasSummary[]): ImportPreview {
+  const canvas = parseImportCandidate(raw);
+  const kindMap = new Map<string, number>();
+  canvas.nodes.forEach((node) => {
+    kindMap.set(node.kind, (kindMap.get(node.kind) ?? 0) + 1);
+  });
+  return {
+    fileName,
+    raw,
+    canvas,
+    conflict: summaries.find((summary) => summary.id === canvas.id) ?? null,
+    kindCounts: Array.from(kindMap.entries())
+      .map(([kind, count]) => ({ kind, count }))
+      .sort((a, b) => b.count - a.count || a.kind.localeCompare(b.kind)),
+    nodePreview: canvas.nodes.slice(0, 5).map((node) => ({
+      id: node.id,
+      kind: node.kind,
+      title: node.title,
+    })),
+  };
+}
+
 function useCompactCanvas() {
   const [compact, setCompact] = useState(false);
 
@@ -610,6 +664,7 @@ function WorkspaceInner() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [setupStatus, setSetupStatus] = useState<SetupStatus | null>(null);
   const [focusedChunkId, setFocusedChunkId] = useState<string | null>(null);
+  const [pendingImport, setPendingImport] = useState<ImportPreview | null>(null);
   const composerRef = useRef<HTMLTextAreaElement>(null);
   const compactCanvas = useCompactCanvas();
 
@@ -1237,18 +1292,47 @@ function WorkspaceInner() {
     setIntakeText('');
   }, [addCanvasNoteAt, intakeText]);
 
-  const importCanvasFile = useCallback(async (file?: File) => {
+  const prepareImportCanvasFile = useCallback(async (file?: File) => {
     if (!file) return;
-    setBusy(true);
     try {
       const raw = await file.text();
+      let summaries = apiState.canvases;
+      try {
+        const latest = await refreshList();
+        summaries = latest.canvases;
+      } catch {
+        // Keep import preview available even when the sidebar refresh is temporarily unavailable.
+      }
+      const preview = buildImportPreview(file.name, raw, summaries);
+      setPendingImport(preview);
+      setStatus(preview.conflict
+        ? `Review import: ${preview.canvas.title} matches an existing canvas id and will be copied.`
+        : `Review import: ${preview.canvas.title} before local state changes.`);
+    } catch (error) {
+      setPendingImport(null);
+      setStatus((error as Error).message);
+    }
+  }, [apiState.canvases, refreshList]);
+
+  const confirmImportCanvas = useCallback(async () => {
+    if (!pendingImport) return;
+    setBusy(true);
+    try {
       const result = await api<ImportCanvasResponse>('/api/canvases/import', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: raw,
+        body: pendingImport.raw,
       });
       setCanvas(result.canvas);
-      setSelectedIds([]);
+      setPendingImport(null);
+      const focus = result.canvas.nodes.find((node) => node.kind === 'source_youtube')
+        ?? result.canvas.nodes.find((node) => node.kind.startsWith('source_'))
+        ?? result.canvas.nodes[0];
+      if (focus) {
+        focusNode(focus);
+      } else {
+        setSelectedIds([]);
+      }
       await refreshList();
       if (result.import?.conflict === 'copy') {
         setStatus(`Imported copy of ${result.import.sourceTitle} as ${result.canvas.title}; existing canvas was preserved.`);
@@ -1260,7 +1344,12 @@ function WorkspaceInner() {
     } finally {
       setBusy(false);
     }
-  }, [refreshList]);
+  }, [focusNode, pendingImport, refreshList]);
+
+  const cancelImportPreview = useCallback(() => {
+    setPendingImport(null);
+    setStatus('Import cancelled; local canvas state was not changed.');
+  }, []);
 
   const loadDemoCanvas = useCallback(async () => {
     setBusy(true);
@@ -2057,6 +2146,103 @@ function WorkspaceInner() {
                 )}
               </div>
             </div>
+            {pendingImport ? (
+              <div
+                className="absolute inset-0 z-40 flex items-center justify-center bg-starlight-bg/70 p-4 backdrop-blur-sm"
+                data-testid="import-preview"
+                role="dialog"
+                aria-modal="true"
+                aria-label="Review canvas import"
+              >
+                <div className="w-[min(620px,100%)] rounded-lg border border-starlight-accent/30 bg-starlight-surface/96 p-4 shadow-command">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-starlight-ink">
+                        <FileUp className="h-4 w-4 text-starlight-accent" aria-hidden="true" />
+                        Review Import
+                      </div>
+                      <h2 className="mt-2 truncate text-base font-semibold text-starlight-ink">{pendingImport.canvas.title}</h2>
+                      <p className="mt-1 truncate text-xs text-starlight-muted">{pendingImport.fileName}</p>
+                    </div>
+                    <span
+                      className={`inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-semibold ${
+                        pendingImport.conflict
+                          ? 'border-starlight-gold/45 bg-starlight-gold/10 text-starlight-ink'
+                          : 'border-starlight-mint/45 bg-starlight-mint/10 text-starlight-mint'
+                      }`}
+                      data-testid="import-preview-conflict"
+                    >
+                      {pendingImport.conflict ? <TriangleAlert className="h-3.5 w-3.5" aria-hidden="true" /> : <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />}
+                      {pendingImport.conflict ? 'copy on import' : 'new canvas id'}
+                    </span>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4" data-testid="import-preview-counts">
+                    {[
+                      { label: 'Nodes', value: pendingImport.canvas.nodes.length },
+                      { label: 'Artifacts', value: pendingImport.canvas.artifacts.length },
+                      { label: 'Edges', value: pendingImport.canvas.edges.length },
+                      { label: 'Runs', value: pendingImport.canvas.runs.length },
+                    ].map((item) => (
+                      <div key={item.label} className="rounded-md border border-starlight-border bg-starlight-bg/80 p-2">
+                        <div className="text-[10px] uppercase text-starlight-muted">{item.label}</div>
+                        <div className="mt-1 text-sm font-semibold text-starlight-ink">{item.value}</div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="mt-3 rounded-md border border-starlight-border bg-starlight-bg/80 p-3 text-xs leading-5 text-starlight-muted" data-testid="import-preview-diff">
+                    {pendingImport.conflict ? (
+                      <>
+                        Existing local canvas <span className="font-semibold text-starlight-ink">{pendingImport.conflict.title}</span> will be preserved. This import will create a copy with a fresh canvas id.
+                      </>
+                    ) : (
+                      <>
+                        This canvas id is not present in the local home. Import will preserve the portable canvas id.
+                      </>
+                    )}
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-1.5" data-testid="import-preview-kinds">
+                    {pendingImport.kindCounts.slice(0, 6).map((item) => (
+                      <span key={item.kind} className="rounded-md border border-starlight-border bg-starlight-bg/70 px-2 py-1 text-[11px] text-starlight-muted">
+                        <span className="font-semibold text-starlight-ink">{item.count}</span> {formatKind(item.kind)}
+                      </span>
+                    ))}
+                    {!pendingImport.kindCounts.length ? (
+                      <span className="rounded-md border border-starlight-border bg-starlight-bg/70 px-2 py-1 text-[11px] text-starlight-muted">0 nodes</span>
+                    ) : null}
+                  </div>
+                  {pendingImport.nodePreview.length ? (
+                    <div className="mt-3 space-y-1.5" data-testid="import-preview-nodes">
+                      {pendingImport.nodePreview.map((node) => (
+                        <div key={node.id} className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 rounded-md border border-starlight-border bg-starlight-bg/70 px-2 py-1.5">
+                          <span className="rounded border border-starlight-accent/30 px-1.5 py-0.5 text-[10px] text-starlight-accent">{formatKind(node.kind)}</span>
+                          <span className="truncate text-[11px] text-starlight-ink">{node.title}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : null}
+                  <div className="mt-4 flex flex-wrap justify-end gap-2">
+                    <button
+                      type="button"
+                      data-testid="import-preview-cancel"
+                      onClick={cancelImportPreview}
+                      disabled={busy}
+                      className="rounded-md border border-starlight-border px-3 py-2 text-xs font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="button"
+                      data-testid="import-preview-confirm"
+                      onClick={confirmImportCanvas}
+                      disabled={busy}
+                      className="rounded-md bg-starlight-ink px-3 py-2 text-xs font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      {pendingImport.conflict ? 'Import Copy' : 'Import Canvas'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
             <div
               className="absolute bottom-3 left-3 top-auto z-30 flex max-w-[calc(100%-1.5rem)] flex-nowrap items-center gap-2 overflow-x-auto rounded-lg border border-starlight-border bg-starlight-surface/88 p-1.5 shadow-command backdrop-blur sm:bottom-4 sm:left-4 sm:max-w-[calc(100%-2rem)] sm:flex-wrap sm:overflow-visible sm:p-2"
               data-testid="canvas-command-tray"
@@ -2165,7 +2351,7 @@ function WorkspaceInner() {
                   accept="application/json,.json"
                   disabled={!canMutate}
                   onChange={(event) => {
-                    void importCanvasFile(event.currentTarget.files?.[0]);
+                    void prepareImportCanvasFile(event.currentTarget.files?.[0]);
                     event.currentTarget.value = '';
                   }}
                   className="sr-only"

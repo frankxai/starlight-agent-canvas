@@ -15,7 +15,7 @@ An active research graph where every source, action, and agent output becomes in
 ## Layout
 
 - Left rail: always-visible "Add To Canvas" intake with detected-source preview chips, templates, canvases, and direct source controls.
-- Center: React Flow typed graph with first-viewport composer, fresh blank-canvas action, clipboard paste, detected-source preview chips, responsive empty-input primary actions, interactive empty-state actions, paste-anywhere intake, drop-to-position mapping, toolbar note creation, double-click note creation, drag persistence, direct node connections, context copy, and import/export controls.
+- Center: React Flow typed graph with first-viewport composer, fresh blank-canvas action, clipboard paste, detected-source preview chips, responsive empty-input primary actions, interactive empty-state actions, paste-anywhere intake, drop-to-position mapping, toolbar note creation, double-click note creation, drag persistence, direct node connections, context copy, explicit import preview/cancel/confirm, and import/export controls.
 - Right rail: selected-context tray, live Workflow Map, handoff readiness lane, source-grounded ask box, action drawer, editable selected node inspector with context receipt, clickable citation-to-source cards, selected-source commands immediately after the action drawer, setup/MCP status, local search, run log with clickable citation chips.
 - Top bar: product identity, local data path, export route, MCP status.
 
@@ -40,6 +40,8 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 - Selected sources show ingest method, artifact kind, chunks, source URL/file path, chars, and source-scoped actions.
 - Citation cards and run-log citation chips refocus the cited source node and highlighted chunk.
 - Markdown context copy and JSON import/export are available from the canvas toolbar.
+- JSON imports show reviewable counts, node kinds, sample nodes, and duplicate-id copy behavior before local canvas state changes.
+- Confirmed imports select source evidence immediately so the first post-import view includes a receipt rather than an inert graph.
 - Dense but readable desktop composition.
 - Mobile stacks into source rail, graph, inspector.
 - No fake claims or external screenshots.

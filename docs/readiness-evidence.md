@@ -20,7 +20,7 @@ Latest local proof commit: use `git log --oneline -1`; this matrix tracks eviden
 | First-run activation is visible and machine-readable | `docs/activation.md`, `activation` payload in `apps/web/app/api/setup/status/route.ts`, `activation-runway` in `apps/web/components/WorkspaceClient.tsx`, and Playwright setup assertions | Proven locally for install health, proof canvas, source mapping, context export, Codex MCP command, first-run check command, and Codex activation prompt |
 | New users can load a working proof canvas from the app | `apps/web/app/api/canvases/demo/route.ts`, `load-demo-canvas` controls in `apps/web/components/WorkspaceClient.tsx`, Playwright bundled demo assertion, `docs/visual-qa/desktop-demo-proof-canvas.png`, `docs/visual-qa/mobile-demo-proof-canvas.png` | Proven locally for in-app import of `examples/demo-canvas.json`, selected YouTube receipt, chunk preview, and context export |
 | User can run local actions and inspect outputs | `packages/core/src/actions.ts`, `packages/core/src/__tests__/actions.test.ts`, Playwright `ask-canvas` path | Proven locally |
-| JSON import/export is portable and non-destructive | `packages/core/src/store.ts`, `apps/web/app/api/canvases/import/route.ts`, `packages/core/src/__tests__/store.test.ts`, Playwright import path | Proven locally; duplicate imports preserve the existing canvas, create an explicit copy, and surface copy status in the workspace |
+| JSON import/export is portable and non-destructive | `packages/core/src/store.ts`, `apps/web/app/api/canvases/import/route.ts`, `apps/web/components/WorkspaceClient.tsx`, `packages/core/src/__tests__/store.test.ts`, Playwright import preview/cancel/confirm path | Proven locally; imports show counts, node-kind preview, same-id conflict state, explicit cancel/confirm controls, duplicate imports preserve the existing canvas while creating a copy, and confirmed imports auto-focus source evidence for immediate inspection |
 | Agent context packet is available | `packages/core/src/exporters.ts`, web `format=context` route, MCP `export_canvas` with `format: "context"`, live preview API check on 2026-07-02 | Proven locally |
 | Codex-ready handoff prompt is available | `packages/core/src/exporters.ts`, web `format=codex` route, `Codex` workspace button, CLI `--format codex`, MCP `export_canvas` with `format: "codex"`, Playwright/API and smoke assertions | Proven locally |
 | Selected evidence can be exported without unrelated canvas material | `scopeCanvasToNodes` in `packages/core/src/exporters.ts`, API `nodeIds` query, CLI `--nodes`, MCP `export_canvas.nodeIds`, Playwright selected/full export assertions, core/MCP/CLI smoke assertions | Proven locally |
@@ -50,10 +50,10 @@ Latest local proof commit: use `git log --oneline -1`; this matrix tracks eviden
 
 ## Current Known Gaps
 
-- Browser tests still need broader coverage for clipboard permission button behavior and import preview/diff UX.
+- Browser tests still need broader coverage for clipboard permission button behavior.
 - Non-YouTube video links are safe references plus notes in v0.1; provider-specific transcript adapters are not implemented yet.
 - Image links/uploads are first-class context references plus notes in v0.1; OCR and provider-backed image reasoning are not implemented yet.
-- Import preview/diff and richer selected-subgraph visualization are not yet implemented; duplicate same-id imports now preserve the existing canvas and report that a copy was created.
+- Richer selected-subgraph visualization is not yet implemented; selected-node exports already stay scoped and portable.
 - Mac/Linux install screenshots are not yet captured.
-- Public release still needs the final GitHub remote URL inserted after the repository is created or connected.
+- Public GitHub remote is connected at `https://github.com/frankxai/starlight-agent-canvas.git`; hosted deployment/domain are still future release work.
 - Hosted deployment, auth, collaboration, billing, marketplace, and provider-backed AI actions remain v0.2+ decisions.

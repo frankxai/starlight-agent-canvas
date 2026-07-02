@@ -348,11 +348,27 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await writeFile(importPath, JSON.stringify(exportedCanvas, null, 2), 'utf8');
 
   await page.getByTestId('import-canvas-file').setInputFiles(importPath);
+  await expect(page.getByTestId('import-preview')).toBeVisible();
+  await expect(page.getByTestId('import-preview-conflict')).toContainText('new canvas id');
+  await expect(page.getByTestId('import-preview-counts')).toContainText('Nodes');
+  await expect(page.getByTestId('import-preview-counts')).toContainText('Artifacts');
+  await expect(page.getByTestId('import-preview-kinds')).toContainText('source');
+  await expect(page.getByTestId('import-preview-nodes')).toContainText('Edited canvas note');
+  await page.getByTestId('import-preview-cancel').click();
+  await expect(page.getByTestId('status')).toContainText('Import cancelled');
+  await expect(page.getByRole('button', { name: new RegExp(importTitle) })).toHaveCount(0);
+  await page.getByTestId('import-canvas-file').setInputFiles(importPath);
+  await expect(page.getByTestId('import-preview')).toBeVisible();
+  await page.getByTestId('import-preview-confirm').click();
   await expect(page.getByRole('button', { name: new RegExp(importTitle) })).toBeVisible();
   await expect.poll(async () => {
     return await page.getByLabel('Export JSON').getAttribute('href') ?? '';
   }).toContain(exportedCanvas.id);
   await page.getByTestId('import-canvas-file').setInputFiles(importPath);
+  await expect(page.getByTestId('import-preview')).toBeVisible();
+  await expect(page.getByTestId('import-preview-conflict')).toContainText('copy on import');
+  await expect(page.getByTestId('import-preview-diff')).toContainText('will be preserved');
+  await page.getByTestId('import-preview-confirm').click();
   await expect(page.getByTestId('status')).toContainText(`Imported copy of ${importTitle}`);
   await expect(page.getByRole('button', { name: new RegExp(`${importTitle} \\(imported\\)`) })).toBeVisible();
   const duplicateExportHref = await page.getByLabel('Export JSON').getAttribute('href');
@@ -362,7 +378,9 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
 
 test('imports the public demo canvas and exports chunked context', async ({ page }, testInfo) => {
   const raw = await readFile(new URL('../../../examples/demo-canvas.json', import.meta.url), 'utf8');
-  const demoCanvas = JSON.parse(raw) as { id: string; title: string };
+  const demoCanvas = JSON.parse(raw) as { id: string; title: string; nodes: Array<{ id: string; kind: string; title: string }> };
+  const youtubeNode = demoCanvas.nodes.find((node) => node.kind === 'source_youtube');
+  if (!youtubeNode) throw new Error('Expected demo canvas to include a YouTube source node.');
   const importTitle = `public demo ${testInfo.project.name} ${Date.now()}`;
   demoCanvas.id = `canvas-${importTitle.replace(/[^A-Za-z0-9_-]+/g, '-').toLowerCase()}`;
   demoCanvas.title = importTitle;
@@ -372,8 +390,11 @@ test('imports the public demo canvas and exports chunked context', async ({ page
   await page.goto('/');
   await expect(page.getByTestId('workspace')).toBeVisible();
   await page.getByTestId('import-canvas-file').setInputFiles(importPath);
+  await expect(page.getByTestId('import-preview')).toBeVisible();
+  await expect(page.getByTestId('import-preview-counts')).toContainText('5');
+  await expect(page.getByTestId('import-preview-kinds')).toContainText('source');
+  await page.getByTestId('import-preview-confirm').click();
   await expect(page.getByRole('button', { name: new RegExp(importTitle) })).toBeVisible();
-  await page.getByRole('button', { name: new RegExp(importTitle) }).click();
   await expect.poll(async () => {
     return await page.getByLabel('Export JSON').getAttribute('href') ?? '';
   }).toContain(demoCanvas.id);
@@ -381,12 +402,8 @@ test('imports the public demo canvas and exports chunked context', async ({ page
   await expect(page.getByTestId('canvas-live-state')).toContainText('3 artifacts');
   await expect(page.getByTestId('canvas-live-state')).toContainText('2 runs');
 
-  const searchInput = page.getByPlaceholder('Search canvases');
-  await searchInput.scrollIntoViewIfNeeded();
-  await searchInput.fill('Nodeflow-style video source');
-  await page.getByRole('button', { name: 'Go' }).click();
-  await expect(page.getByRole('button', { name: /Nodeflow-style video source/ }).first()).toBeVisible();
-  await page.getByRole('button', { name: /Nodeflow-style video source/ }).first().click();
+  await expect(page.getByTestId('selected-context')).toContainText('1 node context');
+  await expect(page.getByTestId('inspector-title')).toHaveValue(youtubeNode.title);
   await expect(page.getByTestId('source-receipt-kind')).toContainText('youtube');
   await expect(page.getByTestId('source-receipt-ingest')).toContainText('manual transcript');
   await expect(page.getByTestId('source-chunk-preview')).toContainText('artifact-youtube-nodeflow:chunk-001');
@@ -405,6 +422,13 @@ test('imports the public demo canvas and exports chunked context', async ({ page
   await expect(fullContextResponse).toBeOK();
   const fullContextText = await fullContextResponse.text();
   expect(fullContextText).toContain('Codex context handoff');
+
+  await page.reload();
+  await expect(page.getByTestId('workspace')).toBeVisible();
+  await page.getByTestId('import-canvas-file').setInputFiles(importPath);
+  await expect(page.getByTestId('import-preview')).toBeVisible();
+  await expect(page.getByTestId('import-preview-conflict')).toContainText('copy on import');
+  await page.getByTestId('import-preview-cancel').click();
 });
 
 test('loads the bundled demo canvas from the first viewport', async ({ page }) => {

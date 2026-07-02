@@ -35,7 +35,7 @@ This creates or replaces `canvas-starlight-agent-canvas-os` under `AGENT_CANVAS_
 
 The seed canvas lays out the north star, technology stack, MCP boundary, workflows, mobile access, production gates, and implementation brief output.
 
-Portable JSON import/export is part of the production boundary. Import must never silently overwrite an existing canvas; same-id imports are saved as copies unless a future explicit replace mode is added to a trusted admin path. Agent context export is also part of the boundary: it should remain deterministic, local, and safe to paste into Codex, Claude, Gemini, or another MCP-compatible agent.
+Portable JSON import/export is part of the production boundary. Import must never silently overwrite an existing canvas; the web app shows a preview with file identity, counts, node kinds, sample nodes, and duplicate-id copy status before the user confirms. Same-id imports are saved as copies unless a future explicit replace mode is added to a trusted admin path. Agent context export is also part of the boundary: it should remain deterministic, local, and safe to paste into Codex, Claude, Gemini, or another MCP-compatible agent.
 
 The local CLI is part of the same boundary. `pnpm canvas -- demo`, `pnpm canvas -- list`, `pnpm canvas -- import`, `pnpm canvas -- export`, and `pnpm canvas -- search` operate over the shared local store and do not expose destructive actions.
 
