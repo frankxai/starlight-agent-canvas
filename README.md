@@ -191,13 +191,14 @@ The CLI uses the same local data home as the web app and MCP server. It gives te
 
 ```powershell
 pnpm doctor
+pnpm release:audit
 pnpm verify
 pnpm canvas:smoke
 pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health. `pnpm canvas:smoke` proves terminal demo import, list, search, and context export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health. `pnpm canvas:smoke` proves terminal demo import, list, search, and context export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 
@@ -229,6 +230,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 - Codex integration: `docs/codex-integration.md`
 - Demo walkthrough: `docs/demo-walkthrough.md`
 - Local CLI: `docs/cli.md`
+- Release audit: `docs/release-audit.md`
 - MCP setup: `docs/mcp-setup.md`
 - System design: `docs/system-design.md`
 - Technology stack: `docs/technology-stack.md`

@@ -56,18 +56,19 @@ Use labels:
 ## Release Checklist
 
 1. Run `pnpm doctor` and confirm it reports Node/pnpm, workspaces, built MCP server, `.mcp.json`, and Codex MCP path/home checks.
-2. Run `pnpm verify`.
-3. Run `pnpm canvas:smoke`.
-4. Run `pnpm mcp:smoke`.
-5. Run `pnpm test:e2e`.
-6. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
-7. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
-8. Run the Starlight staged/full security scan.
-9. Confirm visual QA screenshots are current.
-10. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
-11. Confirm `.env` and private canvas exports are not staged.
-12. Update README links and docs index.
-13. Tag release only after GitHub CI passes.
+2. Run `pnpm release:audit` and address failures. A missing remote is only a warning until the GitHub repo is attached.
+3. Run `pnpm verify`.
+4. Run `pnpm canvas:smoke`.
+5. Run `pnpm mcp:smoke`.
+6. Run `pnpm test:e2e`.
+7. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
+8. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
+9. Run the Starlight staged/full security scan.
+10. Confirm visual QA screenshots are current.
+11. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
+12. Confirm `.env` and private canvas exports are not staged.
+13. Update README links and docs index.
+14. Tag release only after GitHub CI passes.
 
 Public install proof to keep current:
 
@@ -82,7 +83,7 @@ pnpm dev
 
 The setup script must remain explicit about what it does: dependency install, doctor, MCP build, MCP smoke, seed, and Codex config dry-run unless `--codex-write` is supplied.
 
-Use `docs/readiness-evidence.md` as the current proof matrix before tagging or announcing a release.
+Use `docs/readiness-evidence.md` as the current proof matrix before tagging or announcing a release. Use `docs/release-audit.md` for the local machine-checkable release gate.
 
 ## First Good Issues
 

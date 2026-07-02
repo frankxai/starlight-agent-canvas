@@ -19,6 +19,7 @@
     "preview:prod": "pnpm build && pnpm --filter @starlight-agent-canvas/web start -p 3101",
     "setup:local": "node scripts/setup.mjs",
     "doctor": "node scripts/doctor.mjs",
+    "release:audit": "node scripts/release-audit.mjs",
     "canvas": "pnpm --filter @starlight-agent-canvas/core build && node scripts/canvas.mjs",
     "canvas:smoke": "pnpm --filter @starlight-agent-canvas/core build && node scripts/canvas-smoke.mjs",
     "test:e2e": "pnpm --filter @starlight-agent-canvas/web test:e2e",

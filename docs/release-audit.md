@@ -1,0 +1,32 @@
+# Release Audit
+
+`pnpm release:audit` is the local GitHub/release readiness gate. It does not install dependencies, start servers, call provider APIs, or mutate local canvas state.
+
+## What It Checks
+
+- OSS surface files: README, license, security policy, contribution guide, agent instructions, env example, MCP config, workspace files.
+- GitHub surface: CI workflow, Dependabot, issue templates, and pull request template.
+- Product docs: install, CLI, PRD, user flows, Codex integration, MCP setup, readiness evidence, production readiness, GitHub readiness, system design, technology stack, product brief, scene brief, demo walkthrough, and design evidence.
+- Examples: demo canvas and MCP client examples for Codex, Claude Desktop, and Gemini.
+- Package scripts and CI gates for doctor, typecheck, tests, build, CLI smoke, MCP smoke, and Playwright.
+- Demo canvas proof: nodes, artifacts, runs, chunked sources, citations, and source/output node kinds.
+- Visual QA proof: 26/30+ score, inspected evidence artifacts, and critical desktop/mobile screenshots.
+- Safety posture: `.env.example` contains key names only, `.gitignore` protects runtime/private/build paths, and Git is not tracking or staging runtime data.
+
+## Run It
+
+```powershell
+pnpm release:audit
+```
+
+Machine-readable output:
+
+```powershell
+pnpm release:audit -- --json
+```
+
+## Warnings Versus Failures
+
+Warnings do not fail the command. Today, a missing Git remote is a warning because the repo can be locally ready before the public GitHub remote is attached.
+
+Failures mean a required public, install, demo, CI, visual evidence, or safety artifact is missing or malformed. Fix failures before tagging, announcing, or opening a release PR.
