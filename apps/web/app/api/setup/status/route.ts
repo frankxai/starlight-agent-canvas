@@ -5,6 +5,27 @@ import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
+type FirstSuccessContract = {
+  schemaVersion: string;
+  phases: Array<{
+    id: string;
+    label: string;
+    detail: string;
+  }>;
+  inputContracts: Array<{
+    id: string;
+    label: string;
+    input: string;
+    outputLabel: string;
+    output: string;
+    detail: string;
+    nodeKind: string;
+    artifactKind: string;
+    codexUse: string;
+    status: string;
+  }>;
+};
+
 function getAgentCanvasHome(): string {
   return process.env.AGENT_CANVAS_HOME?.trim() || path.join(os.homedir(), '.starlight', 'agent-canvas');
 }
@@ -25,6 +46,11 @@ async function fileIncludes(filePath: string, terms: string[]): Promise<boolean>
   } catch {
     return false;
   }
+}
+
+async function loadFirstSuccessContract(repoRoot: string): Promise<FirstSuccessContract> {
+  const raw = await readFile(/*turbopackIgnore: true*/ path.join(repoRoot, 'docs', 'first-success.contract.json'), 'utf8');
+  return JSON.parse(raw) as FirstSuccessContract;
 }
 
 function normalizeRuntimePath(value: string): string {
@@ -107,6 +133,7 @@ export async function GET() {
   const codexConfigPath = path.join(os.homedir(), '.codex', 'config.toml');
   const codex = await codexConfigStatus(codexConfigPath);
   const canvasHome = getAgentCanvasHome();
+  const firstSuccessContract = await loadFirstSuccessContract(repoRoot);
   const serverPathMatches = Boolean(codex.configuredCliPath)
     && normalizeRuntimePath(codex.configuredCliPath) === normalizeRuntimePath(mcpCliPath);
   const homeMatches = Boolean(codex.configuredHome)
@@ -153,42 +180,17 @@ export async function GET() {
       docs: ['docs/adoption-report.md', 'docs/readiness-evidence.md'],
     },
     firstSuccess: {
+      schemaVersion: firstSuccessContract.schemaVersion,
       contractCommand: 'pnpm first-success',
       jsonCommand: 'pnpm first-success:json',
-      docs: ['docs/first-success.md', 'docs/operator-loop.md'],
+      docs: ['docs/first-success.md', 'docs/first-success.contract.json', 'docs/operator-loop.md'],
       proofCommands: ['pnpm first-run:check', 'pnpm canvas:smoke', 'pnpm mcp:smoke'],
-      phases: [
-        {
-          id: 'install',
-          label: 'Install',
-          detail: 'Setup script, doctor, MCP build, smoke, seed, dry-run MCP config.',
-        },
-        {
-          id: 'open',
-          label: 'Open',
-          detail: 'Start the app directly in the local canvas workspace.',
-        },
-        {
-          id: 'capture',
-          label: 'Capture',
-          detail: 'Paste, drop, upload, or type source context into the first viewport.',
-        },
-        {
-          id: 'inspect',
-          label: 'Inspect',
-          detail: 'Review source receipts, provenance, chunks, citations, and outputs.',
-        },
-        {
-          id: 'handoff',
-          label: 'Handoff',
-          detail: 'Copy Context or Codex, or export JSON/Markdown from CLI or app.',
-        },
-        {
-          id: 'codex',
-          label: 'Codex',
-          detail: 'Use MCP tools to read, ingest, run actions, and export the same canvas.',
-        },
-      ],
+      phases: firstSuccessContract.phases.map((phase) => ({
+        id: phase.id,
+        label: phase.label,
+        detail: phase.detail,
+      })),
+      inputContracts: firstSuccessContract.inputContracts,
     },
     agent: {
       prompt: [

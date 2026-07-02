@@ -260,6 +260,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 - Install and first run: `docs/install.md`
 - Activation runway: `docs/activation.md`
 - First success contract: `docs/first-success.md`
+- First success machine contract: `docs/first-success.contract.json`
 - Adoption report: `docs/adoption-report.md`
 - Human/agent operator loop: `docs/operator-loop.md`
 - PRD: `docs/prd.md`

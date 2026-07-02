@@ -22,10 +22,12 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
     codex: { installWriteCommand: string };
     adoption: { reportCommand: string; jsonCommand: string };
     firstSuccess: {
+      schemaVersion: string;
       contractCommand: string;
       jsonCommand: string;
       proofCommands: string[];
       phases: Array<{ id: string; label: string; detail: string }>;
+      inputContracts: Array<{ id: string; input: string; output: string; nodeKind: string; outputLabel: string }>;
     };
     agent: { prompt: string; terminalHandoffCommand: string; tools: Array<{ name: string; detail: string }> };
     activation: { firstRunCheckCommand: string; codexPrompt: string; steps: Array<{ id: string; label: string }> };
@@ -38,7 +40,11 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   expect(setupJson.firstSuccess.contractCommand).toBe('pnpm first-success');
   expect(setupJson.firstSuccess.jsonCommand).toBe('pnpm first-success:json');
   expect(setupJson.firstSuccess.proofCommands).toContain('pnpm first-run:check');
+  expect(setupJson.firstSuccess.schemaVersion).toBe('starlight.agentCanvas.firstSuccess.v1');
   expect(setupJson.firstSuccess.phases.map((phase) => phase.id)).toEqual(['install', 'open', 'capture', 'inspect', 'handoff', 'codex']);
+  expect(setupJson.firstSuccess.inputContracts.map((contract) => contract.id)).toEqual(['youtube', 'video', 'image', 'web', 'pdf', 'text', 'note']);
+  expect(setupJson.firstSuccess.inputContracts.find((contract) => contract.id === 'youtube')?.nodeKind).toBe('source_youtube');
+  expect(setupJson.firstSuccess.inputContracts.find((contract) => contract.id === 'video')?.output).toContain('source_video');
   expect(setupJson.agent.prompt).toContain('get_latest_canvas');
   expect(setupJson.agent.terminalHandoffCommand).toContain('format codex');
   expect(setupJson.agent.tools.map((tool) => tool.name)).toEqual(['get_latest_canvas', 'ingest_anything', 'run_node_action', 'export_canvas']);
@@ -56,6 +62,10 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('selected-context')).toContainText('Whole canvas context');
   await expect(page.getByTestId('live-intake-heading')).toContainText('Add Anything');
   await expect(page.getByTestId('live-intake-helper')).toContainText('Codex-readable context');
+  await expect(page.getByTestId('input-contract-strip')).toContainText('YouTube');
+  await expect(page.getByTestId('input-contract-strip')).toContainText('Any video');
+  await expect(page.getByTestId('input-contract-strip')).toContainText('Preview node');
+  await expect(page.getByTestId('input-contract-pdf')).toContainText('Extracted text');
   await expect(page.getByTestId('codex-export-preview')).toContainText('Codex export preview');
   await expect(page.getByTestId('codex-export-mode')).toContainText('canvas');
   await expect(page.getByTestId('codex-export-rules')).toContainText('Whole canvas exports all nodes');
@@ -87,6 +97,10 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('first-success-phase-install')).toContainText('Install');
   await expect(page.getByTestId('first-success-phase-capture')).toContainText('Capture');
   await expect(page.getByTestId('first-success-phase-codex')).toContainText('Codex');
+  await expect(page.getByTestId('first-success-input-contracts')).toContainText('Input contracts');
+  await expect(page.getByTestId('first-success-input-youtube')).toContainText('source_youtube');
+  await expect(page.getByTestId('first-success-input-video')).toContainText('source_video');
+  await expect(page.getByTestId('first-success-input-image')).toContainText('source_image');
   await expect(page.getByTestId('first-success-copy')).toContainText('Contract');
   await expect(page.getByTestId('first-success-json')).toContainText('JSON');
   await expect(page.getByTestId('first-success-proof')).toContainText('Proof');

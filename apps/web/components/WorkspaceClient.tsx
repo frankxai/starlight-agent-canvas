@@ -165,6 +165,7 @@ type SetupStatus = {
     docs: string[];
   };
   firstSuccess: {
+    schemaVersion: string;
     contractCommand: string;
     jsonCommand: string;
     docs: string[];
@@ -173,6 +174,18 @@ type SetupStatus = {
       id: string;
       label: string;
       detail: string;
+    }>;
+    inputContracts: Array<{
+      id: string;
+      label: string;
+      input: string;
+      outputLabel: string;
+      output: string;
+      detail: string;
+      nodeKind: string;
+      artifactKind: string;
+      codexUse: string;
+      status: string;
     }>;
   };
   agent: {
@@ -540,6 +553,16 @@ function quickStarterIcon(id: QuickStarterId) {
   if (id === 'image') return <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'web') return <Link className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'ask') return <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />;
+  return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
+}
+
+function inputContractIcon(id: string) {
+  if (id === 'youtube') return <Youtube className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'video') return <Film className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'image') return <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'web') return <Link className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'pdf') return <FileText className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'text') return <Braces className="h-3.5 w-3.5" aria-hidden="true" />;
   return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
 }
 
@@ -2195,6 +2218,24 @@ function WorkspaceInner() {
                   ))}
                 </div>
               </div>
+              {setupStatus?.firstSuccess.inputContracts.length ? (
+                <div className="mt-2 grid grid-cols-2 gap-1.5 md:grid-cols-4 xl:grid-cols-7" data-testid="input-contract-strip">
+                  {setupStatus.firstSuccess.inputContracts.map((contract) => (
+                    <div
+                      key={contract.id}
+                      data-testid={`input-contract-${contract.id}`}
+                      title={`${contract.input}: ${contract.output}`}
+                      className="min-w-0 rounded-md border border-starlight-border bg-starlight-bg/72 px-2 py-1.5"
+                    >
+                      <span className="flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-starlight-ink">
+                        <span className="shrink-0 text-starlight-accent">{inputContractIcon(contract.id)}</span>
+                        <span className="truncate">{contract.label}</span>
+                      </span>
+                      <span className="mt-0.5 block truncate text-[9px] text-starlight-muted">{contract.outputLabel}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               <div className="mt-2 grid grid-cols-2 gap-1.5 md:grid-cols-5" data-testid="operator-loop">
                 {operatorLoop.map((step) => (
                   <button
@@ -3219,6 +3260,36 @@ function WorkspaceInner() {
                           <p className="mt-1 line-clamp-2 text-[10px] leading-4 text-starlight-muted">{phase.detail}</p>
                         </div>
                       ))}
+                    </div>
+                    <div className="mt-2 rounded-md border border-starlight-border bg-starlight-bg/70 p-2" data-testid="first-success-input-contracts">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-semibold uppercase text-starlight-muted">Input contracts</span>
+                        <span className="rounded border border-starlight-mint/30 px-1.5 py-0.5 text-[9px] font-semibold text-starlight-mint">
+                          {setupStatus.firstSuccess.inputContracts.length} ready
+                        </span>
+                      </div>
+                      <div className="mt-2 grid gap-1.5">
+                        {setupStatus.firstSuccess.inputContracts.map((contract) => (
+                          <div
+                            key={contract.id}
+                            data-testid={`first-success-input-${contract.id}`}
+                            className="grid grid-cols-[auto_minmax(0,1fr)] gap-2 rounded-md border border-starlight-border bg-starlight-surface/70 p-2"
+                          >
+                            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border border-starlight-accent/35 text-starlight-accent">
+                              {inputContractIcon(contract.id)}
+                            </span>
+                            <span className="min-w-0">
+                              <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+                                <span className="truncate text-[11px] font-semibold text-starlight-ink">{contract.input}</span>
+                                <span className="rounded border border-starlight-border bg-starlight-bg px-1.5 py-0.5 font-mono text-[9px] text-starlight-muted">
+                                  {contract.nodeKind}
+                                </span>
+                              </span>
+                              <span className="mt-1 block line-clamp-2 text-[10px] leading-4 text-starlight-muted">{contract.output}</span>
+                            </span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                     <div className="mt-2 grid grid-cols-2 gap-1.5">
                       <button

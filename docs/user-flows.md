@@ -21,17 +21,18 @@ Expected result: the user can use either the top composer or the center empty-ca
 1. Open any canvas.
 2. Click `New` when you want a fresh blank graph instead of the latest local canvas.
 3. Confirm the persistent composer helper says sources become Codex-readable context.
-4. Click `Video`, `Image`, `Web`, `Note`, or `Ask` in the first-viewport composer.
-5. Confirm the composer focuses and the status explains the selected mode.
-6. If the primary `Map + Brief` action is clicked before adding context, confirm it focuses the composer instead of silently doing nothing.
-7. Paste or drop context.
-8. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
-9. Confirm the live operator loop advances from `Capture` to `Map` after source nodes exist.
-10. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-11. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
-12. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
-13. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
-14. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
+4. Confirm the supported-input strip shows YouTube, any video, image, web, PDF, text, and note mappings before you paste.
+5. Click `Video`, `Image`, `Web`, `Note`, or `Ask` in the first-viewport composer.
+6. Confirm the composer focuses and the status explains the selected mode.
+7. If the primary `Map + Brief` action is clicked before adding context, confirm it focuses the composer instead of silently doing nothing.
+8. Paste or drop context.
+9. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
+10. Confirm the live operator loop advances from `Capture` to `Map` after source nodes exist.
+11. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+12. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
+13. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
+14. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
+15. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
 
@@ -151,13 +152,14 @@ Expected result: templates are not decorative examples; they are reusable operat
 3. Confirm data home, MCP build, Codex config, and Codex server status.
 4. Follow the `Activation runway`: install health, proof canvas, source mapping, context export, and Codex MCP wiring.
 5. Inspect the `First success` card: install, open, capture, inspect, handoff, and Codex.
-6. Copy `Setup`, `Codex`, `Smoke`, `first-run check`, `first-success`, or `prod preview` commands when a status needs action.
-7. Inspect the `Agent toolbelt`: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
-8. Copy the agent prompt, adoption report command, or terminal Codex handoff command when the next step should move from UI to Codex.
-9. Copy the Codex activation prompt when Codex should continue from the current local canvas.
-10. Restart Codex after installing MCP config.
-11. Run `pnpm doctor:json`, `pnpm first-success:json`, or `pnpm adoption:report:json` when an agent, CI job, or setup helper needs parseable readiness.
-12. Ask Codex to list canvases through MCP.
+6. Inspect the Input contracts matrix to see how each supported input maps to node kinds such as `source_youtube`, `source_video`, `source_image`, `source_url`, and `source_pdf`.
+7. Copy `Setup`, `Codex`, `Smoke`, `first-run check`, `first-success`, or `prod preview` commands when a status needs action.
+8. Inspect the `Agent toolbelt`: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
+9. Copy the agent prompt, adoption report command, or terminal Codex handoff command when the next step should move from UI to Codex.
+10. Copy the Codex activation prompt when Codex should continue from the current local canvas.
+11. Restart Codex after installing MCP config.
+12. Run `pnpm doctor:json`, `pnpm first-success:json`, or `pnpm adoption:report:json` when an agent, CI job, or setup helper needs parseable readiness.
+13. Ask Codex to list canvases through MCP.
 
 Expected result: install, first-success, and agent wiring status are visible inside the product surface, the next human action is obvious, and the write path remains explicit and backed by local scripts.
 

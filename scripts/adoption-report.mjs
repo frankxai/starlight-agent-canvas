@@ -161,6 +161,7 @@ function proofState() {
       'docs/install.md',
       'docs/activation.md',
       'docs/first-success.md',
+      'docs/first-success.contract.json',
       'docs/adoption-report.md',
       'docs/operator-loop.md',
       'docs/codex-integration.md',
@@ -189,13 +190,16 @@ function codexState(doctor) {
 function firstSuccessState(run) {
   const data = run.data;
   const phaseIds = Array.isArray(data?.phases) ? data.phases.map((phase) => phase.id) : [];
+  const inputContracts = Array.isArray(data?.inputContracts) ? data.inputContracts : [];
+  const inputIds = inputContracts.map((contract) => contract.id);
   const expectedPhaseIds = ['install', 'open', 'capture', 'inspect', 'handoff', 'codex'];
+  const expectedInputIds = ['youtube', 'video', 'image', 'web', 'pdf', 'text', 'note'];
   const ready = Boolean(
     run.ok
       && data?.schemaVersion === 'starlight.agentCanvas.firstSuccess.v1'
       && expectedPhaseIds.every((id) => phaseIds.includes(id))
-      && Array.isArray(data?.inputContracts)
-      && data.inputContracts.length >= 7
+      && expectedInputIds.every((id) => inputIds.includes(id))
+      && inputContracts.every((contract) => contract.input && contract.output && contract.nodeKind && contract.artifactKind && contract.status)
       && typeof data?.codexPrompt === 'string'
       && data.codexPrompt.includes('get_latest_canvas')
       && data.codexPrompt.includes('export_canvas'),
@@ -204,8 +208,16 @@ function firstSuccessState(run) {
     ready,
     error: run.error,
     phaseCount: Array.isArray(data?.phases) ? data.phases.length : 0,
-    inputContractCount: Array.isArray(data?.inputContracts) ? data.inputContracts.length : 0,
+    inputContractCount: inputContracts.length,
     phases: phaseIds,
+    inputContracts: inputContracts.map((contract) => ({
+      id: contract.id,
+      input: contract.input,
+      output: contract.output,
+      nodeKind: contract.nodeKind,
+      artifactKind: contract.artifactKind,
+      status: contract.status,
+    })),
     command: 'pnpm first-success',
     jsonCommand: 'pnpm first-success:json',
   };
@@ -360,7 +372,7 @@ function renderMarkdown(report) {
     '',
     `The bundled demo canvas contains ${report.proof.demoCanvas.nodeKinds.join(', ')} nodes and is portable JSON at \`examples/demo-canvas.json\`.`,
     `The current visual evidence score is \`${visual.score ?? 'n/a'}/30\` with real product screenshots under \`docs/visual-qa\`.`,
-    `The first-success contract is \`${report.firstSuccess.ready ? 'ready' : 'not ready'}\` at \`docs/first-success.md\`.`,
+    `The first-success contract is \`${report.firstSuccess.ready ? 'ready' : 'not ready'}\` at \`docs/first-success.md\` and \`docs/first-success.contract.json\`.`,
     `The MCP CLI path is \`${slash(report.codex.mcpCliPath) || '(not built)'}\`.`,
     `The Codex config path is \`${slash(report.codex.codexConfigPath) || '(unknown)'}\`.`,
     '',

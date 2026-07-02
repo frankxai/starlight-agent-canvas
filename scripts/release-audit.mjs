@@ -184,8 +184,12 @@ function checkFirstSuccessJson() {
     const missing = requiredKeys.filter((key) => !(key in parsed));
     const phaseIds = Array.isArray(parsed.phases) ? parsed.phases.map((phase) => phase.id) : [];
     const expectedPhaseIds = ['install', 'open', 'capture', 'inspect', 'handoff', 'codex'];
+    const inputIds = Array.isArray(parsed.inputContracts) ? parsed.inputContracts.map((contract) => contract.id) : [];
+    const expectedInputIds = ['youtube', 'video', 'image', 'web', 'pdf', 'text', 'note'];
     const phasesOk = expectedPhaseIds.every((id) => phaseIds.includes(id));
-    const inputOk = Array.isArray(parsed.inputContracts) && parsed.inputContracts.length >= 7;
+    const inputOk = Array.isArray(parsed.inputContracts)
+      && expectedInputIds.every((id) => inputIds.includes(id))
+      && parsed.inputContracts.every((contract) => contract.input && contract.output && contract.nodeKind && contract.status);
     const codexOk = typeof parsed.codexPrompt === 'string'
       && parsed.codexPrompt.includes('get_latest_canvas')
       && parsed.codexPrompt.includes('export_canvas');
@@ -193,6 +197,7 @@ function checkFirstSuccessJson() {
       fail('first success json contract', 'first-success --json is missing required shape.', {
         missing,
         phaseIds,
+        inputIds,
         phasesOk,
         inputOk,
         codexOk,
@@ -376,6 +381,7 @@ checkFiles('docs surface', [
   'docs/install.md',
   'docs/activation.md',
   'docs/first-success.md',
+  'docs/first-success.contract.json',
   'docs/adoption-report.md',
   'docs/cli.md',
   'docs/prd.md',
@@ -435,6 +441,7 @@ checkTrackedFiles('required tracked files', [
   'docs/install.md',
   'docs/activation.md',
   'docs/first-success.md',
+  'docs/first-success.contract.json',
   'docs/adoption-report.md',
   'docs/cli.md',
   'docs/prd.md',

@@ -18,6 +18,8 @@ The JSON form is for agents, setup helpers, CI checks, and issue triage. It defi
 - the Codex MCP loop: `get_latest_canvas`, `ingest_anything`, `run_node_action`, `export_canvas`
 - current v0.1 limits
 
+The maintained source for the phases and supported-input mappings is `docs/first-success.contract.json`. The CLI, `/api/setup/status`, the in-app supported-input strip, and release audit all read or validate that same contract.
+
 Write a local handoff artifact:
 
 ```powershell

@@ -36,6 +36,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Selected source nodes show a context receipt with artifact kind, ingest method, chunk count, source path/URL, and character count.
 - Selected source nodes expose immediate source-scoped actions: summary, claims, cited ask, and selected context copy.
 - User can see the active selected context before running actions.
+- User can see the supported-input contract in the first viewport: YouTube, any video link, image, web, PDF, text, and note, with each one mapped to the node/artifact type Codex will later receive.
 - User can see handoff readiness before leaving the browser: evidence captured, synthesis/output present, selected scope, and whether Codex is MCP-wired or should use a handoff prompt.
 - User can export selected evidence as JSON, Markdown, agent context, or Codex handoff without exporting unrelated canvas material.
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
@@ -80,7 +81,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
 - The setup/MCP status panel exposes the adoption report command and agent toolbelt from `/api/setup/status`.
 - `/api/setup/status` exposes an activation contract with steps, proof commands, and a Codex activation prompt.
-- `/api/setup/status` exposes `firstSuccess` with phases, proof commands, and first-success command copies.
+- `/api/setup/status` exposes `firstSuccess` with phases, supported-input mappings, proof commands, and first-success command copies from `docs/first-success.contract.json`.
 - `pnpm verify`, `pnpm test:e2e`, and `pnpm mcp:smoke` pass.
 - `pnpm canvas:smoke` passes and proves demo import, list, search, context export, and Codex handoff export from the terminal.
 - README links to install, PRD, user flows, MCP setup, Codex integration, system design, and production readiness.
@@ -112,6 +113,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A new user can follow the activation runway and understand the next install, demo, mapping, export, or Codex action without reading code.
 - An agent or CI job can parse `pnpm doctor:json` and distinguish required failures from optional wiring warnings.
 - A setup helper, issue triage agent, or Codex session can parse `pnpm first-success:json` and understand the install-to-Codex loop before choosing tools.
+- A user can confirm from the first viewport exactly what happens to YouTube, any video, image, web, PDF, text, and note inputs before mapping them.
 - A contributor or Codex session can parse `pnpm adoption:report:json` and understand install, release, proof, visual, GitHub, and Codex state before choosing the next workflow.
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
 - A user can click a citation from an answer or run log and land back on the cited source/chunk.

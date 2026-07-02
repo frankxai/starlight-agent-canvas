@@ -100,7 +100,7 @@ pnpm adoption:report
 pnpm adoption:report:json
 ```
 
-`pnpm first-success` is the maintained install-to-Codex contract: it names each phase, the human action, the proof command, the supported input types, and the MCP loop Codex should use.
+`pnpm first-success` is the maintained install-to-Codex contract: it names each phase, the human action, the proof command, the supported input types, and the MCP loop Codex should use. The shared source is `docs/first-success.contract.json`, which also feeds `/api/setup/status` and the in-app supported-input strip.
 
 Use `pnpm adoption:report -- --out .agent-canvas/adoption-report.md` when you want a local handoff artifact for Codex, a PR, or a setup issue.
 

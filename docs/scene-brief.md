@@ -29,6 +29,7 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 - A user can create a fresh blank canvas from the first viewport when the latest local canvas is already populated.
 - User can paste a YouTube link, image URL, URL, transcript, or raw note directly into the canvas composer.
 - The persistent composer states that YouTube links, any video URL, files, or notes become Codex-readable context.
+- The persistent composer exposes the supported-input contract for YouTube, any video, image, web, PDF, text, and note input, backed by `docs/first-success.contract.json`.
 - If browser clipboard access is blocked or empty, `Paste & Map` focuses the right composer, shows the manual paste fallback, and keeps drop-to-canvas available.
 - Empty `Map`/`Ask` clicks focus the correct composer and update status, not silently fail.
 - The live operator loop shows current stage state from real canvas data and exposes direct actions for capture, mapping, inspection, asking, and Codex handoff.

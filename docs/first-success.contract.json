@@ -1,0 +1,168 @@
+{
+  "schemaVersion": "starlight.agentCanvas.firstSuccess.v1",
+  "promise": "A human can install the repo, put real context on the canvas, inspect it, and hand the same state to Codex through MCP or a Codex export.",
+  "successDefinition": [
+    "The local app starts from a GitHub clone without provider API keys.",
+    "The first viewport lets a human paste, drop, upload, type, or load the demo without reading docs first.",
+    "The captured material becomes typed source nodes with provenance, chunks, and inspector receipts.",
+    "A local action can create an inspectable output node from the source context.",
+    "Context can be exported as JSON, Markdown, agent context, or a Codex handoff prompt.",
+    "Codex can read and mutate the same local canvas through safe MCP tools."
+  ],
+  "phases": [
+    {
+      "id": "install",
+      "label": "Install",
+      "humanAction": "Run the setup script from a GitHub clone.",
+      "detail": "Setup script, doctor, MCP build, smoke, seed, dry-run MCP config.",
+      "command": "node scripts/setup.mjs",
+      "proof": ["pnpm doctor:json", "pnpm adoption:report"]
+    },
+    {
+      "id": "open",
+      "label": "Open",
+      "humanAction": "Start the app and land directly in the canvas workspace.",
+      "detail": "Start the app directly in the local canvas workspace.",
+      "command": "pnpm dev",
+      "proof": ["pnpm first-run:check"]
+    },
+    {
+      "id": "capture",
+      "label": "Capture",
+      "humanAction": "Paste or drop a YouTube/video link, image, URL, PDF, file, transcript, or note.",
+      "detail": "Paste, drop, upload, or type source context into the first viewport.",
+      "appSurface": "Add Anything composer, canvas toolbar, empty-canvas capture box, and drop surface",
+      "proof": ["apps/web/tests/workspace.spec.ts"]
+    },
+    {
+      "id": "inspect",
+      "label": "Inspect",
+      "humanAction": "Select the created source/output and review provenance, chunks, citations, and body text.",
+      "detail": "Review source receipts, provenance, chunks, citations, and outputs.",
+      "appSurface": "Inspector source receipt, chunk preview, run log, and citation focus controls",
+      "proof": ["docs/readiness-evidence.md"]
+    },
+    {
+      "id": "handoff",
+      "label": "Handoff",
+      "humanAction": "Copy Context or Codex, or export JSON/Markdown for portable review.",
+      "detail": "Copy Context or Codex, or export JSON/Markdown from CLI or app.",
+      "command": "pnpm canvas -- export latest --format codex --out .agent-canvas/latest-codex.md",
+      "proof": ["pnpm canvas:smoke"]
+    },
+    {
+      "id": "codex",
+      "label": "Codex",
+      "humanAction": "Install MCP config, restart Codex, and ask it to operate on the latest canvas.",
+      "detail": "Use MCP tools to read, ingest, run actions, and export the same canvas.",
+      "command": "pnpm mcp:install:codex -- --write",
+      "mcpLoop": ["get_latest_canvas", "ingest_anything", "run_node_action", "export_canvas"],
+      "proof": ["pnpm mcp:smoke", "pnpm doctor"]
+    }
+  ],
+  "inputContracts": [
+    {
+      "id": "youtube",
+      "label": "YouTube",
+      "input": "YouTube URL",
+      "outputLabel": "Transcript node",
+      "output": "source_youtube node with transcript/caption/manual fallback chunks",
+      "detail": "Title/captions when available; manual transcript or notes remain first-class context.",
+      "nodeKind": "source_youtube",
+      "artifactKind": "youtube",
+      "codexUse": "Codex reads chunk ids and source URL through MCP/context export.",
+      "status": "ready"
+    },
+    {
+      "id": "video",
+      "label": "Any video",
+      "input": "Loom/Vimeo/direct/social video URL",
+      "outputLabel": "Reference node",
+      "output": "source_video reference with attached notes/chunks",
+      "detail": "Preserves the URL as video evidence and uses pasted notes or transcripts for analysis.",
+      "nodeKind": "source_video",
+      "artifactKind": "video",
+      "codexUse": "Codex receives the video reference plus attached notes/chunks without claiming provider transcription.",
+      "status": "ready_reference"
+    },
+    {
+      "id": "image",
+      "label": "Image",
+      "input": "Image URL or upload",
+      "outputLabel": "Preview node",
+      "output": "source_image node with preview/provenance and notes/chunks",
+      "detail": "Captures screenshots or image links with visual notes, OCR text, or observations.",
+      "nodeKind": "source_image",
+      "artifactKind": "image",
+      "codexUse": "Codex receives image provenance and human/OCR notes; provider vision is optional future work.",
+      "status": "ready_reference"
+    },
+    {
+      "id": "web",
+      "label": "Web",
+      "input": "Public web URL",
+      "outputLabel": "Fetched source",
+      "output": "source_url artifact from bounded fetch or safe reference fallback",
+      "detail": "Fetches readable text when safe; private/local targets are blocked by default.",
+      "nodeKind": "source_url",
+      "artifactKind": "url",
+      "codexUse": "Codex receives fetched text chunks or the safe fallback reference.",
+      "status": "ready"
+    },
+    {
+      "id": "pdf",
+      "label": "PDF",
+      "input": "PDF upload",
+      "outputLabel": "Extracted text",
+      "output": "source_pdf artifact from local capped extraction",
+      "detail": "Extracts local PDF text into chunks with file provenance.",
+      "nodeKind": "source_pdf",
+      "artifactKind": "pdf",
+      "codexUse": "Codex receives extracted chunks and file provenance through export/MCP.",
+      "status": "ready"
+    },
+    {
+      "id": "text",
+      "label": "Text",
+      "input": "Text, Markdown, JSON, CSV, log, or transcript",
+      "outputLabel": "Chunked source",
+      "output": "manual source artifact with chunks",
+      "detail": "Turns raw pasted text or files into local chunks for actions and citations.",
+      "nodeKind": "note",
+      "artifactKind": "text",
+      "codexUse": "Codex receives durable text chunks instead of a one-off chat paste.",
+      "status": "ready"
+    },
+    {
+      "id": "note",
+      "label": "Note",
+      "input": "Human note",
+      "outputLabel": "Editable node",
+      "output": "editable note node usable as selected context",
+      "detail": "Keeps human synthesis editable, selectable, and exportable as agent context.",
+      "nodeKind": "note",
+      "artifactKind": "note",
+      "codexUse": "Codex can read and build from the note while the human keeps editing control.",
+      "status": "ready"
+    }
+  ],
+  "commands": {
+    "firstRun": ["node scripts/setup.mjs", "pnpm dev"],
+    "proof": ["pnpm first-run:check", "pnpm canvas:smoke", "pnpm mcp:smoke", "pnpm test:e2e"],
+    "readiness": ["pnpm doctor:json", "pnpm first-success:json", "pnpm adoption:report:json", "pnpm release:audit"],
+    "codex": ["pnpm mcp:build", "pnpm mcp:install:codex -- --write", "pnpm doctor"]
+  },
+  "codexPrompt": "Use starlight-agent-canvas as shared local context. Call get_latest_canvas, read the graph before writing, add durable evidence with ingest_anything when new context appears, run one useful action, then export_canvas with format \"codex\". Return node ids, artifact ids, chunk ids, and every node/action changed.",
+  "knownLimits": [
+    "Non-YouTube provider transcript adapters are future work; v0.1 captures them as safe video references plus notes.",
+    "Image OCR and provider vision are future work; v0.1 captures image references/uploads plus human notes.",
+    "Hosted collaboration, auth, billing, marketplace, and provider-backed AI actions are v0.2+."
+  ],
+  "docs": [
+    "docs/install.md",
+    "docs/activation.md",
+    "docs/operator-loop.md",
+    "docs/codex-integration.md",
+    "docs/readiness-evidence.md"
+  ]
+}
