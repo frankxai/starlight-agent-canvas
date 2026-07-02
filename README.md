@@ -44,6 +44,8 @@ The web app and MCP server operate over the same local data home. A source added
 6. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
 7. Click `Context` or use MCP `export_canvas` with `format: "context"` for agent handoff.
 
+For the full human plus agent operating loop, see `docs/operator-loop.md`.
+
 ## What v0.1 Does
 
 - Create local canvases with portable JSON import/export, Markdown handoff exports, and agent context packets.
@@ -191,6 +193,7 @@ The CLI uses the same local data home as the web app and MCP server. It gives te
 
 ```powershell
 pnpm doctor
+pnpm doctor:json
 pnpm release:audit
 pnpm verify
 pnpm canvas:smoke
@@ -198,7 +201,7 @@ pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health. `pnpm canvas:smoke` proves terminal demo import, list, search, and context export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health; `pnpm doctor:json` emits the same health contract for agents, CI, and setup automation. `pnpm canvas:smoke` proves terminal demo import, list, search, and context export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 
@@ -225,6 +228,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 ## Docs
 
 - Install and first run: `docs/install.md`
+- Human/agent operator loop: `docs/operator-loop.md`
 - PRD: `docs/prd.md`
 - User flows: `docs/user-flows.md`
 - Codex integration: `docs/codex-integration.md`
@@ -237,6 +241,10 @@ Client examples and workflow prompts live in `examples/mcp`.
 - GitHub readiness: `docs/github-readiness.md`
 - Readiness evidence: `docs/readiness-evidence.md`
 - Production readiness: `docs/production-readiness.md`
+- Support: `SUPPORT.md`
+- Security: `SECURITY.md`
+- Governance: `GOVERNANCE.md`
+- Code of conduct: `CODE_OF_CONDUCT.md`
 
 ## Repo Layout
 

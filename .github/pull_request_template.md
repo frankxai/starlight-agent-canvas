@@ -14,6 +14,7 @@
 ## Verification
 
 - [ ] `pnpm doctor`
+- [ ] `pnpm doctor:json`
 - [ ] `pnpm verify`
 - [ ] `pnpm mcp:smoke`
 - [ ] `pnpm test:e2e`
@@ -30,4 +31,3 @@
 ## Notes
 
 -
-

@@ -30,6 +30,8 @@ Turn mixed source material into reusable agent context and implementation artifa
 - Auto-select newly created source and action output nodes so answers and ingested context are immediately inspectable.
 - Persist graph interaction: node drag positions, direct node connections, run outputs, and exports.
 - Let MCP clients perform the same source ingest, node update, action, search, and export workflow.
+- Give humans and agents the same operator contract through `docs/operator-loop.md`, MCP guide resources, `pnpm doctor`, and `pnpm doctor:json`.
+- Keep the public GitHub surface credible with support, security, governance, maintainer, issue, PR, CODEOWNERS, CI, and release-audit gates.
 
 ## Non-Goals
 

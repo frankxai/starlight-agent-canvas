@@ -3,9 +3,9 @@
 Starlight Agent Canvas is ready for local production use when these gates pass:
 
 ```powershell
-cd C:\Users\frank\starlight\repos\starlight-agent-canvas
-C:\Users\frank\starlight\repos\security\Invoke-RepoSecurityScan.ps1 -Path .
+cd path\to\starlight-agent-canvas
 pnpm doctor
+pnpm doctor:json
 pnpm release:audit
 pnpm verify
 pnpm canvas:smoke
@@ -27,10 +27,10 @@ This builds core, MCP, and web, then starts the Next.js production server on `ht
 pnpm seed:starlight
 ```
 
-This creates or replaces `canvas-starlight-agent-canvas-os` under `AGENT_CANVAS_HOME`. Frank's default home is:
+This creates or replaces `canvas-starlight-agent-canvas-os` under `AGENT_CANVAS_HOME`. The default home is:
 
 ```text
-C:\Users\frank\.starlight\agent-canvas
+<home>/.starlight/agent-canvas
 ```
 
 The seed canvas lays out the north star, technology stack, MCP boundary, workflows, mobile access, production gates, and implementation brief output.
@@ -61,8 +61,9 @@ Optional:
 4. Capture desktop, mobile, and reduced-motion screenshots.
 5. Commit to `main`.
 6. Confirm the GitHub readiness checklist in `docs/github-readiness.md`.
-7. If a Vercel project is intentionally connected later, deploy a preview first.
-8. Verify the live URL before any production promotion.
+7. Run the Starlight security scan when working inside the Starlight estate, or the closest available local secret/dependency scan for public contributors.
+8. If a Vercel project is intentionally connected later, deploy a preview first.
+9. Verify the live URL before any production promotion.
 
 ## Current Boundary
 

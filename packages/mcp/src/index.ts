@@ -67,6 +67,12 @@ function registerGuideResources(server: McpServer) {
       file: 'docs/codex-integration.md',
     },
     {
+      name: 'operator-loop',
+      uri: 'starlight-agent-canvas://docs/operator-loop',
+      title: 'Operator Loop',
+      file: 'docs/operator-loop.md',
+    },
+    {
       name: 'demo-walkthrough',
       uri: 'starlight-agent-canvas://docs/demo-walkthrough',
       title: 'Demo Walkthrough',

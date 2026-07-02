@@ -38,6 +38,10 @@ Portable JSON import validates the same canvas record schema used by exports. Im
 
 Exports have three roles: JSON is portable state, Markdown is a readable handoff, and context is an agent packet with operating contract, node index, source chunk manifest, evidence corpus, recent runs, and continuation prompt.
 
+## Operator Health
+
+`scripts/doctor.mjs` is the local readiness check for humans and agents. The default terminal output is optimized for setup help; `pnpm doctor:json` emits a stable JSON contract with repo root, canvas data home, MCP CLI path, Codex config path, pass/warn/fail checks, and next steps. Required failures exit non-zero. Optional integration gaps, such as Codex not yet wired to this MCP server, remain warnings so a fresh clone can still install and run before the user chooses to mutate MCP client config.
+
 ## Node Kinds
 
 `note`, `source_url`, `source_pdf`, `source_youtube`, `source_video`, `prompt`, `mcp_tool`, `agent_run`, `output`

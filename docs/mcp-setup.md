@@ -57,6 +57,7 @@ AGENT_CANVAS_HOME = "/absolute/path/to/.starlight/agent-canvas"
 Frank's local home is `C:\Users\frank\.starlight\agent-canvas`; other users default to `<home>/.starlight/agent-canvas` unless `AGENT_CANVAS_HOME` is set.
 
 See `docs/codex-integration.md` for the recommended Codex operating contract, prompts, and shared human/agent workflow.
+See `docs/operator-loop.md` for the full human interaction, agent interaction, source semantics, and health contract.
 
 ## Claude Desktop / MCP-Compatible Clients
 
@@ -138,6 +139,7 @@ The server also exposes local guide resources:
 - `starlight-agent-canvas://docs/user-flows`
 - `starlight-agent-canvas://docs/mcp-setup`
 - `starlight-agent-canvas://docs/codex-integration`
+- `starlight-agent-canvas://docs/operator-loop`
 - `starlight-agent-canvas://docs/demo-walkthrough`
 - `starlight-agent-canvas://docs/technology-stack`
 - `starlight-agent-canvas://docs/production-readiness`

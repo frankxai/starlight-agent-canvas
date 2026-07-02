@@ -76,6 +76,14 @@ node scripts/setup.mjs --skip-seed
 
 `pnpm doctor` verifies the local prerequisites, workspace files, built MCP server, `.mcp.json`, and Codex wiring. The Codex check only reports fully wired when the installed config points at this repository's current `packages/mcp/dist/cli.js` and the active `AGENT_CANVAS_HOME`.
 
+Machine-readable install status is available for agents, CI, and setup automation:
+
+```powershell
+pnpm doctor:json
+```
+
+The JSON output includes `ok`, `summary`, `repoRoot`, `canvasHome`, `mcpCliPath`, `codexConfigPath`, `checks`, and `nextSteps`. Warnings are expected when optional Codex wiring has not been installed yet; failures mean the local repo is not ready to operate.
+
 Manual sample data:
 
 ```powershell
@@ -94,6 +102,7 @@ pnpm canvas:smoke
 ```
 
 The CLI, web app, and MCP server operate over the same local store. See `docs/cli.md`.
+The complete human plus agent operating model is documented in `docs/operator-loop.md`.
 
 ## Install From Frank's Local Estate
 

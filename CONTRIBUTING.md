@@ -7,6 +7,7 @@ Starlight Agent Canvas is an OSS-first, local-first, MCP-native product. Contrib
 ```powershell
 pnpm install
 pnpm doctor
+pnpm doctor:json
 pnpm seed:starlight
 pnpm dev
 ```
@@ -15,9 +16,13 @@ Read:
 
 - `docs/prd.md`
 - `docs/user-flows.md`
+- `docs/operator-loop.md`
 - `docs/system-design.md`
 - `docs/mcp-setup.md`
 - `docs/github-readiness.md`
+- `CODE_OF_CONDUCT.md`
+- `SUPPORT.md`
+- `GOVERNANCE.md`
 
 ## Rules Of The Road
 
@@ -34,6 +39,7 @@ Run the strongest relevant set before opening a PR:
 
 ```powershell
 pnpm doctor
+pnpm doctor:json
 pnpm verify
 pnpm mcp:smoke
 pnpm test:e2e
@@ -49,4 +55,4 @@ For UI changes, update visual evidence in `docs/visual-qa` and `docs/design-loop
 - Confirm no secrets, private transcripts, runtime data, or local canvas exports are committed.
 - Confirm no destructive MCP tools or external-posting flows were added.
 
-Before adding dependencies or running builds in a newly cloned environment, run the Starlight repo security scan described in `AGENTS.md`.
+Before adding dependencies or running builds in a newly cloned environment, run the Starlight repo security scan described in `AGENTS.md` when you are inside the Starlight estate. Public contributors who do not have that scanner should still run `pnpm doctor`, `pnpm doctor:json`, `pnpm release:audit`, and the relevant test commands before opening a PR.

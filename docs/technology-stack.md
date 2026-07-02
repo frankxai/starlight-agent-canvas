@@ -13,6 +13,7 @@ Last reviewed: 2026-07-01.
 - Source intake: SSRF-hardened URL fetch, optional Firecrawl, PDF extraction, YouTube oEmbed and best-effort public captions, manual text/transcript ingestion.
 - MCP package: `@modelcontextprotocol/sdk` stdio server with positioned source ingest/update/action/import/export tools, including PDF ingest, chunk-backed search, and agent context export.
 - QA: Vitest, Playwright desktop/mobile, security scan, visual QA screenshots.
+- Operator diagnostics: `pnpm doctor` for human-readable local readiness and `pnpm doctor:json` for machine-readable agent/CI/setup health.
 - Storage: local JSON files under `AGENT_CANVAS_HOME`, defaulting to `<home>/.starlight/agent-canvas`.
 - Write safety: per-canvas in-process queues plus atomic file locks under `AGENT_CANVAS_HOME\.locks`.
 
@@ -42,4 +43,5 @@ MCP stdio keeps the agent integration low-trust and local. Clients can read and 
 - API routes stay localhost-only unless `AGENT_CANVAS_ALLOW_REMOTE=1`.
 - URL ingestion revalidates redirect hops before reading redirected content.
 - Tests use fake/deterministic providers, not live model keys.
+- Install, MCP, GitHub, and release readiness have explicit health scripts and release-audit checks.
 - Visual QA proves desktop, mobile, and reduced-motion states.

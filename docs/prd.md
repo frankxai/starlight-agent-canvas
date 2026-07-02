@@ -37,6 +37,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can export portable JSON, readable Markdown, and agent context packets; user can re-import portable JSON.
 - User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
+- Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
 - MCP clients can list, read, create, import, add/update positioned nodes, ingest text/URL/YouTube/video/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
 
@@ -59,6 +60,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 ## Acceptance Criteria
 
 - `pnpm doctor` explains local readiness and missing build steps.
+- `pnpm doctor:json` emits a stable pass/warn/fail health contract with repo root, canvas home, MCP CLI path, Codex config path, checks, and next steps.
 - The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
 - `pnpm verify`, `pnpm test:e2e`, and `pnpm mcp:smoke` pass.
 - `pnpm canvas:smoke` passes and proves demo import, list, search, and context export from the terminal.
@@ -84,6 +86,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 - A new local user can install, seed, and open the app in under 10 minutes.
 - A local operator can confirm data home, MCP build, Codex config, and Codex server wiring without leaving the workspace.
+- An agent or CI job can parse `pnpm doctor:json` and distinguish required failures from optional wiring warnings.
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.

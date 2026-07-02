@@ -117,7 +117,8 @@ Expected result: human and agent work on the same local state with explicit, rev
 3. Confirm data home, MCP build, Codex config, and Codex server status.
 4. Copy `Setup`, `Codex`, or `Smoke` commands when a status needs action.
 5. Restart Codex after installing MCP config.
-6. Ask Codex to list canvases through MCP.
+6. Run `pnpm doctor:json` when an agent, CI job, or setup helper needs parseable readiness.
+7. Ask Codex to list canvases through MCP.
 
 Expected result: install and agent wiring status are visible inside the product surface, while the write path remains explicit and backed by local scripts.
 
@@ -139,3 +140,15 @@ Mobile is intended for review and light intake in v0.1, not dense graph authorin
 5. If the canvas id already exists locally, import creates a non-destructive copy instead of overwriting active work.
 
 Expected result: a canvas can move between human review, repo artifacts, Codex/Claude/Gemini MCP sessions, and later local rehydration without becoming a dead screenshot. The context packet gives agents metadata, a node index, source chunk manifest, evidence corpus, recent runs, and a continuation prompt.
+
+## Flow 9: Operator Health Loop
+
+1. Clone or open the repo.
+2. Run `node scripts/setup.mjs` for the full first-run path.
+3. Run `pnpm doctor` for human-readable readiness.
+4. Run `pnpm doctor:json` for machine-readable readiness.
+5. Confirm `summary.fail` is `0`.
+6. Treat Codex config warnings as optional until MCP is intentionally installed.
+7. Run `pnpm release:audit`, `pnpm canvas:smoke`, and `pnpm mcp:smoke` before a release or important handoff.
+
+Expected result: a contributor, operator, or agent can prove local health without reading implementation files or guessing which warnings are release blockers.

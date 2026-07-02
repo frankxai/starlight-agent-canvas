@@ -67,6 +67,25 @@ function checkFiles(label, files) {
   }
 }
 
+function trackedOrStagedFileSet() {
+  const tracked = runGit(['ls-files']);
+  const staged = runGit(['diff', '--cached', '--name-only', '--diff-filter=ACMR']);
+  return new Set([
+    ...(tracked ? tracked.split(/\r?\n/) : []),
+    ...(staged ? staged.split(/\r?\n/) : []),
+  ].map((file) => file.replaceAll('\\', '/')).filter(Boolean));
+}
+
+function checkTrackedFiles(label, files) {
+  const trackedOrStaged = trackedOrStagedFileSet();
+  const missing = files.filter((file) => !trackedOrStaged.has(file));
+  if (missing.length) {
+    fail(label, `Missing ${missing.length} required tracked or staged file(s).`, { missing });
+  } else {
+    pass(label, `${files.length} required file(s) are tracked or staged.`);
+  }
+}
+
 function checkPackageScripts() {
   const pkg = readJson('package.json');
   const requiredScripts = [
@@ -77,6 +96,7 @@ function checkPackageScripts() {
     'test:e2e',
     'setup:local',
     'doctor',
+    'doctor:json',
     'release:audit',
     'canvas',
     'canvas:smoke',
@@ -96,6 +116,7 @@ function checkCi() {
   const ci = readText('.github/workflows/ci.yml');
   const requiredSteps = [
     'pnpm doctor',
+    'pnpm doctor:json',
     'pnpm release:audit',
     'pnpm typecheck',
     'pnpm test',
@@ -109,6 +130,31 @@ function checkCi() {
     fail('ci gates', `CI is missing required step(s): ${missing.join(', ')}.`, { missing });
   } else {
     pass('ci gates', `${requiredSteps.length} CI gates are wired.`);
+  }
+}
+
+function checkDoctorJson() {
+  const result = spawnSync(process.execPath, ['scripts/doctor.mjs', '--json'], { cwd: repoRoot, encoding: 'utf8' });
+  if (result.status !== 0) {
+    fail('doctor json contract', `doctor --json exited with ${result.status}.`, {
+      stderr: result.stderr.trim(),
+    });
+    return;
+  }
+
+  try {
+    const parsed = JSON.parse(result.stdout);
+    const requiredKeys = ['ok', 'summary', 'repoRoot', 'canvasHome', 'mcpCliPath', 'codexConfigPath', 'checks', 'nextSteps'];
+    const missing = requiredKeys.filter((key) => !(key in parsed));
+    const hasChecks = Array.isArray(parsed.checks) && parsed.checks.length > 0;
+    const hasLevels = hasChecks && parsed.checks.every((check) => ['pass', 'warn', 'fail'].includes(check.level));
+    if (missing.length || !hasChecks || !hasLevels) {
+      fail('doctor json contract', 'doctor --json is missing required shape.', { missing, hasChecks, hasLevels });
+    } else {
+      pass('doctor json contract', `doctor --json returned ${parsed.checks.length} pass/warn/fail check(s).`);
+    }
+  } catch (error) {
+    fail('doctor json contract', `doctor --json did not emit valid JSON: ${error.message}`);
   }
 }
 
@@ -222,7 +268,15 @@ function checkGitState() {
 
   const staged = runGit(['diff', '--cached', '--name-only']);
   const stagedRuntime = staged
-    ? staged.split(/\r?\n/).filter((file) => /^(\.agent-canvas|\.env|apps\/web\/\.next|node_modules|data\/)/.test(file.replaceAll('\\', '/')))
+    ? staged.split(/\r?\n/).filter((file) => {
+      const normalized = file.replaceAll('\\', '/');
+      const isEnv = normalized === '.env' || (normalized.startsWith('.env.') && normalized !== '.env.example');
+      return normalized.startsWith('.agent-canvas/')
+        || normalized.startsWith('apps/web/.next/')
+        || normalized.startsWith('node_modules/')
+        || normalized.startsWith('data/')
+        || isEnv;
+    })
     : [];
   if (stagedRuntime.length) {
     fail('staged runtime data', 'Runtime/build/private paths are staged.', { stagedRuntime });
@@ -245,6 +299,14 @@ checkFiles('oss surface files', [
   'pnpm-lock.yaml',
 ]);
 
+checkFiles('community files', [
+  'CODE_OF_CONDUCT.md',
+  'SUPPORT.md',
+  'GOVERNANCE.md',
+  'MAINTAINERS.md',
+  '.github/CODEOWNERS',
+]);
+
 checkFiles('github templates', [
   '.github/workflows/ci.yml',
   '.github/dependabot.yml',
@@ -261,6 +323,7 @@ checkFiles('docs surface', [
   'docs/prd.md',
   'docs/user-flows.md',
   'docs/codex-integration.md',
+  'docs/operator-loop.md',
   'docs/mcp-setup.md',
   'docs/readiness-evidence.md',
   'docs/production-readiness.md',
@@ -282,6 +345,54 @@ checkFiles('examples surface', [
   'examples/mcp/gemini.md',
 ]);
 
+checkTrackedFiles('required tracked files', [
+  'README.md',
+  'AGENTS.md',
+  'CONTRIBUTING.md',
+  'SECURITY.md',
+  'CODE_OF_CONDUCT.md',
+  'SUPPORT.md',
+  'GOVERNANCE.md',
+  'MAINTAINERS.md',
+  'LICENSE',
+  '.env.example',
+  '.gitignore',
+  '.mcp.json',
+  'package.json',
+  'pnpm-workspace.yaml',
+  'pnpm-lock.yaml',
+  '.github/CODEOWNERS',
+  '.github/workflows/ci.yml',
+  '.github/dependabot.yml',
+  '.github/pull_request_template.md',
+  '.github/ISSUE_TEMPLATE/bug_report.yml',
+  '.github/ISSUE_TEMPLATE/feature_request.yml',
+  '.github/ISSUE_TEMPLATE/integration_request.yml',
+  '.github/ISSUE_TEMPLATE/setup_help.yml',
+  'docs/install.md',
+  'docs/cli.md',
+  'docs/prd.md',
+  'docs/user-flows.md',
+  'docs/codex-integration.md',
+  'docs/operator-loop.md',
+  'docs/mcp-setup.md',
+  'docs/readiness-evidence.md',
+  'docs/production-readiness.md',
+  'docs/github-readiness.md',
+  'docs/release-audit.md',
+  'docs/system-design.md',
+  'docs/technology-stack.md',
+  'docs/product-brief.md',
+  'docs/scene-brief.md',
+  'docs/design-loop-evidence.json',
+  'docs/demo-walkthrough.md',
+  'examples/demo-canvas.json',
+  'examples/mcp/README.md',
+  'examples/mcp/codex.toml',
+  'examples/mcp/claude-desktop.json',
+  'examples/mcp/gemini.md',
+]);
+
 if (!dirExists('docs/visual-qa')) {
   fail('visual qa directory', 'docs/visual-qa is missing.');
 } else {
@@ -290,6 +401,7 @@ if (!dirExists('docs/visual-qa')) {
 
 checkPackageScripts();
 checkCi();
+checkDoctorJson();
 checkDemoCanvas();
 checkDesignEvidence();
 checkCriticalScreenshots();

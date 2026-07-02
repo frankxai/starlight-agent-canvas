@@ -10,6 +10,8 @@ const execFileAsync = promisify(execFile);
 const execAsync = promisify(exec);
 const root = process.cwd();
 const minNode = [20, 11, 0];
+const jsonOutput = process.argv.includes('--json');
+const checks = [];
 
 function compareVersions(current, minimum) {
   for (let index = 0; index < minimum.length; index += 1) {
@@ -118,17 +120,27 @@ async function codexConfigStatus(configPath, expectedCliPath, expectedHome) {
   };
 }
 
-function status(ok, label, detail = '') {
-  const mark = ok ? '[ok]' : '[warn]';
-  console.log(`${mark} ${label}${detail ? ` - ${detail}` : ''}`);
+function status(ok, label, detail = '', options = {}) {
+  const level = ok ? 'pass' : options.required ? 'fail' : 'warn';
+  checks.push({
+    label,
+    ok,
+    level,
+    required: Boolean(options.required),
+    detail,
+  });
+  if (!jsonOutput) {
+    const mark = ok ? '[ok]' : options.required ? '[fail]' : '[warn]';
+    console.log(`${mark} ${label}${detail ? ` - ${detail}` : ''}`);
+  }
 }
 
 const nodeVersion = process.versions.node.split('.').map(Number);
 const nodeOk = compareVersions(nodeVersion, minNode) >= 0;
-status(nodeOk, 'Node.js', process.versions.node);
+status(nodeOk, 'Node.js', process.versions.node, { required: true });
 
 const pnpmVersion = await commandVersion('pnpm', ['--version']);
-status(Boolean(pnpmVersion), 'pnpm', pnpmVersion ?? 'not found; run corepack enable');
+status(Boolean(pnpmVersion), 'pnpm', pnpmVersion ?? 'not found; run corepack enable', { required: true });
 
 const packageJsonPath = path.join(root, 'package.json');
 const workspacePath = path.join(root, 'pnpm-workspace.yaml');
@@ -138,11 +150,11 @@ const corePackagePath = path.join(root, 'packages', 'core', 'package.json');
 const mcpPackagePath = path.join(root, 'packages', 'mcp', 'package.json');
 const codexConfigPath = path.join(os.homedir(), '.codex', 'config.toml');
 
-status(await canRead(packageJsonPath), 'package.json');
-status(await canRead(workspacePath), 'pnpm workspace');
-status(await canRead(webAppPath), 'web workspace');
-status(await canRead(corePackagePath), 'core workspace');
-status(await canRead(mcpPackagePath), 'mcp workspace');
+status(await canRead(packageJsonPath), 'package.json', '', { required: true });
+status(await canRead(workspacePath), 'pnpm workspace', '', { required: true });
+status(await canRead(webAppPath), 'web workspace', '', { required: true });
+status(await canRead(corePackagePath), 'core workspace', '', { required: true });
+status(await canRead(mcpPackagePath), 'mcp workspace', '', { required: true });
 status(existsSync(mcpCliPath), 'built MCP server', existsSync(mcpCliPath) ? mcpCliPath : 'run pnpm mcp:build');
 
 const home = process.env.AGENT_CANVAS_HOME
@@ -167,14 +179,39 @@ status(codex.hasServer && codex.hasEnv, 'Codex MCP block', codex.hasServer && co
 status(codex.pointsAtCurrentCli, 'Codex MCP CLI path', codex.cliPath || 'missing');
 status(codex.usesExpectedHome, 'Codex canvas home env', codex.home || 'missing');
 
-console.log('');
-console.log('Next steps:');
-console.log('1. pnpm install');
-console.log('2. pnpm mcp:build && pnpm mcp:smoke');
-console.log('3. pnpm seed:starlight');
-console.log('4. pnpm mcp:install:codex -- --write   # optional, then restart Codex');
-console.log('5. pnpm dev');
+const summary = {
+  pass: checks.filter((check) => check.level === 'pass').length,
+  warn: checks.filter((check) => check.level === 'warn').length,
+  fail: checks.filter((check) => check.level === 'fail').length,
+};
 
-if (!nodeOk || !pnpmVersion) {
+if (jsonOutput) {
+  console.log(JSON.stringify({
+    ok: summary.fail === 0,
+    summary,
+    repoRoot: root,
+    canvasHome: home,
+    mcpCliPath,
+    codexConfigPath,
+    checks,
+    nextSteps: [
+      'pnpm install',
+      'pnpm mcp:build && pnpm mcp:smoke',
+      'pnpm seed:starlight',
+      'pnpm mcp:install:codex -- --write   # optional, then restart Codex',
+      'pnpm dev',
+    ],
+  }, null, 2));
+} else {
+  console.log('');
+  console.log('Next steps:');
+  console.log('1. pnpm install');
+  console.log('2. pnpm mcp:build && pnpm mcp:smoke');
+  console.log('3. pnpm seed:starlight');
+  console.log('4. pnpm mcp:install:codex -- --write   # optional, then restart Codex');
+  console.log('5. pnpm dev');
+}
+
+if (summary.fail > 0) {
   process.exitCode = 1;
 }

@@ -2,10 +2,10 @@
 
 ## Local-First Data
 
-By default, canvas data is stored outside the repository under:
+By default, canvas data is stored outside the repository under the user's home directory:
 
 ```text
-C:\Users\frank\.starlight\agent-canvas
+<home>/.starlight/agent-canvas
 ```
 
 Override with `AGENT_CANVAS_HOME`.
@@ -34,4 +34,17 @@ URL ingestion rejects private, localhost, link-local, and credentialed URLs; app
 
 ## Reporting
 
-Open an issue or private note with reproduction steps, affected tool/action, expected behavior, and observed behavior. Redact secrets and private content.
+Do not open a public issue for vulnerabilities, exploit details, secrets, private transcripts, private canvas exports, or credential material.
+
+Preferred public-repo route: use GitHub private vulnerability reporting / Security Advisories once the repository is public and that feature is enabled.
+
+Until a public private-reporting route is enabled, contact the maintainer privately through the existing Starlight maintainer channel and include:
+
+- affected version or commit
+- affected tool, route, ingestion path, or MCP action
+- reproduction steps
+- expected behavior
+- observed behavior
+- impact and suggested mitigation
+
+Redact secrets and private content. Maintainers should acknowledge reports before public disclosure and coordinate fixes through a security branch or advisory when appropriate.

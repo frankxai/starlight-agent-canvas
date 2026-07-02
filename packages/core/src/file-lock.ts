@@ -12,6 +12,10 @@ const DEFAULT_LOCK_TIMEOUT_MS = 10_000;
 const DEFAULT_STALE_LOCK_MS = 30_000;
 const DEFAULT_RETRY_MS = 35;
 
+function isLockContention(code: string | undefined): boolean {
+  return code === 'EEXIST' || code === 'EPERM' || code === 'EACCES';
+}
+
 async function isStaleLock(lockPath: string, staleMs: number): Promise<boolean> {
   try {
     const lock = await stat(lockPath);
@@ -34,17 +38,17 @@ export async function withFileLock<T>(
   await mkdir(path.dirname(lockPath), { recursive: true });
 
   while (true) {
+    let handle: Awaited<ReturnType<typeof open>> | undefined;
     try {
-      const handle = await open(lockPath, 'wx');
+      handle = await open(lockPath, 'wx');
       await handle.writeFile(JSON.stringify({
         pid: process.pid,
         createdAt: new Date().toISOString(),
       }));
-      await handle.close();
       break;
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
-      if (code !== 'EEXIST') throw error;
+      if (!isLockContention(code)) throw error;
 
       if (await isStaleLock(lockPath, staleMs)) {
         await rm(lockPath, { force: true }).catch(() => undefined);
@@ -55,6 +59,8 @@ export async function withFileLock<T>(
         throw new Error(`Timed out waiting for canvas lock: ${path.basename(lockPath)}`);
       }
       await sleep(retryMs);
+    } finally {
+      await handle?.close().catch(() => undefined);
     }
   }
 

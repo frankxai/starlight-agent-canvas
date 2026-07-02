@@ -19,6 +19,7 @@ README first-read requirements before public announcement:
 - Explains that non-YouTube video links are references plus notes in v0.1, not automatic full transcription.
 - Shows a one-click `Demo` path that imports the real bundled example canvas from the app.
 - Links to install, PRD, user flows, Codex integration, MCP setup, and readiness evidence.
+- Links to the human/agent operator loop and documents `pnpm doctor:json` as the parseable local health contract.
 - Avoids comparing itself as a clone of Poppy, Nodeflow, or another closed product.
 
 ## Branch Protection
@@ -40,6 +41,11 @@ This repo includes:
 - Integration request template.
 - Setup / MCP help template.
 - Pull request template.
+- Support guide.
+- Security policy with private-reporting guidance.
+- Code of conduct.
+- Governance and maintainer notes.
+- CODEOWNERS placeholder to replace with real GitHub handles before branch protection enforcement.
 
 Use labels:
 
@@ -56,19 +62,22 @@ Use labels:
 ## Release Checklist
 
 1. Run `pnpm doctor` and confirm it reports Node/pnpm, workspaces, built MCP server, `.mcp.json`, and Codex MCP path/home checks.
-2. Run `pnpm release:audit` and address failures. A missing remote is only a warning until the GitHub repo is attached.
-3. Run `pnpm verify`.
-4. Run `pnpm canvas:smoke`.
-5. Run `pnpm mcp:smoke`.
-6. Run `pnpm test:e2e`.
-7. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
-8. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
-9. Run the Starlight staged/full security scan.
-10. Confirm visual QA screenshots are current.
-11. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
-12. Confirm `.env` and private canvas exports are not staged.
-13. Update README links and docs index.
-14. Tag release only after GitHub CI passes.
+2. Run `pnpm doctor:json` and confirm `summary.fail` is `0`; Codex wiring warnings are acceptable until the user opts into config writes.
+3. Run `pnpm release:audit` and address failures. A missing remote is only a warning until the GitHub repo is attached.
+4. Run `pnpm verify`.
+5. Run `pnpm canvas:smoke`.
+6. Run `pnpm mcp:smoke`.
+7. Run `pnpm test:e2e`.
+8. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
+9. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
+10. Run the Starlight staged/full security scan.
+11. Confirm visual QA screenshots are current.
+12. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
+13. Confirm `.env` and private canvas exports are not staged.
+14. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
+15. Update README links and docs index.
+16. Replace CODEOWNERS placeholder comments with real GitHub usernames or teams before enforcing owner review.
+17. Tag release only after GitHub CI passes.
 
 Public install proof to keep current:
 

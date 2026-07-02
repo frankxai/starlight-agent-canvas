@@ -37,6 +37,14 @@ AGENT_CANVAS_HOME = "/absolute/path/to/.starlight/agent-canvas"
 Run `pnpm doctor` any time the local setup feels uncertain.
 It verifies that Codex has the `starlight-agent-canvas` server/env blocks and that they point at this repo's current built MCP CLI plus the active `AGENT_CANVAS_HOME`.
 
+When Codex or another agent needs parseable setup state, run:
+
+```powershell
+pnpm doctor:json
+```
+
+Use `summary.fail === 0` as the local health gate. Optional Codex wiring can still appear as warnings until the user chooses `pnpm mcp:install:codex -- --write` and restarts Codex.
+
 Optional terminal bridge:
 
 ```powershell
@@ -52,6 +60,7 @@ Use this when Codex should continue from a checked-in or attached context packet
 Codex should treat the canvas as a typed local context layer:
 
 - Read before writing when a canvas already exists.
+- Check `pnpm doctor:json` when MCP setup or data-home state is uncertain.
 - Add source nodes for durable evidence, not one-off chat snippets.
 - Run actions to create output nodes that the human can inspect.
 - Cite node ids and chunk ids when using source-grounded answers or context packets.
@@ -89,6 +98,7 @@ For implementation continuation, prefer `export_canvas` with `format: "context"`
 - `export_canvas`: produce JSON, Markdown, or an agent context packet for handoff.
 
 If MCP is temporarily unavailable, `pnpm canvas -- export latest --format context` produces the same class of local context packet from the shared store.
+If setup health is uncertain, `pnpm doctor:json` gives Codex a structured checklist without requiring it to parse terminal prose.
 
 For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Use this for agent-generated canvases so human review starts from a coherent visual map.
 

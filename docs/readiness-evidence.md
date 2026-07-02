@@ -28,12 +28,15 @@ Latest local proof commit: use `git log --oneline -1`; this matrix tracks eviden
 | MCP and web support graph positioning | Web drag persistence and MCP optional `position` inputs; MCP handler test asserts position | Proven locally |
 | New users have a one-command setup path | `scripts/setup.mjs`, `pnpm setup:local`, install docs, dry-run command verification | Proven locally |
 | Terminal users can operate local canvases without browser or MCP restart | `scripts/canvas.mjs`, `scripts/canvas-smoke.mjs`, `pnpm canvas:smoke`, `docs/cli.md`, CI `canvas:smoke` step | Proven locally for demo import, list, search, and context export against a throwaway local home |
-| GitHub/release readiness is machine-checkable | `scripts/release-audit.mjs`, `pnpm release:audit`, `docs/release-audit.md`, CI `release:audit` step | Proven locally for required OSS files, docs, examples, scripts, CI gates, demo proof, visual evidence, env hygiene, and runtime-data safety |
+| Local install readiness is machine-readable | `scripts/doctor.mjs`, `pnpm doctor:json`, `docs/operator-loop.md`, `docs/install.md`, CI `doctor:json` step | Proven locally for pass/warn/fail health output with repo root, data home, MCP CLI path, Codex config path, checks, and next steps |
+| GitHub/release readiness is machine-checkable | `scripts/release-audit.mjs`, `pnpm release:audit`, `docs/release-audit.md`, CI `release:audit` step | Proven locally for required OSS/community files, docs, examples, scripts, CI gates, demo proof, visual evidence, env hygiene, tracked/staged public files, and runtime-data safety |
+| Public contributor governance exists | `CODE_OF_CONDUCT.md`, `SUPPORT.md`, `GOVERNANCE.md`, `MAINTAINERS.md`, `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/config.yml`, `.github/pull_request_template.md` | Proven locally for project norms, support routing, governance boundaries, maintainer duties, CODEOWNERS placeholder, security-reporting contact link, and PR verification checklist |
 | Codex MCP can be installed safely | `scripts/install-codex-mcp.mjs`, `pnpm mcp:install:codex`, timestamped backup before `--write`, dry-run verification, and `pnpm doctor` path/home checks | Proven locally |
 | Setup and Codex status are visible in the app | `apps/web/app/api/setup/status/route.ts`, `Setup / MCP` panel in `apps/web/components/WorkspaceClient.tsx`, Playwright setup-panel assertion; server is considered wired only when config sections, CLI path, and canvas home match | Proven locally |
 | Local data remains outside Git | `.gitignore`, `AGENT_CANVAS_HOME`, `packages/core/src/home.ts`, `pnpm doctor` | Proven by repo structure and doctor |
 | Security scan is clean | `Invoke-RepoSecurityScan.ps1 -Path ...` passed on 2026-07-02 after generated cache cleanup | Proven locally |
 | Public demo proves the product loop | `examples/demo-canvas.json`, `docs/demo-walkthrough.md`, `examples/mcp/README.md`, in-app `Demo` loader route; JSON parse check passed | Proven locally |
+| Human and agent operating model is documented | `docs/operator-loop.md`, README docs index, MCP resource `starlight-agent-canvas://docs/operator-loop` | Proven locally |
 | Visual QA passes 26/30+ | `docs/design-loop-evidence.json` validates and scores 28/30 | Proven locally |
 
 ## Current Known Gaps
