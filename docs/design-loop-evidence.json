@@ -3,7 +3,7 @@
   "task": "Starlight Agent Canvas v0.1 workspace",
   "surface": "local-first web app",
   "audience": "Codex, Claude, Gemini, Starlight operators, and creator/builders",
-  "firstRead": "A working MCP-native research canvas where the first viewport is a live Source / Note / Ask composer over an inspectable agent graph.",
+  "firstRead": "A working MCP-native research canvas where the first viewport offers New, Demo, Source, Note, Ask, and active paste/drop intake over an inspectable agent graph.",
   "standards": [
     "DESIGN_TASTE.md",
     "WEB_EXPERIENCE_STANDARD.md",
@@ -154,6 +154,16 @@
       "inspected": true
     },
     {
+      "path_or_url": "docs/visual-qa/desktop-first-touch-active-intake.png",
+      "kind": "desktop first-touch active intake screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-first-touch-active-intake.png",
+      "kind": "mobile first-touch active intake screenshot",
+      "inspected": true
+    },
+    {
       "path_or_url": "docs/visual-qa/desktop-live-composer-reduced-motion.png",
       "kind": "desktop reduced-motion live composer screenshot",
       "inspected": true
@@ -228,7 +238,7 @@
     {
       "name": "human-intake-affordance",
       "status": "pass",
-      "notes": "The first viewport now exposes Source, Note, and Ask modes with clipboard paste, Map + Brief, note capture, file upload, detected source chips, and created-node inspector selection."
+      "notes": "The first viewport now exposes New blank canvas, Source, Note, and Ask modes with clipboard paste, active empty-submit focus feedback, Map + Brief, note capture, file upload, detected source chips, and created-node inspector selection."
     },
     {
       "name": "source-receipt-loop",
@@ -322,6 +332,8 @@
       "universalIntake": true,
       "sourceNoteAskComposer": true,
       "firstViewportComposer": true,
+      "freshBlankCanvasAction": true,
+      "emptyPrimaryActionFocusTested": true,
       "pasteAnywhere": true,
       "dropToCanvasPosition": true,
       "doubleClickNoteCreation": true,

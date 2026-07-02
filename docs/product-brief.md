@@ -21,6 +21,8 @@ Turn mixed source material into reusable agent context and implementation artifa
 ## v0.1 Capability Standard
 
 - Paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
+- Start from the latest local canvas, one-click demo proof canvas, or a fresh blank canvas from the first viewport.
+- Keep primary intake actions responsive: empty `Map` or `Ask` clicks focus the right composer and explain the next move instead of feeling disabled.
 - Convert each source into a durable artifact plus typed node with provenance metadata.
 - Create notes from the canvas composer or by double-clicking blank canvas space.
 - Edit node titles and bodies in the inspector, then reuse the edited canvas as agent context.

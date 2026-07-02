@@ -23,6 +23,11 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
   await expect(page.getByTestId('intake-ingest')).toContainText('Map + Brief');
+  await expect(page.getByTestId('intake-ingest')).toBeEnabled();
+  await expect(page.getByTestId('new-blank-canvas')).toBeVisible();
+  await page.getByTestId('intake-ingest').click();
+  await expect(page.getByTestId('status')).toContainText('Paste or drop a YouTube link');
+  await expect(page.getByTestId('intake-text')).toBeFocused();
   await expect(page.getByTestId('context-loop')).toContainText('Drop');
   await expect(page.getByTestId('context-loop')).toContainText('Map');
   await expect(page.getByTestId('context-loop')).toContainText('Ask');
@@ -77,7 +82,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('inspector-title')).toHaveValue('summarize output');
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Nodeflow connects YouTube/);
   await expect(page.getByTestId('status')).toContainText('Ran summarize on 1 new item');
-  await expect(page.getByTestId('intake-ingest')).toBeDisabled();
+  await expect(page.getByTestId('intake-ingest')).toBeEnabled();
   await expect(page.getByTestId('quick-note')).toBeEnabled();
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();
   await expect(page.getByTestId('intake-ingest')).toContainText('Map');

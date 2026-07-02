@@ -595,7 +595,7 @@ function WorkspaceInner() {
   const canMutate = Boolean(canvas) && !busy;
   const intakePlan = useMemo(() => buildIntakePlan(intakeText), [intakeText]);
   const composerText = composerMode === 'ask' ? askPrompt : intakeText;
-  const composerDisabled = !canMutate || !composerText.trim();
+  const composerActionDisabled = !canMutate;
   const setupChecks = useMemo(() => {
     if (!setupStatus) return [];
     return [
@@ -642,6 +642,17 @@ function WorkspaceInner() {
   const focusComposer = useCallback(() => {
     window.setTimeout(() => composerRef.current?.focus(), 0);
   }, []);
+
+  const requestComposerInput = useCallback((mode: ComposerMode = composerMode) => {
+    setComposerMode(mode);
+    const message = mode === 'ask'
+      ? 'Ask uses selected nodes, or the whole canvas when nothing is selected.'
+      : mode === 'note'
+        ? 'Write a note in the canvas composer, or use Note to create a blank editable node.'
+        : 'Paste or drop a YouTube link, video link, URL, transcript, PDF, file, or raw notes.';
+    setStatus(message);
+    focusComposer();
+  }, [composerMode, focusComposer]);
 
   const applyQuickStarter = useCallback((id: QuickStarterId) => {
     if (id === 'video') {
@@ -1017,10 +1028,13 @@ function WorkspaceInner() {
 
   const submitCanvasIntake = useCallback(async () => {
     const text = intakeText.trim();
-    if (!text) return;
+    if (!text) {
+      requestComposerInput('source');
+      return;
+    }
     await intakeAnything(text);
     setIntakeText('');
-  }, [intakeAnything, intakeText]);
+  }, [intakeAnything, intakeText, requestComposerInput]);
 
   const pasteClipboardToIntake = useCallback(async () => {
     try {
@@ -1137,8 +1151,12 @@ function WorkspaceInner() {
   }, [canvas, focusNode, refreshList, selectedIds]);
 
   const askCanvas = useCallback(async () => {
+    if (!askPrompt.trim()) {
+      requestComposerInput('ask');
+      return;
+    }
     await runAction('answer_question', askPrompt);
-  }, [askPrompt, runAction]);
+  }, [askPrompt, requestComposerInput, runAction]);
 
   const askSelectedSource = useCallback(async () => {
     if (!selectedNode) return;
@@ -1374,7 +1392,7 @@ function WorkspaceInner() {
                 <button
                   data-testid="rail-intake-ingest"
                   type="button"
-                  disabled={!canMutate || !intakeText.trim()}
+                  disabled={!canMutate}
                   onClick={submitCanvasIntake}
                   className="flex items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 py-2 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
                 >
@@ -1620,6 +1638,18 @@ function WorkspaceInner() {
                     <span>Demo</span>
                     <span className="hidden font-normal text-starlight-muted sm:inline">proof canvas</span>
                   </button>
+                  <button
+                    data-testid="new-blank-canvas"
+                    type="button"
+                    disabled={busy}
+                    onClick={() => createTemplate('blank')}
+                    className="inline-flex min-h-8 items-center gap-1.5 rounded-md border border-starlight-accent/45 bg-starlight-accent/10 px-2.5 text-[11px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                    title="Create a fresh local canvas"
+                  >
+                    <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
+                    <span>New</span>
+                    <span className="hidden font-normal text-starlight-muted sm:inline">blank canvas</span>
+                  </button>
                   {QUICK_STARTERS.map((starter) => (
                     <button
                       key={starter.id}
@@ -1679,7 +1709,7 @@ function WorkspaceInner() {
                 <button
                   data-testid="intake-ingest"
                   type="button"
-                  disabled={composerDisabled}
+                  disabled={composerActionDisabled}
                   onClick={submitActiveComposer}
                   className="flex h-10 items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
                 >
@@ -1826,7 +1856,7 @@ function WorkspaceInner() {
                   <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <button
                       type="button"
-                      disabled={composerDisabled}
+                      disabled={composerActionDisabled}
                       onClick={submitActiveComposer}
                       className="flex items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 py-2 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
                     >
@@ -1932,7 +1962,7 @@ function WorkspaceInner() {
               <button
                 data-testid="ask-canvas"
                 type="button"
-                disabled={!canMutate || !askPrompt.trim()}
+                disabled={!canMutate}
                 onClick={askCanvas}
                 className="mt-2 flex w-full items-center justify-center gap-2 rounded-md bg-starlight-accent px-3 py-2 text-sm font-semibold text-[#05060A] transition hover:bg-[#8CBAFF] disabled:cursor-not-allowed disabled:opacity-45"
               >
@@ -2114,7 +2144,7 @@ function WorkspaceInner() {
                       <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
                       Add note
                     </button>
-                    <button type="button" onClick={submitCanvasIntake} disabled={!canMutate || !intakeText.trim()} className="flex items-center justify-center gap-2 rounded-md border border-starlight-accent/45 bg-starlight-accent/10 px-3 py-2 text-xs font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45">
+                    <button type="button" onClick={submitCanvasIntake} disabled={!canMutate} className="flex items-center justify-center gap-2 rounded-md border border-starlight-accent/45 bg-starlight-accent/10 px-3 py-2 text-xs font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45">
                       <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />
                       Map source
                     </button>

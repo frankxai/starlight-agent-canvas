@@ -120,20 +120,21 @@ pnpm dev
 
 1. Open the web app.
 2. Check the `Setup / MCP` panel for data home, MCP build, and Codex wiring status.
-3. Click `Demo` in the first-viewport composer when you want an immediate working proof canvas.
+3. Click `New` in the first-viewport composer for a fresh blank graph, or `Demo` when you want an immediate working proof canvas.
 4. Inspect the selected YouTube source receipt: source kind, ingest method, chunks, source URL, and character count.
 5. Use `Context` to copy a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
 6. Use the first-viewport quick starters: `Video`, `Web`, `Note`, or `Ask` when you want to start from your own material.
-7. Paste or drop YouTube links, Loom/Vimeo/direct video links, URLs, transcripts, PDFs, files, and raw source text.
-8. Use the `Drop -> Map -> Ask -> Handoff` loop as the mental model.
-9. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
-10. Inspect the new source/output pair on the canvas and the selected node in the inspector.
-11. Select a source node and inspect the context receipt: source kind, ingest method, chunks, URL/file, and character count.
-12. Run `Source summary`, `Extract claims`, or `Ask selected` when you want the action scoped to only that source.
-13. Use the action drawer for multi-node or whole-canvas `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
-14. Click `Copy source` for selected-source context, or `Context` when you want the full canvas packet.
-15. Export JSON or Markdown from the canvas toolbar.
-16. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
+7. If you click `Map + Brief` before adding context, confirm it focuses the composer and status line instead of silently failing.
+8. Paste or drop YouTube links, Loom/Vimeo/direct video links, URLs, transcripts, PDFs, files, and raw source text.
+9. Use the `Drop -> Map -> Ask -> Handoff` loop as the mental model.
+10. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
+11. Inspect the new source/output pair on the canvas and the selected node in the inspector.
+12. Select a source node and inspect the context receipt: source kind, ingest method, chunks, URL/file, and character count.
+13. Run `Source summary`, `Extract claims`, or `Ask selected` when you want the action scoped to only that source.
+14. Use the action drawer for multi-node or whole-canvas `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
+15. Click `Copy source` for selected-source context, or `Context` when you want the full canvas packet.
+16. Export JSON or Markdown from the canvas toolbar.
+17. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
 17. Manual import of `examples/demo-canvas.json` remains available when you want to test portable JSON import directly.
 18. Build the MCP server with `pnpm mcp:build`.
 19. Add the MCP config to Codex, Claude, Gemini, or another MCP client.

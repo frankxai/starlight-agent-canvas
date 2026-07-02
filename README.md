@@ -39,7 +39,7 @@ The web app and MCP server operate over the same local data home. A source added
 1. Run `node scripts/setup.mjs`.
 2. Open `http://localhost:3000`.
 3. Confirm the in-app `Setup / MCP` panel.
-4. Click `Demo` when you want a working proof canvas immediately, or click `Video`, `Web`, `Note`, or `Ask` to start from your own material.
+4. Click `New` for a fresh blank graph, `Demo` for a working proof canvas, or `Video`, `Web`, `Note`, or `Ask` to start from your own material.
 5. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 6. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
 7. Click `Context` or use MCP `export_canvas` with `format: "context"` for agent handoff.
@@ -49,6 +49,7 @@ The web app and MCP server operate over the same local data home. A source added
 - Create local canvases with portable JSON import/export, Markdown handoff exports, and agent context packets.
 - Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
+- Create a fresh blank canvas from the first viewport, and click an empty primary intake action to focus the composer instead of hitting a dead disabled state.
 - Preview detected intake types before mapping, including video source, web source, source notes, text source, PDF, and file paths.
 - Treat non-YouTube video links as safe video references with attached notes and preserved `media: video_reference` provenance.
 - Choose the first pass before capture: `Map + Brief` by default, or `Claims`, `Ask`, and `Map only` when you want raw source nodes first.

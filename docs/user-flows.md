@@ -18,12 +18,14 @@ Expected result: the user sees what will be created before mapping, the new type
 ## Flow 1A: Self-Serve Quick Starter
 
 1. Open any canvas.
-2. Click `Video`, `Web`, `Note`, or `Ask` in the first-viewport composer.
-3. Confirm the composer focuses and the status explains the selected mode.
-4. Paste or drop context.
-5. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
-6. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-7. Inspect the created nodes and use `Context` or MCP `export_canvas` for handoff.
+2. Click `New` when you want a fresh blank graph instead of the latest local canvas.
+3. Click `Video`, `Web`, `Note`, or `Ask` in the first-viewport composer.
+4. Confirm the composer focuses and the status explains the selected mode.
+5. If the primary `Map + Brief` action is clicked before adding context, confirm it focuses the composer instead of silently doing nothing.
+6. Paste or drop context.
+7. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
+8. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+9. Inspect the created nodes and use `Context` or MCP `export_canvas` for handoff.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
 
