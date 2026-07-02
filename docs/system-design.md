@@ -32,6 +32,8 @@ Source ingestion writes both an artifact record and a typed node. The node is wh
 
 Artifacts include deterministic source chunks with ids, index, text, and body offsets. Older exports without chunks remain valid; the core can derive chunks from artifact body text when needed.
 
+The web inspector resolves a selected node back to its artifact to show a context receipt: artifact kind, ingest method, chunk count, source, character count, chunk preview, selected-source actions, and a selected context copy packet. The main action drawer can still use whole-canvas or multi-selected context.
+
 Portable JSON import validates the same canvas record schema used by exports. Imports preserve the incoming id when it is new to the local home; when that id already exists, the store creates a non-destructive copy with a fresh canvas id and updated timestamps.
 
 Exports have three roles: JSON is portable state, Markdown is a readable handoff, and context is an agent packet with operating contract, node index, source chunk manifest, evidence corpus, recent runs, and continuation prompt.

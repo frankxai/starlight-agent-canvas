@@ -46,7 +46,7 @@ import {
   TriangleAlert,
   Youtube,
 } from 'lucide-react';
-import type { CanvasActionType, CanvasEdge, CanvasEdgeKind, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
+import type { CanvasActionType, CanvasArtifact, CanvasEdge, CanvasEdgeKind, CanvasNode, CanvasNodeKind, CanvasRecord, SourceCitation } from '@starlight-agent-canvas/core';
 
 type CanvasSummary = {
   id: string;
@@ -255,6 +255,48 @@ function metadataCitations(metadata: Record<string, unknown>): SourceCitation[] 
   );
 }
 
+function metadataString(metadata: Record<string, unknown> | undefined, key: string): string | undefined {
+  const value = metadata?.[key];
+  return typeof value === 'string' && value.trim() ? value : undefined;
+}
+
+function metadataNumber(metadata: Record<string, unknown> | undefined, key: string): number | undefined {
+  const value = metadata?.[key];
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function sourceForNode(node: CanvasNode, artifact?: CanvasArtifact | null): string | undefined {
+  return artifact?.source
+    ?? metadataString(node.metadata, 'source')
+    ?? metadataString(node.metadata, 'url')
+    ?? metadataString(artifact?.metadata, 'url');
+}
+
+function selectedContextPacket(node: CanvasNode, artifact?: CanvasArtifact | null): string {
+  const source = sourceForNode(node, artifact);
+  const chunks = artifact?.chunks ?? [];
+  const lines = [
+    '# Selected Agent Canvas Context',
+    '',
+    `Node: ${node.title}`,
+    `Kind: ${formatKind(node.kind)}`,
+    source ? `Source: ${source}` : undefined,
+    artifact ? `Artifact: ${artifact.title} (${artifact.kind})` : undefined,
+    `Chars: ${(artifact?.body ?? node.body).length}`,
+    chunks.length ? `Chunks: ${chunks.length}` : undefined,
+    '',
+    '## Body',
+    artifact?.body || node.body || 'No body text available.',
+  ].filter((line): line is string => Boolean(line));
+  if (chunks.length) {
+    lines.push('', '## Chunks');
+    chunks.slice(0, 8).forEach((chunk) => {
+      lines.push(`- ${chunk.id}: ${chunk.text.slice(0, 360)}`);
+    });
+  }
+  return lines.join('\n');
+}
+
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
 const YOUTUBE_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
 
@@ -407,6 +449,16 @@ function WorkspaceInner() {
   const selectedNodes = useMemo(() => canvas?.nodes.filter((node) => selectedIds.includes(node.id)) ?? [], [canvas, selectedIds]);
   const selectedChars = useMemo(() => selectedNodes.reduce((total, node) => total + node.body.length, 0), [selectedNodes]);
   const selectedCitations = useMemo(() => selectedNode ? metadataCitations(selectedNode.metadata) : [], [selectedNode]);
+  const selectedArtifact = useMemo(() => {
+    const artifactId = metadataString(selectedNode?.metadata, 'artifactId');
+    if (!canvas || !artifactId) return null;
+    return canvas.artifacts.find((artifact) => artifact.id === artifactId) ?? null;
+  }, [canvas, selectedNode]);
+  const selectedSource = selectedNode ? sourceForNode(selectedNode, selectedArtifact) : undefined;
+  const selectedIngest = metadataString(selectedArtifact?.metadata, 'ingest') ?? metadataString(selectedNode?.metadata, 'ingest') ?? metadataString(selectedNode?.metadata, 'createdFrom') ?? 'node';
+  const selectedArtifactChars = selectedArtifact?.body.length ?? selectedNode?.body.length ?? 0;
+  const selectedChunkCount = selectedArtifact?.chunks.length ?? 0;
+  const selectedPageCount = metadataNumber(selectedArtifact?.metadata, 'pages') ?? metadataNumber(selectedNode?.metadata, 'pages');
   const baseFlow = useMemo(() => (canvas ? toFlow(canvas, compactCanvas) : { nodes: [], edges: [] }), [canvas, compactCanvas]);
   const canMutate = Boolean(canvas) && !busy;
   const intakePlan = useMemo(() => buildIntakePlan(intakeText), [intakeText]);
@@ -816,6 +868,16 @@ function WorkspaceInner() {
     }
   }, [canvas]);
 
+  const copySelectedContext = useCallback(async () => {
+    if (!selectedNode) return;
+    try {
+      await navigator.clipboard.writeText(selectedContextPacket(selectedNode, selectedArtifact));
+      setStatus('Copied selected source context.');
+    } catch (error) {
+      setStatus((error as Error).message);
+    }
+  }, [selectedArtifact, selectedNode]);
+
   const copyCommand = useCallback(async (command: string, label: string) => {
     try {
       await navigator.clipboard.writeText(command);
@@ -838,14 +900,14 @@ function WorkspaceInner() {
     return () => window.removeEventListener('paste', onPaste);
   }, [busy, canvas, intakeAnything]);
 
-  const runAction = useCallback(async (action: CanvasActionType, prompt = '') => {
+  const runAction = useCallback(async (action: CanvasActionType, prompt = '', inputNodeIds = selectedIds) => {
     if (!canvas) return;
     setBusy(true);
     try {
       const result = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/actions`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ action, inputNodeIds: selectedIds, prompt }),
+        body: JSON.stringify({ action, inputNodeIds, prompt }),
       });
       if (result.canvas) setCanvas(result.canvas);
       focusNode(result.outputNode);
@@ -861,6 +923,11 @@ function WorkspaceInner() {
   const askCanvas = useCallback(async () => {
     await runAction('answer_question', askPrompt);
   }, [askPrompt, runAction]);
+
+  const askSelectedSource = useCallback(async () => {
+    if (!selectedNode) return;
+    await runAction('answer_question', `Using the selected node "${selectedNode.title}", extract the most useful takeaways, gaps, and next actions. Cite source chunks when available.`, [selectedNode.id]);
+  }, [runAction, selectedNode]);
 
   const connectSelected = useCallback(async () => {
     if (!canvas || selectedIds.length < 2) return;
@@ -1486,6 +1553,102 @@ function WorkspaceInner() {
                       className="mt-1 w-full rounded-md border border-starlight-border bg-starlight-surface px-3 py-2 text-sm font-semibold text-starlight-ink"
                       placeholder="Node title"
                     />
+                  </div>
+                  <div className="rounded-md border border-starlight-mint/25 bg-starlight-mint/10 p-3" data-testid="source-receipt">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="text-xs font-semibold text-starlight-mint">Context receipt</div>
+                        <div className="mt-1 text-[11px] text-starlight-muted">
+                          {selectedArtifact ? selectedArtifact.title : selectedNode.title}
+                        </div>
+                      </div>
+                      <span className="rounded-md border border-starlight-mint/35 bg-starlight-bg px-2 py-1 text-[10px] font-semibold text-starlight-mint">
+                        {selectedArtifact ? 'artifact linked' : 'node body'}
+                      </span>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <div className="rounded-md border border-starlight-border bg-starlight-surface p-2">
+                        <div className="text-[10px] uppercase text-starlight-muted">Kind</div>
+                        <div className="mt-1 truncate text-xs font-semibold text-starlight-ink" data-testid="source-receipt-kind">
+                          {selectedArtifact?.kind ?? formatKind(selectedNode.kind)}
+                        </div>
+                      </div>
+                      <div className="rounded-md border border-starlight-border bg-starlight-surface p-2">
+                        <div className="text-[10px] uppercase text-starlight-muted">Ingest</div>
+                        <div className="mt-1 truncate text-xs font-semibold text-starlight-ink" data-testid="source-receipt-ingest">
+                          {formatKind(selectedIngest)}
+                        </div>
+                      </div>
+                      <div className="rounded-md border border-starlight-border bg-starlight-surface p-2">
+                        <div className="text-[10px] uppercase text-starlight-muted">Chunks</div>
+                        <div className="mt-1 text-xs font-semibold text-starlight-ink" data-testid="source-receipt-chunks">
+                          {selectedChunkCount}{selectedPageCount ? ` / ${selectedPageCount} pages` : ''}
+                        </div>
+                      </div>
+                      <div className="rounded-md border border-starlight-border bg-starlight-surface p-2">
+                        <div className="text-[10px] uppercase text-starlight-muted">Chars</div>
+                        <div className="mt-1 text-xs font-semibold text-starlight-ink" data-testid="source-receipt-chars">
+                          {selectedArtifactChars.toLocaleString()}
+                        </div>
+                      </div>
+                    </div>
+                    {selectedSource ? (
+                      <div className="mt-2 truncate rounded-md border border-starlight-border bg-starlight-bg px-2 py-1.5 text-[11px] text-starlight-mint" data-testid="source-receipt-source">
+                        {selectedSource}
+                      </div>
+                    ) : null}
+                    {selectedArtifact?.chunks.length ? (
+                      <div className="mt-2 space-y-1.5" data-testid="source-chunk-preview">
+                        {selectedArtifact.chunks.slice(0, 2).map((chunk) => (
+                          <div key={chunk.id} className="rounded-md border border-starlight-border bg-starlight-bg p-2">
+                            <div className="text-[10px] font-semibold text-starlight-mint">{chunk.id}</div>
+                            <p className="mt-1 line-clamp-2 text-[11px] leading-4 text-starlight-muted">{chunk.text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <button
+                        data-testid="selected-source-summary"
+                        type="button"
+                        disabled={!canMutate}
+                        onClick={() => runAction('summarize', '', [selectedNode.id])}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-accent/40 bg-starlight-accent/10 px-2 py-2 text-[11px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                        Source summary
+                      </button>
+                      <button
+                        data-testid="selected-source-claims"
+                        type="button"
+                        disabled={!canMutate}
+                        onClick={() => runAction('extract_claims', '', [selectedNode.id])}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-accent/40 bg-starlight-accent/10 px-2 py-2 text-[11px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        <Braces className="h-3.5 w-3.5" aria-hidden="true" />
+                        Extract claims
+                      </button>
+                      <button
+                        data-testid="selected-source-ask"
+                        type="button"
+                        disabled={!canMutate}
+                        onClick={askSelectedSource}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-violet/40 bg-starlight-violet/10 px-2 py-2 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-violet disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                        Ask selected
+                      </button>
+                      <button
+                        data-testid="selected-source-copy"
+                        type="button"
+                        disabled={!selectedNode}
+                        onClick={copySelectedContext}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-border bg-starlight-surface px-2 py-2 text-[11px] font-semibold text-starlight-ink transition hover:border-starlight-mint disabled:cursor-not-allowed disabled:opacity-45"
+                      >
+                        <Copy className="h-3.5 w-3.5" aria-hidden="true" />
+                        Copy source
+                      </button>
+                    </div>
                   </div>
                   <textarea
                     data-testid="inspector-body"

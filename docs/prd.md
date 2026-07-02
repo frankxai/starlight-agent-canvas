@@ -27,6 +27,8 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can create notes directly on the canvas and edit selected node title/body.
 - Empty canvas, composer, toolbar, and inspector all expose direct add/map actions.
 - Newly created source, note, file, and action nodes become selected and open in the inspector.
+- Selected source nodes show a context receipt with artifact kind, ingest method, chunk count, source path/URL, and character count.
+- Selected source nodes expose immediate source-scoped actions: summary, claims, cited ask, and selected context copy.
 - User can see the active selected context before running actions.
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
@@ -45,7 +47,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 ## Core Workflows
 
-1. Human source mapping: paste a video URL and transcript, map it into nodes, edit the node, run a summary, export the brief.
+1. Human source mapping: paste a video URL and transcript, map it into nodes, inspect the source receipt, run a selected-source question, edit the node, export the brief.
 2. Agent-assisted research: ask Codex to read the current canvas, add a source, run an action, and export Markdown.
 3. Competitor teardown: collect pages/videos/notes for Poppy, Nodeflow, AI Flow Chat, and Superly, compare capabilities, and generate a build wedge.
 4. Repo/product planning: map local repo estate notes into product candidates and implementation briefs.
@@ -79,6 +81,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A new local user can install, seed, and open the app in under 10 minutes.
 - A local operator can confirm data home, MCP build, Codex config, and Codex server wiring without leaving the workspace.
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
+- A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.

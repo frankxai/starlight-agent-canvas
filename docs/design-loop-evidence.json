@@ -112,6 +112,21 @@
       "path_or_url": "docs/visual-qa/mobile-smart-intake-preview.png",
       "kind": "mobile smart intake preview screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-source-receipt-actions.png",
+      "kind": "desktop selected source receipt and actions screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-selected-source-answer.png",
+      "kind": "desktop selected source answer and citation screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-source-receipt-actions.png",
+      "kind": "mobile selected source receipt and actions screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -149,6 +164,11 @@
       "name": "human-intake-affordance",
       "status": "pass",
       "notes": "The first viewport now exposes clipboard paste, Map, Note, file upload, detected source chips, and created-node inspector selection."
+    },
+    {
+      "name": "source-receipt-loop",
+      "status": "pass",
+      "notes": "Selected sources now expose artifact kind, ingest mode, source URL/file, chunk count, chunk preview, selected-source ask/summary/claims, and selected context copy."
     }
   ],
   "score": {
@@ -191,6 +211,9 @@
       "docs/visual-qa/desktop-smart-intake-preview.png",
       "docs/visual-qa/desktop-smart-intake-mapped.png",
       "docs/visual-qa/mobile-smart-intake-preview.png",
+      "docs/visual-qa/desktop-source-receipt-actions.png",
+      "docs/visual-qa/desktop-selected-source-answer.png",
+      "docs/visual-qa/mobile-source-receipt-actions.png",
       "docs/visual-qa/desktop-first-viewport.png",
       "docs/visual-qa/mobile-first-viewport.png",
       "docs/visual-qa/mobile-graph-viewport.png",
@@ -236,6 +259,9 @@
       "interactiveEmptyStateActions": true,
       "createdNodeInspectorFocus": true,
       "markdownFileUploadTested": true,
+      "selectedSourceReceipt": true,
+      "selectedSourceActions": true,
+      "dropToCanvasBrowserTested": true,
       "mobileToolbarReduced": true
     },
     "metrics": {
@@ -258,6 +284,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport composer controls, clipboard paste, smart detected-source chips, paste-anywhere, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, JSON/Markdown export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport composer controls, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, JSON/Markdown export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

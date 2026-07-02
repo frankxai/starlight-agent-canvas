@@ -52,6 +52,14 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('intake-preview')).not.toContainText('Source notes');
   await page.getByTestId('intake-ingest').click();
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Manual transcript/);
+  await expect(page.getByTestId('source-receipt')).toContainText('Context receipt');
+  await expect(page.getByTestId('source-receipt-kind')).toContainText('youtube');
+  await expect(page.getByTestId('source-receipt-ingest')).toContainText('manual transcript');
+  await expect(page.getByTestId('source-chunk-preview')).toContainText('Manual transcript');
+  await expect(page.getByTestId('selected-source-copy')).toBeEnabled();
+  await page.getByTestId('selected-source-ask').click();
+  await expect(page.getByTestId('inspector-title')).toHaveValue('answer question output');
+  await expect(page.getByTestId('inspector')).toContainText('Citations');
   await expect(page.getByTestId('quick-note')).toBeEnabled();
 
   const markdownPath = testInfo.outputPath(`uploaded-${testInfo.project.name}.md`);
@@ -67,6 +75,22 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   });
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Pasted anywhere source/);
   await expect(page.getByTestId('quick-note')).toBeEnabled();
+
+  const surfaceBox = await page.getByTestId('canvas-surface').boundingBox();
+  expect(surfaceBox).toBeTruthy();
+  const dropTransfer = await page.evaluateHandle(() => {
+    const data = new DataTransfer();
+    data.setData('text/plain', 'Dropped source context: this canvas accepts dropped notes and turns them into selectable agent context.');
+    return data;
+  });
+  await page.getByTestId('canvas-surface').dispatchEvent('drop', {
+    clientX: Math.round((surfaceBox?.x ?? 0) + 160),
+    clientY: Math.round((surfaceBox?.y ?? 0) + 220),
+    dataTransfer: dropTransfer,
+  });
+  await expect(page.getByTestId('inspector-body')).toHaveValue(/Dropped source context/);
+  await expect(page.getByTestId('source-receipt')).toContainText('Context receipt');
+  await expect(page.getByTestId('source-receipt-chunks')).not.toContainText('0');
 
   await page.getByRole('button', { name: 'Summarize' }).click();
   await expect(page.getByTestId('inspector-title')).toHaveValue('summarize output');

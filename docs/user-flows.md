@@ -7,13 +7,13 @@ flowchart LR
   open["Open blank canvas"] --> paste["Paste source into canvas composer"]
   paste --> preview["Review detected source chips"]
   preview --> map["Click Map"]
-  map --> inspect["Inspect/edit created node"]
+  map --> inspect["Inspect receipt and edit node"]
   inspect --> scope["Confirm selected context tray"]
-  scope --> action["Run summarize or ask"]
+  scope --> action["Run selected-source action"]
   action --> export["Export JSON or Markdown"]
 ```
 
-Expected result: the user sees what will be created before mapping, the new typed source node is selected, the inspector opens it for editing, and source-grounded actions run without leaving the first screen.
+Expected result: the user sees what will be created before mapping, the new typed source node is selected, the inspector opens a context receipt with chunks/provenance, and source-grounded actions run without leaving the first screen.
 
 ## Flow 2: YouTube Research
 
@@ -22,10 +22,12 @@ Expected result: the user sees what will be created before mapping, the new type
 3. Confirm the intake preview shows `Video source` and `manual transcript attached`.
 4. Click `Map`.
 5. Confirm the created video node is selected and visible in the inspector.
-6. Run `Claims` or `Ask Canvas`.
-7. Inspect the cited node/chunk ids in the output inspector.
-8. Search a claim or transcript phrase and jump back to the source node.
-9. Export the output node as part of the canvas.
+6. Confirm the context receipt shows `youtube`, `manual transcript`, source URL, chunks, and character count.
+7. Run `Ask selected`, `Source summary`, or `Extract claims`.
+8. Copy selected source context when Codex/Claude/Gemini should use only that source.
+9. Inspect the cited node/chunk ids in the output inspector.
+10. Search a claim or transcript phrase and jump back to the source node.
+11. Export the output node as part of the canvas.
 
 Design note: YouTube ingestion is transcript-first. The app tries title lookup and captions, but manual transcript fallback is part of the core product path.
 
@@ -41,11 +43,13 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 ## Flow 4: Human Note-Making
 
 1. Double-click blank canvas space.
-2. Or click `Note` in the composer, empty canvas panel, toolbar, or inspector empty state.
-3. Edit title/body in the inspector.
-4. Connect it to source nodes.
-5. Confirm the selected context tray shows the intended nodes.
-6. Ask the canvas a question over selected nodes.
+2. Or drop text onto the canvas.
+3. Or click `Note` in the composer, empty canvas panel, toolbar, or inspector empty state.
+4. Edit title/body in the inspector.
+5. Confirm the receipt shows the note body as source context.
+6. Connect it to source nodes.
+7. Confirm the selected context tray shows the intended nodes.
+8. Ask the canvas a question over selected nodes.
 
 ## Flow 5: Codex Uses The Same Canvas
 
