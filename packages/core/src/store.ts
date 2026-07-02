@@ -147,25 +147,28 @@ export class FileCanvasStore {
   async importCanvas(raw: unknown, options: ImportCanvasOptions = {}): Promise<CanvasRecord> {
     const parsed = canvasRecordSchema.parse(raw);
     const onConflict = options.onConflict ?? 'copy';
-    let next = { ...parsed, updatedAt: nowIso() };
 
-    if (onConflict === 'copy') {
-      try {
-        await this.getCanvas(parsed.id);
-        const timestamp = nowIso();
-        next = {
-          ...parsed,
-          id: makeId('canvas', parsed.title),
-          title: `${parsed.title} (imported)`,
-          createdAt: timestamp,
-          updatedAt: timestamp,
-        };
-      } catch {
-        // No existing canvas with this id; preserve the portable id.
+    return this.withCanvasLock(parsed.id, async () => {
+      let next = { ...parsed, updatedAt: nowIso() };
+
+      if (onConflict === 'copy') {
+        try {
+          await this.getCanvas(parsed.id);
+          const timestamp = nowIso();
+          next = {
+            ...parsed,
+            id: makeId('canvas', parsed.title),
+            title: `${parsed.title} (imported)`,
+            createdAt: timestamp,
+            updatedAt: timestamp,
+          };
+        } catch {
+          // No existing canvas with this id; preserve the portable id.
+        }
       }
-    }
 
-    return this.withCanvasLock(next.id, async () => this.saveCanvasFile(next));
+      return this.saveCanvasFile(next);
+    });
   }
 
   async addNode(canvasId: string, input: AddNodeInput): Promise<{ canvas: CanvasRecord; node: CanvasNode }> {

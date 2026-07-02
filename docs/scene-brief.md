@@ -16,7 +16,7 @@ An active research graph where every source, action, and agent output becomes in
 
 - Left rail: always-visible "Add To Canvas" intake with detected-source preview chips, templates, canvases, and direct source controls.
 - Center: React Flow typed graph with first-viewport composer, fresh blank-canvas action, clipboard paste, detected-source preview chips, responsive empty-input primary actions, interactive empty-state actions, paste-anywhere intake, drop-to-position mapping, toolbar note creation, double-click note creation, drag persistence, direct node connections, context copy, and import/export controls.
-- Right rail: selected-context tray, handoff readiness lane, source-grounded ask box, action drawer, editable selected node inspector with context receipt, clickable citation-to-source cards, selected-source commands immediately after the action drawer, setup/MCP status, local search, run log with clickable citation chips.
+- Right rail: selected-context tray, live Workflow Map, handoff readiness lane, source-grounded ask box, action drawer, editable selected node inspector with context receipt, clickable citation-to-source cards, selected-source commands immediately after the action drawer, setup/MCP status, local search, run log with clickable citation chips.
 - Top bar: product identity, local data path, export route, MCP status.
 
 ## Motion
@@ -30,6 +30,8 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 - User can paste a YouTube link, URL, transcript, or raw note directly into the canvas composer.
 - Empty `Map`/`Ask` clicks focus the correct composer and update status, not silently fail.
 - User can see inferred `Video source`, `Web source`, `Source notes`, `Text source`, or file affordances before mapping.
+- Template cards show ordered stages and expected outcome before creating a workflow canvas.
+- Workflow Map stage buttons refocus matching template nodes.
 - Empty canvas state has direct `Map`, `Note`, and `Upload` actions.
 - User can double-click blank canvas space for a note, select any node, edit title/body, and save.
 - Newly created source/action nodes become visible context immediately.

@@ -63,6 +63,9 @@ type TemplateSummary = {
   id: string;
   title: string;
   description: string;
+  bestFor?: string;
+  outcome?: string;
+  steps?: string[];
 };
 
 type ApiState = {
@@ -139,6 +142,13 @@ type IntakePlanItem = {
 type IntakeActionMode = 'map' | 'summarize' | 'claims' | 'ask';
 type ComposerMode = 'source' | 'note' | 'ask';
 type QuickStarterId = 'video' | 'web' | 'note' | 'ask';
+
+type WorkflowMapStep = {
+  label: string;
+  order: number;
+  detail: string;
+  node?: CanvasNode;
+};
 
 const INTAKE_ACTIONS: Array<{ id: IntakeActionMode; label: string; detail: string }> = [
   { id: 'summarize', label: 'Brief', detail: 'summary output' },
@@ -675,6 +685,41 @@ function WorkspaceInner() {
       },
     ];
   }, [canvas?.nodes, canvas?.runs.length, selectedIds.length, setupStatus?.codex.serverConfigured]);
+  const workflowMap = useMemo<WorkflowMapStep[]>(() => {
+    if (!canvas?.nodes.length) {
+      return CONTEXT_LOOP_STEPS.map((step, index) => ({
+        label: step.label,
+        order: index + 1,
+        detail: step.detail,
+      }));
+    }
+
+    const grouped = new Map<string, WorkflowMapStep>();
+    canvas.nodes.forEach((node) => {
+      const label = metadataString(node.metadata, 'workflowStep');
+      if (!label) return;
+      const order = metadataNumber(node.metadata, 'workflowOrder') ?? 99;
+      const existing = grouped.get(label);
+      if (!existing || order < existing.order) {
+        grouped.set(label, {
+          label,
+          order,
+          detail: node.title,
+          node,
+        });
+      }
+    });
+
+    if (!grouped.size) {
+      return CONTEXT_LOOP_STEPS.map((step, index) => ({
+        label: step.label,
+        order: index + 1,
+        detail: step.detail,
+      }));
+    }
+
+    return Array.from(grouped.values()).sort((a, b) => a.order - b.order || a.label.localeCompare(b.label));
+  }, [canvas]);
 
   const focusNode = useCallback((node?: CanvasNode, selectedOverride?: string[]) => {
     if (!node) return;
@@ -1536,10 +1581,23 @@ function WorkspaceInner() {
                     type="button"
                     disabled={busy}
                     onClick={() => createTemplate(template.id)}
+                    data-testid={`template-${template.id}`}
                     className="rounded-lg border border-starlight-border bg-starlight-panel/80 p-3 text-left transition hover:border-starlight-accent/60 hover:bg-starlight-panel disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     <span className="block text-sm font-medium text-starlight-ink">{template.title}</span>
                     <span className="mt-1 line-clamp-2 block text-xs leading-5 text-starlight-muted">{template.description}</span>
+                    {template.steps?.length ? (
+                      <span className="mt-2 flex flex-wrap gap-1" data-testid={`template-steps-${template.id}`}>
+                        {template.steps.slice(0, 3).map((step) => (
+                          <span key={step} className="rounded-md border border-starlight-border bg-starlight-bg px-1.5 py-0.5 text-[10px] text-starlight-muted">
+                            {step}
+                          </span>
+                        ))}
+                      </span>
+                    ) : null}
+                    {template.outcome ? (
+                      <span className="mt-2 line-clamp-2 block text-[11px] leading-4 text-starlight-mint">{template.outcome}</span>
+                    ) : null}
                   </button>
                 ))}
               </div>
@@ -2104,6 +2162,36 @@ function WorkspaceInner() {
               <p className="mt-2 text-xs leading-5 text-starlight-muted">
                 Runs are local and deterministic in v0.1. Select nodes to scope an action, or leave empty to use the canvas.
               </p>
+              <div className="mt-3 rounded-md border border-starlight-border bg-starlight-surface/70 p-3" data-testid="workflow-map">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="flex items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                    <GitBranch className="h-3.5 w-3.5 text-starlight-accent" aria-hidden="true" />
+                    Workflow map
+                  </span>
+                  <span className="rounded-md border border-starlight-border bg-starlight-bg px-2 py-1 text-[10px] text-starlight-muted">
+                    {workflowMap.length} steps
+                  </span>
+                </div>
+                <div className="mt-3 space-y-1.5">
+                  {workflowMap.map((step, index) => (
+                    <button
+                      key={`${step.label}-${index}`}
+                      type="button"
+                      disabled={!step.node}
+                      onClick={() => focusNode(step.node)}
+                      className="grid w-full grid-cols-[auto_minmax(0,1fr)] gap-2 rounded-md border border-starlight-border bg-starlight-bg/80 p-2 text-left transition hover:border-starlight-accent/60 disabled:cursor-default disabled:opacity-75"
+                    >
+                      <span className="flex h-5 w-5 items-center justify-center rounded border border-starlight-accent/35 bg-starlight-accent/10 text-[10px] font-semibold text-starlight-accent">
+                        {index + 1}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block truncate text-[11px] font-semibold text-starlight-ink">{step.label}</span>
+                        <span className="mt-0.5 block truncate text-[10px] text-starlight-muted">{step.detail}</span>
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div className="mt-3 rounded-md border border-starlight-border bg-starlight-surface/70 p-3" data-testid="handoff-readiness">
                 <div className="flex items-center justify-between gap-3">
                   <span className="flex items-center gap-1.5 text-xs font-semibold text-starlight-ink">

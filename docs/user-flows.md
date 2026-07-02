@@ -73,11 +73,12 @@ Expected result: the canvas accepts arbitrary video links as local context refer
 ## Flow 3: Competitor Teardown
 
 1. Launch the `Competitor teardown` template.
-2. Paste competitor URLs, videos, and notes.
-3. Pick the edge kind in the canvas toolbar, then connect related claims with `references` or `compares` edges.
-4. Run `Compare` and `Matrix`.
-5. Run `Build Brief`.
-6. Export Markdown for implementation planning.
+2. Inspect the Workflow Map: capture evidence, normalize capabilities, compare wedges, decide build path, handoff to Codex.
+3. Paste competitor URLs, videos, and notes into the Poppy, Nodeflow, AI Flow Chat, and Superly source slots.
+4. Click each workflow stage to focus the relevant prompt/output node.
+5. Pick the edge kind in the canvas toolbar, then connect related claims with `references` or `compares` edges.
+6. Run `Claims`, `Compare`, `Matrix`, or `Build Brief` against selected evidence.
+7. Export Markdown for human planning or `Codex` for implementation continuation.
 
 ## Flow 4: Human Note-Making
 
@@ -113,6 +114,18 @@ sequenceDiagram
 ```
 
 Expected result: human and agent work on the same local state with explicit, reviewable mutations.
+
+## Flow 5A: Guided Workflow Template
+
+1. Open the app.
+2. Click a template such as `Competitor teardown`, `Repo/product planning`, `Agent workflow design`, or `Content synthesis`.
+3. Confirm the template card shows its starter stages and expected outcome before launch.
+4. Confirm the new canvas contains ordered workflow nodes, source slots, prompt nodes, output targets, and MCP/Codex handoff nodes.
+5. Use the `Workflow map` in the Action Drawer to focus each stage.
+6. Replace placeholder source slots with real links, transcripts, files, and notes.
+7. Run actions and export selected evidence when the workflow reaches a useful output.
+
+Expected result: templates are not decorative examples; they are reusable operating maps for the workflows this product is supposed to prove.
 
 ## Flow 6: Setup And Codex Activation
 

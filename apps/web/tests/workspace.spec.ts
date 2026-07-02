@@ -2,6 +2,8 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
 
 test('workspace maps sources and answers from the canvas', async ({ page }, testInfo) => {
+  test.setTimeout(90_000);
+
   const title = `e2e ${testInfo.project.name} ${Date.now()}`;
   await page.request.post('/api/canvases', {
     data: { title, template: 'blank' },
@@ -23,6 +25,9 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
   await expect(page.getByTestId('setup-codex-handoff')).toBeEnabled();
+  await expect(page.getByTestId('workflow-map')).toContainText('Workflow map');
+  await expect(page.getByTestId('template-steps-competitor_teardown')).toContainText('Capture evidence');
+  await expect(page.getByTestId('template-competitor_teardown')).toContainText('Codex implementation brief');
   await expect(page.getByTestId('handoff-readiness')).toContainText('Handoff readiness');
   await expect(page.getByTestId('handoff-readiness')).toContainText('Evidence');
   await expect(page.getByTestId('handoff-readiness')).toContainText('Synthesis');
@@ -185,12 +190,15 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('inspector-title')).toHaveValue('summarize output');
 
   await page.getByTestId('ask-prompt').fill('What source types are supported?');
+  await expect(page.getByTestId('ask-canvas')).toBeEnabled();
   await page.getByTestId('ask-canvas').click();
   await expect(page.getByTestId('inspector-title')).toHaveValue('answer question output');
   await expect(page.getByTestId('inspector')).toContainText('Citations');
   await expect(page.getByTestId('copy-context')).toBeEnabled();
 
-  await page.getByPlaceholder('Search canvases').fill('Nodeflow');
+  const searchInput = page.getByPlaceholder('Search canvases');
+  await searchInput.scrollIntoViewIfNeeded();
+  await searchInput.fill('Nodeflow');
   await page.getByRole('button', { name: 'Go' }).click();
   await expect(page.getByRole('button', { name: /Nodeflow connects YouTube/ }).first()).toBeVisible();
   await page.getByRole('button', { name: /Nodeflow connects YouTube/ }).first().click();
@@ -284,7 +292,9 @@ test('imports the public demo canvas and exports chunked context', async ({ page
   await expect(page.getByTestId('canvas-live-state')).toContainText('3 artifacts');
   await expect(page.getByTestId('canvas-live-state')).toContainText('2 runs');
 
-  await page.getByPlaceholder('Search canvases').fill('Nodeflow-style video source');
+  const searchInput = page.getByPlaceholder('Search canvases');
+  await searchInput.scrollIntoViewIfNeeded();
+  await searchInput.fill('Nodeflow-style video source');
   await page.getByRole('button', { name: 'Go' }).click();
   await expect(page.getByRole('button', { name: /Nodeflow-style video source/ }).first()).toBeVisible();
   await page.getByRole('button', { name: /Nodeflow-style video source/ }).first().click();
@@ -347,4 +357,40 @@ test('loads the bundled demo canvas from the first viewport', async ({ page }) =
   expect(fullContextText).toContain('Agent Context Packet');
   expect(fullContextText).toContain('artifact-youtube-nodeflow:chunk-001');
   expect(fullContextText).toContain('Codex context handoff');
+});
+
+test('launches a guided workflow template with clickable stages', async ({ page }, testInfo) => {
+  const title = `workflow template ${testInfo.project.name} ${Date.now()}`;
+  await page.request.post('/api/canvases', {
+    data: { title, template: 'blank' },
+  });
+
+  await page.goto('/');
+  await expect(page.getByTestId('workspace')).toBeVisible();
+  await page.getByRole('button', { name: new RegExp(title) }).click();
+  await expect(page.getByTestId('template-competitor_teardown')).toContainText('Capture evidence');
+  await page.getByTestId('template-competitor_teardown').click();
+
+  await expect(page.getByTestId('canvas-live-state')).toContainText('8 nodes');
+  await expect(page.getByTestId('workflow-map')).toContainText('Capture evidence');
+  await expect(page.getByTestId('workflow-map')).toContainText('Normalize capabilities');
+  await expect(page.getByTestId('workflow-map')).toContainText('Compare wedges');
+  await expect(page.getByTestId('workflow-map')).toContainText('Handoff to Codex');
+  await page.getByTestId('workflow-map').getByRole('button', { name: /Compare wedges/ }).click();
+  await expect(page.getByTestId('inspector-title')).toHaveValue('Decision matrix prompt');
+
+  const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
+  expect(exportHref).toBeTruthy();
+  expect(exportHref).toContain('nodeIds=');
+  const selectedContextResponse = await page.request.get(exportHref!.replace('format=json', 'format=context'));
+  await expect(selectedContextResponse).toBeOK();
+  const selectedContextText = await selectedContextResponse.text();
+  expect(selectedContextText).toContain('Decision matrix prompt');
+  expect(selectedContextText).not.toContain('Build wedge output');
+
+  const fullContextResponse = await page.request.get(exportHref!.replace(/&nodeIds=[^&]+/, '').replace('format=json', 'format=context'));
+  await expect(fullContextResponse).toBeOK();
+  const fullContextText = await fullContextResponse.text();
+  expect(fullContextText).toContain('Build wedge output');
+  expect(fullContextText).toContain('Codex handoff target');
 });

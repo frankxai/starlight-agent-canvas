@@ -85,6 +85,13 @@ describe('FileCanvasStore', () => {
     const importedCopy = await store.importCanvas(portable);
     expect(importedCopy.id).not.toBe(imported.id);
     expect(importedCopy.title).toBe('Imported planning (imported)');
+
+    portable.id = 'canvas-concurrent-import';
+    portable.title = 'Concurrent import';
+    const importedCopies = await Promise.all(Array.from({ length: 5 }, () => store.importCanvas(portable)));
+    expect(new Set(importedCopies.map((copy) => copy.id)).size).toBe(importedCopies.length);
+    expect(importedCopies.some((copy) => copy.id === 'canvas-concurrent-import')).toBe(true);
+    expect(importedCopies.filter((copy) => copy.title === 'Concurrent import (imported)')).toHaveLength(4);
   });
 
   it('serializes writes across store instances', async () => {

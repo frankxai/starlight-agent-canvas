@@ -26,6 +26,8 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - The composer previews what it detected before mapping: YouTube source, non-YouTube video reference, web source, source notes, text, PDF, or file.
 - Non-YouTube video links are captured as first-class `source_video` nodes with `video` artifacts, attached notes/transcripts, chunks, and `media: video_reference` provenance; full provider-specific transcription is deferred.
 - The first-viewport composer exposes quick starters for `Video`, `Web`, `Note`, and `Ask`, plus a visible `Drop -> Map -> Ask -> Handoff` loop.
+- Templates launch guided workflow canvases with ordered stages, source slots, prompt nodes, expected output targets, and Codex/MCP handoff nodes.
+- User can inspect a live Workflow Map and click a stage to focus the corresponding canvas node.
 - User can create notes directly on the canvas and edit selected node title/body.
 - Empty canvas, composer, toolbar, and inspector all expose direct add/map actions.
 - Newly created source, note, file, and action nodes become selected and open in the inspector.
@@ -97,6 +99,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - A user can start from `Video`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
+- A user can launch a workflow template and understand the ordered stages from the Workflow Map without reading docs.
 - A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context/Codex handoff for the whole canvas or selected node ids, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.
