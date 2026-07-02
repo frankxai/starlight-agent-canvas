@@ -496,6 +496,12 @@ function composerButtonLabel(mode: ComposerMode, actionMode: IntakeActionMode): 
   return intakeButtonLabel(actionMode);
 }
 
+function clipboardButtonLabel(mode: ComposerMode): string {
+  if (mode === 'note') return 'Paste Note';
+  if (mode === 'ask') return 'Ask Clipboard';
+  return 'Paste & Map';
+}
+
 function composerPrimaryIcon(mode: ComposerMode, actionMode: IntakeActionMode) {
   if (mode === 'note') return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
   if (mode === 'ask') return <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />;
@@ -1041,21 +1047,6 @@ function WorkspaceInner() {
     setIntakeText('');
   }, [intakeAnything, intakeText, requestComposerInput]);
 
-  const pasteClipboardToIntake = useCallback(async () => {
-    try {
-      const text = (await navigator.clipboard.readText()).trim();
-      if (!text) throw new Error('Clipboard is empty.');
-      if (composerMode === 'ask') {
-        setAskPrompt(text);
-      } else {
-        setIntakeText(text);
-      }
-      setStatus(`Loaded clipboard into ${composerMode} composer.`);
-    } catch (error) {
-      setStatus((error as Error).message);
-    }
-  }, [composerMode]);
-
   const submitCanvasNote = useCallback(async () => {
     await addCanvasNoteAt(undefined, intakeText);
     setIntakeText('');
@@ -1183,6 +1174,33 @@ function WorkspaceInner() {
     if (!selectedNode) return;
     await runAction('answer_question', `Using the selected node "${selectedNode.title}", extract the most useful takeaways, gaps, and next actions. Cite source chunks when available.`, [selectedNode.id]);
   }, [runAction, selectedNode]);
+
+  const pasteClipboardToIntake = useCallback(async (mode: ComposerMode = composerMode) => {
+    if (!canvas || busy) return;
+    try {
+      const text = (await navigator.clipboard.readText()).trim();
+      if (!text) throw new Error('Clipboard is empty.');
+
+      if (mode === 'ask') {
+        setAskPrompt(text);
+        await runAction('answer_question', text);
+        return;
+      }
+
+      if (mode === 'note') {
+        await addCanvasNoteAt(undefined, text);
+        setIntakeText('');
+        return;
+      }
+
+      setComposerMode('source');
+      setIntakeText(text);
+      await intakeAnything(text);
+      setIntakeText('');
+    } catch (error) {
+      setStatus((error as Error).message);
+    }
+  }, [addCanvasNoteAt, busy, canvas, composerMode, intakeAnything, runAction]);
 
   const submitActiveComposer = useCallback(async () => {
     if (composerMode === 'note') {
@@ -1404,11 +1422,11 @@ function WorkspaceInner() {
                   data-testid="rail-intake-paste"
                   type="button"
                   disabled={!canMutate}
-                  onClick={pasteClipboardToIntake}
+                  onClick={() => pasteClipboardToIntake('source')}
                   className="flex items-center justify-center gap-2 rounded-md border border-starlight-border px-3 py-2 text-sm font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <ClipboardPaste className="h-4 w-4" aria-hidden="true" />
-                  Paste
+                  Paste & Map
                 </button>
                 <button
                   data-testid="rail-intake-ingest"
@@ -1721,11 +1739,11 @@ function WorkspaceInner() {
                   data-testid="intake-paste"
                   type="button"
                   disabled={!canMutate}
-                  onClick={pasteClipboardToIntake}
+                  onClick={() => pasteClipboardToIntake(composerMode)}
                   className="flex h-10 items-center justify-center gap-2 rounded-md border border-starlight-border px-3 text-sm font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <ClipboardPaste className="h-4 w-4" aria-hidden="true" />
-                  Paste
+                  {clipboardButtonLabel(composerMode)}
                 </button>
                 <button
                   data-testid="intake-ingest"
@@ -1832,12 +1850,12 @@ function WorkspaceInner() {
               <button
                 type="button"
                 data-testid="canvas-toolbar-paste"
-                onClick={pasteClipboardToIntake}
+                onClick={() => pasteClipboardToIntake('source')}
                 disabled={!canMutate}
                 className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
-                Paste
+                Paste & Map
               </button>
               <label className={`flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink ${canMutate ? 'cursor-pointer hover:border-starlight-accent' : 'cursor-not-allowed opacity-45'}`}>
                 <FileUp className="h-3.5 w-3.5" aria-hidden="true" />

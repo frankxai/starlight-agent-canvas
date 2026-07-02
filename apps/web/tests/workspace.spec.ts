@@ -26,6 +26,8 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('intake-ingest')).toContainText('Map + Brief');
   await expect(page.getByTestId('intake-ingest')).toBeEnabled();
   await expect(page.getByTestId('new-blank-canvas')).toBeVisible();
+  await expect(page.getByTestId('rail-intake-paste')).toContainText('Paste & Map');
+  await expect(page.getByTestId('intake-paste')).toContainText('Paste & Map');
   await page.getByTestId('intake-ingest').click();
   await expect(page.getByTestId('status')).toContainText('Paste or drop a YouTube link');
   await expect(page.getByTestId('intake-text')).toBeFocused();
@@ -73,10 +75,13 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('intake-text').fill('');
   await page.getByTestId('composer-mode').getByRole('button', { name: 'Note' }).click();
   await expect(page.getByTestId('intake-ingest')).toContainText('Add Note');
+  await expect(page.getByTestId('intake-paste')).toContainText('Paste Note');
   await page.getByTestId('composer-mode').getByRole('button', { name: 'Ask' }).click();
   await expect(page.getByTestId('intake-ingest')).toContainText('Ask Canvas');
+  await expect(page.getByTestId('intake-paste')).toContainText('Ask Clipboard');
   await page.getByTestId('composer-mode').getByRole('button', { name: 'Source' }).click();
   await expect(page.getByTestId('intake-ingest')).toContainText('Map + Brief');
+  await expect(page.getByTestId('intake-paste')).toContainText('Paste & Map');
 
   await page.getByTestId('intake-text').fill('My canvas note: collect the product gaps and turn them into a brief.');
   await expect(page.getByTestId('quick-note')).toBeEnabled();

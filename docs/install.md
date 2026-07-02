@@ -134,7 +134,7 @@ pnpm dev
 5. Use `Context` to copy a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
 6. Use the first-viewport quick starters: `Video`, `Web`, `Note`, or `Ask` when you want to start from your own material.
 7. If you click `Map + Brief` before adding context, confirm it focuses the composer and status line instead of silently failing.
-8. Paste or drop YouTube links, Loom/Vimeo/direct video links, URLs, transcripts, PDFs, files, and raw source text.
+8. Paste or drop YouTube links, Loom/Vimeo/direct video links, URLs, transcripts, PDFs, files, and raw source text. Use `Paste & Map` when the clipboard should become canvas context immediately.
 9. Use the `Drop -> Map -> Ask -> Handoff` loop as the mental model.
 10. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
 11. Inspect the new source/output pair on the canvas and the selected node in the inspector.

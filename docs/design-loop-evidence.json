@@ -268,7 +268,7 @@
     {
       "name": "human-intake-affordance",
       "status": "pass",
-      "notes": "The first viewport now exposes New blank canvas, Source, Note, and Ask modes with clipboard paste, active empty-submit focus feedback, Map + Brief, note capture, file upload, detected source chips, created-node inspector selection, and an in-graph Source/Paste/File/Note/Ask/Context command tray."
+      "notes": "The first viewport now exposes New blank canvas, Source, Note, and Ask modes with Paste & Map clipboard intake, active empty-submit focus feedback, Map + Brief, note capture, file upload, detected source chips, created-node inspector selection, and an in-graph Source/Paste & Map/File/Note/Ask/Context command tray."
     },
     {
       "name": "source-receipt-loop",
