@@ -10,8 +10,8 @@ Last reviewed: 2026-07-01.
 - UI system: Tailwind CSS, lucide-react, Starlight Premium Web OS tokens.
 - AI surface: Vercel AI SDK dependency is present for provider adapters; v0.1 actions are deterministic and keyless.
 - Core package: Zod schemas, typed records, chunked source artifacts, citation metadata, local file store, action runner, ingestion adapters, whole-canvas or selected-node JSON import/export, Markdown export, agent context packet export, and Codex handoff export.
-- Source intake: SSRF-hardened URL fetch, optional Firecrawl, PDF extraction, YouTube oEmbed and best-effort public captions, manual text/transcript ingestion.
-- MCP package: `@modelcontextprotocol/sdk` stdio server with positioned source ingest/update/action/import/export tools, including PDF ingest, chunk-backed search, agent context export, and Codex handoff export.
+- Source intake: SSRF-hardened URL fetch, optional Firecrawl, PDF extraction, image upload/reference artifacts, YouTube oEmbed and best-effort public captions, manual text/transcript ingestion.
+- MCP package: `@modelcontextprotocol/sdk` stdio server with positioned source ingest/update/action/import/export tools, including image and PDF ingest, chunk-backed search, agent context export, and Codex handoff export.
 - QA: Vitest, Playwright desktop/mobile, security scan, visual QA screenshots.
 - Operator diagnostics: `pnpm doctor` for human-readable local readiness and `pnpm doctor:json` for machine-readable agent/CI/setup health.
 - Storage: local JSON files under `AGENT_CANVAS_HOME`, defaulting to `<home>/.starlight/agent-canvas`.
@@ -32,7 +32,7 @@ MCP stdio keeps the agent integration low-trust and local. Clients can read and 
 - Yjs/collaboration: v0.2+ after single-user local workflows are proven.
 - Hosted storage/auth: Vercel preview or production path once the repo has a remote and product data boundaries are explicit.
 - Provider-backed AI actions: optional adapters for OpenAI, Anthropic, Gemini, or Vercel AI Gateway after deterministic local actions define the contract.
-- OCR and richer media ingestion: add once PDF/URL/YouTube transcript paths have chunk-level evidence tracking.
+- OCR, provider-backed image reasoning, and richer media ingestion: add once image/PDF/URL/YouTube transcript paths have chunk-level evidence tracking.
 
 ## Enterprise Readiness Principles
 

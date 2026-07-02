@@ -64,6 +64,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('composer-mode')).toContainText('Note');
   await expect(page.getByTestId('composer-mode')).toContainText('Ask');
   await expect(page.getByTestId('canvas-quick-start')).toContainText('Video');
+  await expect(page.getByTestId('canvas-quick-start')).toContainText('Image');
   await expect(page.getByTestId('canvas-quick-start')).toContainText('Web');
   await expect(page.getByTestId('canvas-quick-start')).toContainText('Note');
   await expect(page.getByTestId('canvas-quick-start')).toContainText('Ask');
@@ -169,6 +170,22 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Uploaded markdown source/);
   await expect(page.getByTestId('quick-note')).toBeEnabled();
 
+  await page.getByTestId('intake-text').fill('https://example.com/workflow-screenshot.png\nVisual notes: this screenshot shows composer, source receipt, and canvas handoff states.');
+  await expect(page.getByTestId('intake-preview')).toContainText('Image source');
+  await page.getByTestId('intake-ingest').click();
+  await expect(page.getByTestId('source-receipt-kind')).toContainText('image');
+  await expect(page.getByTestId('source-receipt-ingest')).toContainText('manual image notes');
+  await expect(page.getByTestId('source-image-preview')).toBeVisible();
+
+  const imagePath = testInfo.outputPath(`uploaded-image-${testInfo.project.name}.png`);
+  await writeFile(imagePath, Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=', 'base64'));
+  await page.getByTestId('composer-upload-source').setInputFiles(imagePath);
+  await expect(page.getByTestId('inspector-title')).toHaveValue(new RegExp(`uploaded-image-${testInfo.project.name}\\.png`));
+  await expect(page.getByTestId('source-receipt-kind')).toContainText('image');
+  await expect(page.getByTestId('source-receipt-ingest')).toContainText('image upload');
+  await expect(page.getByTestId('source-image-preview')).toBeVisible();
+  await expect(page.getByTestId('quick-note')).toBeEnabled();
+
   await page.evaluate(() => {
     const data = new DataTransfer();
     data.setData('text/plain', 'Pasted anywhere source: creators paste video notes directly onto the canvas for synthesis.');
@@ -250,10 +267,13 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   };
   expect(JSON.stringify(exportedCanvas)).toContain('Edited canvas note');
   expect(exportedCanvas.nodes.some((node) => node.kind === 'source_video')).toBe(true);
+  expect(exportedCanvas.nodes.some((node) => node.kind === 'source_image')).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.kind === 'source_url')).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.kind === 'source_youtube' && node.body.includes('Manual transcript'))).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.metadata.artifactId)).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'video' && artifact.body.includes('Manual video notes'))).toBe(true);
+  expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'image' && artifact.body.includes('Visual notes'))).toBe(true);
+  expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'image' && typeof artifact.metadata.imageDataUrl === 'string')).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'url' && Array.isArray(artifact.chunks) && artifact.chunks.length > 0)).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'youtube' && artifact.body.includes('Manual transcript'))).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'markdown' && artifact.body.includes('Uploaded markdown source'))).toBe(true);

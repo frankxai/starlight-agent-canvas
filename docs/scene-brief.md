@@ -27,9 +27,9 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 
 - First viewport is the product, not a landing page.
 - A user can create a fresh blank canvas from the first viewport when the latest local canvas is already populated.
-- User can paste a YouTube link, URL, transcript, or raw note directly into the canvas composer.
+- User can paste a YouTube link, image URL, URL, transcript, or raw note directly into the canvas composer.
 - Empty `Map`/`Ask` clicks focus the correct composer and update status, not silently fail.
-- User can see inferred `Video source`, `Web source`, `Source notes`, `Text source`, or file affordances before mapping.
+- User can see inferred `Video source`, `Image source`, `Web source`, `Source notes`, `Text source`, or file affordances before mapping.
 - Template cards show ordered stages and expected outcome before creating a workflow canvas.
 - Workflow Map stage buttons refocus matching template nodes.
 - Empty canvas state has direct `Map`, `Note`, and `Upload` actions.

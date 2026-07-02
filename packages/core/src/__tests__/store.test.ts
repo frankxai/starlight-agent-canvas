@@ -38,6 +38,18 @@ describe('FileCanvasStore', () => {
     expect(ingested.artifact.chunks[0]?.id).toContain(`${ingested.artifact.id}:chunk-`);
     expect(ingested.node.metadata.artifactId).toBe(ingested.artifact.id);
 
+    const image = await store.ingestSource(canvas.id, {
+      kind: 'source_image',
+      title: 'Screenshot evidence',
+      body: 'Visual evidence note about the first viewport composer.',
+      source: 'screenshot.png',
+      artifactKind: 'image',
+      metadata: { imageDataUrl: 'data:image/png;base64,iVBORw0KGgo=', ingest: 'image_upload' },
+    });
+    expect(image.node.kind).toBe('source_image');
+    expect(image.artifact.kind).toBe('image');
+    expect(image.artifact.metadata.imageDataUrl).toContain('data:image/png');
+
     const moved = await store.updateNode(canvas.id, ingested.node.id, { position: { x: 640, y: 360 } });
     expect(moved.node.position).toEqual({ x: 640, y: 360 });
 
@@ -73,6 +85,10 @@ describe('FileCanvasStore', () => {
     expect(selectedPortable.artifacts).toHaveLength(1);
     expect(selectedPortable.artifacts[0].id).toBe(ingested.artifact.id);
 
+    const imagePortable = JSON.parse(await store.exportCanvas(canvas.id, 'json', { nodeIds: [image.node.id] })) as typeof canvas;
+    expect(imagePortable.nodes[0].kind).toBe('source_image');
+    expect(imagePortable.artifacts[0].kind).toBe('image');
+
     await expect(store.exportCanvas(canvas.id, 'context', { nodeIds: ['missing-node'] })).rejects.toThrow('Cannot export missing node id');
 
     const portable = JSON.parse(await store.exportCanvas(canvas.id, 'json')) as typeof canvas;
@@ -80,7 +96,7 @@ describe('FileCanvasStore', () => {
     portable.title = 'Imported planning';
     const imported = await store.importCanvas(portable);
     expect(imported.id).toBe('canvas-imported-planning');
-    expect(imported.nodes.length).toBe(afterConcurrentWrites.nodes.length + 1);
+    expect(imported.nodes.length).toBe(afterConcurrentWrites.nodes.length + 2);
 
     const importedCopy = await store.importCanvas(portable);
     expect(importedCopy.id).not.toBe(imported.id);

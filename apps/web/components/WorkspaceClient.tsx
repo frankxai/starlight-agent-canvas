@@ -32,6 +32,7 @@ import {
   FileText,
   FileUp,
   GitBranch,
+  Image as ImageIcon,
   LayoutTemplate,
   Link,
   Loader2,
@@ -147,7 +148,7 @@ type ActivationStep = {
 };
 
 type IntakePlanItem = {
-  id: 'youtube' | 'video' | 'url' | 'text' | 'pdf' | 'file';
+  id: 'youtube' | 'video' | 'image' | 'url' | 'text' | 'pdf' | 'file';
   label: string;
   detail: string;
   active: boolean;
@@ -155,7 +156,7 @@ type IntakePlanItem = {
 
 type IntakeActionMode = 'map' | 'summarize' | 'claims' | 'ask';
 type ComposerMode = 'source' | 'note' | 'ask';
-type QuickStarterId = 'video' | 'web' | 'note' | 'ask';
+type QuickStarterId = 'video' | 'image' | 'web' | 'note' | 'ask';
 
 type WorkflowMapStep = {
   label: string;
@@ -179,6 +180,7 @@ const COMPOSER_MODES: Array<{ id: ComposerMode; label: string; detail: string }>
 
 const QUICK_STARTERS: Array<{ id: QuickStarterId; label: string; detail: string }> = [
   { id: 'video', label: 'Video', detail: 'YouTube, Loom, Vimeo' },
+  { id: 'image', label: 'Image', detail: 'screenshots and visuals' },
   { id: 'web', label: 'Web', detail: 'articles and docs' },
   { id: 'note', label: 'Note', detail: 'your synthesis' },
   { id: 'ask', label: 'Ask', detail: 'query canvas' },
@@ -197,6 +199,7 @@ const KIND_STYLE: Record<CanvasNodeKind, { label: string; accent: string; bg: st
   source_pdf: { label: 'PDF', accent: '#F1F3F9', bg: 'rgba(241,243,249,0.07)' },
   source_youtube: { label: 'Video', accent: '#F97066', bg: 'rgba(249,112,102,0.08)' },
   source_video: { label: 'Video', accent: '#F97066', bg: 'rgba(249,112,102,0.08)' },
+  source_image: { label: 'Image', accent: '#A78BFA', bg: 'rgba(167,139,250,0.08)' },
   prompt: { label: 'Prompt', accent: '#A78BFA', bg: 'rgba(167,139,250,0.08)' },
   mcp_tool: { label: 'MCP', accent: '#6EA8FE', bg: 'rgba(110,168,254,0.08)' },
   agent_run: { label: 'Run', accent: '#79E6C5', bg: 'rgba(121,230,197,0.08)' },
@@ -244,6 +247,7 @@ function AgentNode({ data, selected }: NodeProps<Node<AgentNodeData>>) {
     : typeof data.metadata.source === 'string'
       ? data.metadata.source
       : undefined;
+  const imageSrc = imageSourceFromMetadata(data.metadata);
   return (
     <div
       className={`w-[260px] rounded-lg border bg-starlight-surface/95 shadow-command backdrop-blur transition ${
@@ -260,6 +264,14 @@ function AgentNode({ data, selected }: NodeProps<Node<AgentNodeData>>) {
       </div>
       <div className="space-y-2 px-3 py-3">
         <h3 className="line-clamp-2 text-sm font-semibold text-starlight-ink">{data.title}</h3>
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt=""
+            className="h-28 w-full rounded-md border border-white/10 object-cover"
+            loading="lazy"
+          />
+        ) : null}
         <p className="line-clamp-4 text-xs leading-5 text-starlight-muted">{data.body || 'No body yet.'}</p>
         {source ? <p className="truncate text-[11px] text-starlight-mint">{source}</p> : null}
       </div>
@@ -364,6 +376,15 @@ function selectedContextPacket(node: CanvasNode, artifact?: CanvasArtifact | nul
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
 const YOUTUBE_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
 const VIDEO_FILE_PATTERN = /\.(mp4|m4v|mov|webm|mkv)(\?.*)?$/i;
+const IMAGE_FILE_PATTERN = /\.(png|jpe?g|webp|gif|avif)(\?.*)?$/i;
+const SOURCE_FILE_ACCEPT = 'application/pdf,image/png,image/jpeg,image/webp,image/gif,image/avif,text/*,.txt,.md,.markdown,.json,.csv,.log';
+const SUPPORTED_IMAGE_MIME_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/webp',
+  'image/gif',
+  'image/avif',
+]);
 const VIDEO_HOSTS = [
   'loom.com',
   'vimeo.com',
@@ -404,6 +425,24 @@ function isKnownVideoLink(value: string): boolean {
   }
 }
 
+function isKnownImageLink(value: string): boolean {
+  try {
+    return IMAGE_FILE_PATTERN.test(new URL(value).pathname);
+  } catch {
+    return false;
+  }
+}
+
+function isSupportedImageFile(file: File): boolean {
+  return SUPPORTED_IMAGE_MIME_TYPES.has(file.type) || IMAGE_FILE_PATTERN.test(file.name);
+}
+
+function imageSourceFromMetadata(metadata: Record<string, unknown> | undefined): string | undefined {
+  const dataUrl = metadataString(metadata, 'imageDataUrl');
+  const imageUrl = metadataString(metadata, 'imageUrl');
+  return dataUrl ?? imageUrl;
+}
+
 function isYoutubeVideoId(value: string): boolean {
   return YOUTUBE_ID_PATTERN.test(value.trim());
 }
@@ -419,6 +458,7 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
     return [
       { id: 'youtube', label: 'YouTube', detail: 'captions or transcript', active: false },
       { id: 'video', label: 'Video link', detail: 'reference plus notes', active: false },
+      { id: 'image', label: 'Image', detail: 'screenshot or visual', active: false },
       { id: 'url', label: 'URL', detail: 'readable text', active: false },
       { id: 'pdf', label: 'PDF', detail: 'file upload', active: false },
       { id: 'text', label: 'Notes', detail: 'source text', active: false },
@@ -428,10 +468,11 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
   const urls = isYoutubeVideoId(text) ? [normalizeYoutubeReference(text)] : extractUrls(text);
   const youtubeUrls = urls.filter(isYoutubeLink);
   const videoUrls = urls.filter((item) => !isYoutubeLink(item) && isKnownVideoLink(item));
-  const webUrls = urls.filter((item) => !isYoutubeLink(item) && !isKnownVideoLink(item));
+  const imageUrls = urls.filter((item) => !isYoutubeLink(item) && !isKnownVideoLink(item) && isKnownImageLink(item));
+  const webUrls = urls.filter((item) => !isYoutubeLink(item) && !isKnownVideoLink(item) && !isKnownImageLink(item));
   const remaining = removeUrls(text, urls);
   const textChars = (remaining || (!urls.length ? text : '')).length;
-  const singleVideoWithAttachedText = urls.length === 1 && (youtubeUrls.length === 1 || videoUrls.length === 1);
+  const singleMediaWithAttachedText = urls.length === 1 && (youtubeUrls.length === 1 || videoUrls.length === 1 || imageUrls.length === 1);
   const plan: IntakePlanItem[] = [];
 
   if (youtubeUrls.length) {
@@ -452,6 +493,15 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
     });
   }
 
+  if (imageUrls.length) {
+    plan.push({
+      id: 'image',
+      label: imageUrls.length === 1 ? 'Image source' : `${imageUrls.length} image sources`,
+      detail: remaining.length > 24 ? 'visual notes attached' : 'reference plus notes',
+      active: true,
+    });
+  }
+
   if (webUrls.length) {
     plan.push({
       id: 'url',
@@ -461,7 +511,7 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
     });
   }
 
-  if ((textChars > 24 && !singleVideoWithAttachedText) || !urls.length) {
+  if ((textChars > 24 && !singleMediaWithAttachedText) || !urls.length) {
     plan.push({
       id: 'text',
       label: urls.length ? 'Source notes' : 'Text source',
@@ -476,6 +526,7 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
 function intakePlanIcon(id: IntakePlanItem['id']) {
   if (id === 'youtube') return <Youtube className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'video') return <Film className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'image') return <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'url') return <Link className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'pdf' || id === 'file') return <FileText className="h-3.5 w-3.5" aria-hidden="true" />;
   return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
@@ -483,6 +534,7 @@ function intakePlanIcon(id: IntakePlanItem['id']) {
 
 function quickStarterIcon(id: QuickStarterId) {
   if (id === 'video') return <Film className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'image') return <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'web') return <Link className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'ask') return <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />;
   return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
@@ -511,7 +563,7 @@ function composerModeIcon(mode: ComposerMode) {
 function composerPlaceholder(mode: ComposerMode): string {
   if (mode === 'note') return 'Write a note, claim, question, or synthesis fragment';
   if (mode === 'ask') return 'Ask across selected nodes or the whole canvas';
-  return 'Paste a YouTube link, URL, transcript, PDF notes, or raw idea';
+  return 'Paste a YouTube link, image URL, transcript, PDF notes, or raw idea';
 }
 
 function composerButtonLabel(mode: ComposerMode, actionMode: IntakeActionMode): string {
@@ -622,6 +674,7 @@ function WorkspaceInner() {
     return canvas.artifacts.find((artifact) => artifact.id === artifactId) ?? null;
   }, [canvas, selectedNode]);
   const selectedSource = selectedNode ? sourceForNode(selectedNode, selectedArtifact) : undefined;
+  const selectedImageSrc = imageSourceFromMetadata(selectedArtifact?.metadata) ?? imageSourceFromMetadata(selectedNode?.metadata);
   const selectedIngest = metadataString(selectedArtifact?.metadata, 'ingest') ?? metadataString(selectedNode?.metadata, 'ingest') ?? metadataString(selectedNode?.metadata, 'createdFrom') ?? 'node';
   const selectedArtifactChars = selectedArtifact?.body.length ?? selectedNode?.body.length ?? 0;
   const selectedChunkCount = selectedArtifact?.chunks.length ?? 0;
@@ -794,7 +847,7 @@ function WorkspaceInner() {
       ? 'Ask uses selected nodes, or the whole canvas when nothing is selected.'
       : mode === 'note'
         ? 'Write a note in the canvas composer, or use Note to create a blank editable node.'
-        : 'Paste or drop a YouTube link, video link, URL, transcript, PDF, file, or raw notes.';
+        : 'Paste or drop a YouTube link, video link, image, URL, transcript, PDF, file, or raw notes.';
     setStatus(message);
     focusComposer();
   }, [composerMode, focusComposer]);
@@ -804,6 +857,13 @@ function WorkspaceInner() {
       setComposerMode('source');
       setIntakeAction('summarize');
       setStatus('Ready for a video link. Paste YouTube, Loom, Vimeo, or transcript notes.');
+      focusComposer();
+      return;
+    }
+    if (id === 'image') {
+      setComposerMode('source');
+      setIntakeAction('summarize');
+      setStatus('Ready for an image. Upload a screenshot, drop a visual, or paste an image URL with notes.');
       focusComposer();
       return;
     }
@@ -1079,6 +1139,19 @@ function WorkspaceInner() {
           continue;
         }
 
+        if (isSupportedImageFile(file)) {
+          const form = new FormData();
+          form.append('file', file);
+          if (nodePosition) {
+            form.append('positionX', String(nodePosition.x));
+            form.append('positionY', String(nodePosition.y));
+          }
+          last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/image`, { method: 'POST', body: form });
+          if (last.node?.id) createdNodeIds.push(last.node.id);
+          count += 1;
+          continue;
+        }
+
         if (
           file.type.startsWith('text/') ||
           /\.(txt|md|markdown|json|csv|log)$/i.test(file.name)
@@ -1137,23 +1210,28 @@ function WorkspaceInner() {
       for (const sourceUrl of urls) {
         const youtube = isYoutubeLink(sourceUrl);
         const videoReference = !youtube && isKnownVideoLink(sourceUrl);
+        const imageReference = !youtube && !videoReference && isKnownImageLink(sourceUrl);
         const nodePosition = offsetPosition(position, count);
         last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/nodes`, {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            kind: youtube ? 'source_youtube' : videoReference ? 'source_video' : 'source_url',
-            body: (youtube || videoReference) && urls.length === 1 ? remaining : '',
+            kind: youtube ? 'source_youtube' : videoReference ? 'source_video' : imageReference ? 'source_image' : 'source_url',
+            body: (youtube || videoReference || imageReference) && urls.length === 1 ? remaining : '',
             position: nodePosition,
-            metadata: { url: sourceUrl, media: videoReference ? 'video_reference' : undefined },
+            metadata: {
+              url: sourceUrl,
+              imageUrl: imageReference ? sourceUrl : undefined,
+              media: videoReference ? 'video_reference' : imageReference ? 'image_reference' : undefined,
+            },
           }),
         });
         if (last.node?.id) createdNodeIds.push(last.node.id);
         count += 1;
       }
 
-      const singleVideoReferenceWithAttachedText = urls.length === 1 && (isYoutubeLink(urls[0]) || isKnownVideoLink(urls[0]));
-      const shouldKeepText = !urls.length || (remaining.length > 24 && !singleVideoReferenceWithAttachedText);
+      const singleMediaReferenceWithAttachedText = urls.length === 1 && (isYoutubeLink(urls[0]) || isKnownVideoLink(urls[0]) || isKnownImageLink(urls[0]));
+      const shouldKeepText = !urls.length || (remaining.length > 24 && !singleMediaReferenceWithAttachedText);
       if (shouldKeepText) {
         const nodePosition = offsetPosition(position, count);
         last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/text`, {
@@ -1378,6 +1456,12 @@ function WorkspaceInner() {
     const onPaste = (event: ClipboardEvent) => {
       const target = event.target;
       if (target instanceof Element && target.closest('input, textarea, [contenteditable="true"]')) return;
+      const files = Array.from(event.clipboardData?.files ?? []);
+      if (files.length && canvas && !busy) {
+        event.preventDefault();
+        void ingestFiles(files);
+        return;
+      }
       const text = event.clipboardData?.getData('text/plain')?.trim();
       if (!text || !canvas || busy) return;
       event.preventDefault();
@@ -1393,7 +1477,7 @@ function WorkspaceInner() {
     };
     window.addEventListener('paste', onPaste);
     return () => window.removeEventListener('paste', onPaste);
-  }, [addCanvasNoteAt, busy, canvas, composerMode, intakeAnything, runAction]);
+  }, [addCanvasNoteAt, busy, canvas, composerMode, ingestFiles, intakeAnything, runAction]);
 
   const connectSelected = useCallback(async () => {
     if (!canvas || selectedIds.length < 2) return;
@@ -1544,7 +1628,7 @@ function WorkspaceInner() {
                   }
                 }}
                 className="min-h-24 w-full rounded-md border border-starlight-border bg-starlight-surface px-3 py-2 text-sm leading-6"
-                placeholder="Paste a YouTube link, URL, transcript, or note"
+                placeholder="Paste a YouTube link, image URL, transcript, or note"
               />
               <div className="flex flex-wrap gap-1.5" data-testid="rail-intake-preview">
                 {intakePlan.map((item) => (
@@ -1604,7 +1688,7 @@ function WorkspaceInner() {
                   <input
                     type="file"
                     multiple
-                    accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
+                    accept={SOURCE_FILE_ACCEPT}
                     disabled={!canMutate}
                     onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
                     className="sr-only"
@@ -1774,7 +1858,7 @@ function WorkspaceInner() {
               <input
                 type="file"
                 multiple
-                accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
+                accept={SOURCE_FILE_ACCEPT}
                 disabled={!canMutate}
                 onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
                 className="w-full rounded-md border border-starlight-border bg-starlight-panel px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-starlight-ink file:px-2 file:py-1 file:text-xs file:text-starlight-bg disabled:cursor-not-allowed disabled:opacity-45"
@@ -1783,7 +1867,7 @@ function WorkspaceInner() {
           </aside>
 
           <section
-            className={`relative order-1 h-[620px] min-h-[620px] overflow-hidden bg-starlight-bg sm:h-[680px] lg:order-none lg:h-auto lg:min-h-0 ${dragActive ? 'ring-2 ring-inset ring-starlight-accent/70' : ''}`}
+            className={`relative order-1 h-[620px] min-h-[620px] overflow-hidden bg-starlight-bg sm:h-[680px] lg:order-none lg:h-full lg:min-h-0 ${dragActive ? 'ring-2 ring-inset ring-starlight-accent/70' : ''}`}
             data-testid="canvas-surface"
             onDrop={onDrop}
             onDragOver={onDragOver}
@@ -1806,7 +1890,7 @@ function WorkspaceInner() {
                   Drop or paste onto the graph
                 </div>
                 <p className="mt-1 text-[11px] leading-4 text-starlight-muted">
-                  Video links, URLs, PDFs, markdown, transcripts, and notes become typed context nodes at the drop point.
+                  Video links, image files, URLs, PDFs, markdown, transcripts, and notes become typed context nodes at the drop point.
                 </p>
               </div>
             ) : null}
@@ -1849,7 +1933,7 @@ function WorkspaceInner() {
                   >
                     <LayoutTemplate className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>Demo</span>
-                    <span className="hidden font-normal text-starlight-muted sm:inline">proof canvas</span>
+                    <span className="hidden font-normal text-starlight-muted 2xl:inline">proof canvas</span>
                   </button>
                   <button
                     data-testid="new-blank-canvas"
@@ -1861,7 +1945,7 @@ function WorkspaceInner() {
                   >
                     <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
                     <span>New</span>
-                    <span className="hidden font-normal text-starlight-muted sm:inline">blank canvas</span>
+                    <span className="hidden font-normal text-starlight-muted 2xl:inline">blank canvas</span>
                   </button>
                   {QUICK_STARTERS.map((starter) => (
                     <button
@@ -1873,7 +1957,7 @@ function WorkspaceInner() {
                     >
                       {quickStarterIcon(starter.id)}
                       <span>{starter.label}</span>
-                      <span className="hidden font-normal text-starlight-muted sm:inline">{starter.detail}</span>
+                      <span className="hidden font-normal text-starlight-muted 2xl:inline">{starter.detail}</span>
                     </button>
                   ))}
                 </div>
@@ -1882,7 +1966,8 @@ function WorkspaceInner() {
                     <div key={step.label} className="flex items-center gap-1.5">
                       {index ? <span className="text-starlight-border">/</span> : null}
                       <span className="rounded-md border border-starlight-border bg-starlight-bg/70 px-2 py-1">
-                        <span className="font-semibold text-starlight-ink">{step.label}</span> {step.detail}
+                        <span className="font-semibold text-starlight-ink">{step.label}</span>
+                        <span className="hidden 2xl:inline"> {step.detail}</span>
                       </span>
                     </div>
                   ))}
@@ -1980,7 +2065,7 @@ function WorkspaceInner() {
                         type="file"
                         aria-label="Upload source"
                         multiple
-                        accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
+                        accept={SOURCE_FILE_ACCEPT}
                         disabled={!canMutate}
                         onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
                         className="sr-only"
@@ -2004,7 +2089,7 @@ function WorkspaceInner() {
               </div>
             </div>
             <div
-              className="absolute bottom-3 left-3 top-auto z-10 flex max-w-[calc(100%-1.5rem)] flex-nowrap items-center gap-2 overflow-x-auto rounded-lg border border-starlight-border bg-starlight-surface/88 p-1.5 shadow-command backdrop-blur sm:bottom-4 sm:left-4 sm:max-w-[calc(100%-2rem)] sm:flex-wrap sm:overflow-visible sm:p-2"
+              className="absolute bottom-3 left-3 top-auto z-30 flex max-w-[calc(100%-1.5rem)] flex-nowrap items-center gap-2 overflow-x-auto rounded-lg border border-starlight-border bg-starlight-surface/88 p-1.5 shadow-command backdrop-blur sm:bottom-4 sm:left-4 sm:max-w-[calc(100%-2rem)] sm:flex-wrap sm:overflow-visible sm:p-2"
               data-testid="canvas-command-tray"
             >
               <span className="hidden px-2 text-xs text-starlight-muted sm:inline">{canvas?.title ?? 'Loading canvas'}</span>
@@ -2039,7 +2124,7 @@ function WorkspaceInner() {
                   type="file"
                   aria-label="Upload source to canvas"
                   multiple
-                  accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
+                  accept={SOURCE_FILE_ACCEPT}
                   disabled={!canMutate}
                   onChange={(event) => {
                     void ingestFiles(Array.from(event.currentTarget.files ?? []));
@@ -2118,7 +2203,7 @@ function WorkspaceInner() {
                   <UploadCloud className="mx-auto h-7 w-7 text-starlight-accent" aria-hidden="true" />
                   <h2 className="mt-3 text-base font-semibold text-starlight-ink">Drop context here</h2>
                   <p className="mt-2 text-sm leading-6 text-starlight-muted">
-                    Paste or drop a YouTube link, URL, transcript, PDF, markdown, or raw notes. The canvas will turn it into source nodes, chunks, citations, and agent-ready context.
+                    Paste or drop a YouTube link, image, URL, transcript, PDF, markdown, or raw notes. The canvas will turn it into source nodes, chunks, citations, and agent-ready context.
                   </p>
                   <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <button
@@ -2145,7 +2230,7 @@ function WorkspaceInner() {
                       <input
                         type="file"
                         multiple
-                        accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
+                        accept={SOURCE_FILE_ACCEPT}
                         disabled={!canMutate}
                         onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []), { x: 120, y: 140 })}
                         className="sr-only"
@@ -2388,6 +2473,16 @@ function WorkspaceInner() {
                     {selectedSource ? (
                       <div className="mt-2 truncate rounded-md border border-starlight-border bg-starlight-bg px-2 py-1.5 text-[11px] text-starlight-mint" data-testid="source-receipt-source">
                         {selectedSource}
+                      </div>
+                    ) : null}
+                    {selectedImageSrc ? (
+                      <div className="mt-2 overflow-hidden rounded-md border border-starlight-border bg-starlight-bg" data-testid="source-image-preview">
+                        <img
+                          src={selectedImageSrc}
+                          alt={`Preview for ${selectedNode.title}`}
+                          className="max-h-56 w-full object-contain"
+                          loading="lazy"
+                        />
                       </div>
                     ) : null}
                     {selectedChunkPreviews.length ? (

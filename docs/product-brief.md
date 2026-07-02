@@ -20,7 +20,7 @@ Turn mixed source material into reusable agent context, Codex continuation promp
 
 ## v0.1 Capability Standard
 
-- Paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
+- Paste or drop URLs, YouTube links, image URLs/screenshots, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
 - Start from the latest local canvas, one-click demo proof canvas, or a fresh blank canvas from the first viewport.
 - Keep primary intake actions responsive: empty `Map` or `Ask` clicks focus the right composer and explain the next move instead of feeling disabled.
 - Launch guided workflow templates for competitor teardown, repo/product planning, agent workflow design, and content synthesis.

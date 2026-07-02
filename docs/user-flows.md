@@ -20,7 +20,7 @@ Expected result: the user sees what will be created before mapping, the new type
 
 1. Open any canvas.
 2. Click `New` when you want a fresh blank graph instead of the latest local canvas.
-3. Click `Video`, `Web`, `Note`, or `Ask` in the first-viewport composer.
+3. Click `Video`, `Image`, `Web`, `Note`, or `Ask` in the first-viewport composer.
 4. Confirm the composer focuses and the status explains the selected mode.
 5. If the primary `Map + Brief` action is clicked before adding context, confirm it focuses the composer instead of silently doing nothing.
 6. Paste or drop context.
@@ -69,6 +69,18 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 6. Export JSON/context and confirm the source is a `source_video` node with a `video` artifact and `media: video_reference` provenance.
 
 Expected result: the canvas accepts arbitrary video links as local context references without claiming unsupported video download or platform transcription.
+
+## Flow 2B: Image Evidence
+
+1. Click `Image`.
+2. Paste an image URL with visual notes, or drop/upload a PNG, JPEG, WebP, GIF, or AVIF screenshot.
+3. Confirm the intake preview shows `Image source` when a URL is detected.
+4. Click `Map only` for raw visual evidence, or `Map + Brief` when you want immediate synthesis from the attached notes/OCR text.
+5. Confirm the graph node and inspector show an image preview.
+6. Confirm the context receipt shows `image`, `image reference` or `image upload`, source URL/file, chunks, and character count.
+7. Export JSON/context and confirm the source is a `source_image` node with an `image` artifact and `imageUrl` or `imageDataUrl` provenance.
+
+Expected result: the canvas accepts visual context as first-class local evidence without claiming OCR or model-backed image understanding until notes or provider vision are added.
 
 ## Flow 3: Competitor Teardown
 

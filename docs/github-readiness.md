@@ -99,7 +99,7 @@ Use `docs/readiness-evidence.md` as the current proof matrix before tagging or a
 
 ## First Good Issues
 
-- Add richer PDF, drag/drop, and clipboard-permission browser coverage.
+- Add richer PDF, image OCR/vision, drag/drop, and clipboard-permission browser coverage.
 - Add a standalone packaged CLI binary once the local script surface stabilizes.
 - Add a local SQLite store adapter behind the existing store contract.
 - Add citation-to-node navigation from the inspector.

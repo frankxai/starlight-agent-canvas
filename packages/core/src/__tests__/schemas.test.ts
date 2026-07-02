@@ -31,6 +31,15 @@ describe('canvas schema', () => {
     expect(video.kind).toBe('source_video');
     expect(video.artifactKind).toBe('video');
 
+    const image = ingestSourceInputSchema.parse({
+      kind: 'source_image',
+      title: 'Screenshot',
+      body: 'Visual notes.',
+      artifactKind: 'image',
+    });
+    expect(image.kind).toBe('source_image');
+    expect(image.artifactKind).toBe('image');
+
     const action = runActionInputSchema.parse({
       action: 'answer_question',
     });

@@ -20,6 +20,7 @@ const expectedTools = [
   'ingest_url',
   'ingest_youtube',
   'ingest_video',
+  'ingest_image',
   'ingest_pdf',
   'connect_nodes',
   'run_node_action',
@@ -115,6 +116,25 @@ try {
   }
   if (!Array.isArray(genericVideoArtifact.chunks) || !genericVideoArtifact.chunks.length) {
     throw new Error('ingest_video did not create source chunks.');
+  }
+
+  const image = await client.callTool({
+    name: 'ingest_image',
+    arguments: {
+      canvasId,
+      url: 'https://example.com/workflow-screenshot.png',
+      title: 'Smoke image reference',
+      description: 'Visual notes: image references become source_image nodes with image artifacts.',
+      position: { x: 880, y: 360 },
+    },
+  });
+  const imageNodeId = image.structuredContent?.node?.id;
+  const imageArtifact = image.structuredContent?.artifact;
+  if (typeof imageNodeId !== 'string' || image.structuredContent?.node?.kind !== 'source_image' || imageArtifact?.kind !== 'image') {
+    throw new Error('ingest_image did not return a source_image node and image artifact.');
+  }
+  if (imageArtifact.metadata?.imageUrl !== 'https://example.com/workflow-screenshot.png') {
+    throw new Error('ingest_image did not preserve image URL provenance.');
   }
 
   const urlSource = await client.callTool({
@@ -280,6 +300,7 @@ try {
     toolCount: names.length,
     canvasId,
     videoNodeId,
+    imageNodeId,
     urlNodeId,
     importedCanvasId,
   }, null, 2));

@@ -20,9 +20,9 @@ flowchart LR
 
 1. Start from the first viewport, not a docs page.
 2. Use `New` for a blank graph or `Demo` for a proof canvas.
-3. Use `Video`, `Web`, `Note`, or `Ask` when the top composer is the fastest path.
+3. Use `Video`, `Image`, `Web`, `Note`, or `Ask` when the top composer is the fastest path.
 4. Use the graph command tray when attention is already on the canvas: `Source`, `Paste & Map`, `File`, `Note`, `Ask`, `Context`, `Codex`.
-5. Paste or drop YouTube, non-YouTube video links, web URLs, files, transcripts, rough notes, or mixed text. The clipboard button maps immediately; direct typing in the composer lets the human preview before mapping.
+5. Paste or drop YouTube, non-YouTube video links, image URLs/screenshots, web URLs, files, transcripts, rough notes, or mixed text. The clipboard button maps immediately; direct typing in the composer lets the human preview before mapping.
 6. Confirm the preview chips before mapping.
 7. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 8. Inspect the selected node receipt for artifact kind, ingest mode, source URL/path, chunks, and character count.
@@ -36,7 +36,7 @@ Agents should use the MCP server as a typed local operating surface, not as a ge
 1. `list_canvases`
 2. `get_canvas`
 3. Read existing nodes/artifacts before writing.
-4. Use source-ingest tools when adding evidence: `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, or `ingest_pdf`.
+4. Use source-ingest tools when adding evidence: `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, `ingest_image`, or `ingest_pdf`.
 5. Use `position` for generated nodes so the human opens a legible map.
 6. Use `connect_nodes` to make evidence relationships visible.
 7. Use `run_node_action` for summaries, claims, comparisons, matrices, implementation briefs, or cited answers.
@@ -53,6 +53,7 @@ Agents should use the MCP server as a typed local operating surface, not as a ge
 | PDF upload | `source_pdf` | `pdf` | Local text extraction, capped size |
 | YouTube | `source_youtube` | `youtube` | Transcript-first, manual transcript fallback, no video download |
 | Loom/Vimeo/direct video/Drive/Dropbox/etc. | `source_video` | `video` | Reference-first with attached transcript/notes; provider transcript adapters are future work |
+| Image URL or uploaded screenshot | `source_image` | `image` | Reference/upload first with attached visual notes or OCR text; provider vision/OCR adapters are future work |
 | Agent output | `output` | none by default | Inspectable result with citations/run metadata when available |
 
 ## Health Contract

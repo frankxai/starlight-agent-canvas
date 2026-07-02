@@ -92,6 +92,7 @@ For implementation continuation, prefer `export_canvas` with `format: "codex"` o
 - `ingest_url`: add a public URL as source context.
 - `ingest_youtube`: add a YouTube URL plus optional manual transcript.
 - `ingest_video`: add a Loom, Vimeo, direct video, Drive, Dropbox, or similar video URL plus optional manual transcript/notes.
+- `ingest_image`: add an image URL or local PNG/JPEG/WebP/GIF/AVIF bytes plus optional visual notes/OCR text.
 - `ingest_pdf`: add a base64 PDF as a local PDF source artifact.
 - `add_node`: create note, prompt, MCP tool, agent run, or output nodes.
 - `update_node`: clean up titles, bodies, metadata, or positions.
@@ -117,9 +118,11 @@ For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Us
 
 When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`. When the human clicks `Codex`, the app copies the `format: "codex"` handoff prompt, which tells Codex to resume with `get_canvas` against the current canvas id and embeds the context packet as fallback. If nodes are selected, both buttons export only the selected nodes, their linked artifacts/chunks, selected-internal edges, and related runs. Cite node ids and chunk ids from either export when making claims.
 
-When the human clicks `Copy source` in a selected node receipt, Codex should treat that as a narrower source-only packet. Use it when the task is about one YouTube video, PDF, page, or note instead of the whole canvas.
+When the human clicks `Copy source` in a selected node receipt, Codex should treat that as a narrower source-only packet. Use it when the task is about one YouTube video, image, PDF, page, or note instead of the whole canvas.
 
 For non-YouTube video links, Codex should use `ingest_video` or treat the UI-created `source_video` node as a video reference unless transcript text or notes were provided. The app preserves `media: video_reference` provenance so agents do not overstate what was extracted.
+
+For image links or screenshots, Codex should use `ingest_image` or treat the UI-created `source_image` node as visual evidence. The app preserves `imageUrl` or `imageDataUrl` provenance and expects useful visual notes/OCR text in the node body until provider-backed vision extraction is added.
 
 ## Happy Path Transcript
 

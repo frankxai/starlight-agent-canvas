@@ -29,6 +29,7 @@ The web app and MCP server operate over the same local data home. A source added
 | --- | --- | --- |
 | YouTube URL | Title/captions when available, manual transcript fallback, `source_youtube` node, chunks, citations | Transcript-first; no video download |
 | Loom/Vimeo/Wistia/TikTok/Drive/Dropbox/direct video URL | Safe `source_video` node plus attached notes, `video` artifact, provenance metadata, chunks | Use notes/transcripts for analysis until provider transcript adapters land |
+| Image URL or PNG/JPEG/WebP/GIF/AVIF upload | Safe `source_image` node plus image preview, `image` artifact, provenance metadata, chunks | Add notes/OCR text for analysis until provider vision adapters land |
 | Public web URL | Bounded fetch into a URL artifact, or safe reference fallback | Private/localhost targets blocked by default |
 | PDF upload | Local text extraction into a PDF artifact | File size capped |
 | Markdown/text/JSON/CSV/log | Local source artifact with chunks | Works without model keys |
@@ -39,7 +40,7 @@ The web app and MCP server operate over the same local data home. A source added
 1. Run `node scripts/setup.mjs`.
 2. Open `http://localhost:3000`.
 3. Confirm the in-app `Setup / MCP` panel.
-4. Click `New` for a fresh blank graph, `Demo` for a working proof canvas, or `Video`, `Web`, `Note`, or `Ask` to start from your own material.
+4. Click `New` for a fresh blank graph, `Demo` for a working proof canvas, or `Video`, `Image`, `Web`, `Note`, or `Ask` to start from your own material.
 5. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
 6. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
 7. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP. When nodes are selected, these exports stay scoped to the selected evidence.
@@ -50,12 +51,13 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 ## What v0.1 Does
 
 - Create local canvases with portable JSON import/export, Markdown handoff exports, agent context packets, and Codex-ready continuation prompts.
-- Drop or paste URLs, YouTube links, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
+- Drop or paste URLs, YouTube links, image URLs/screenshots, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, click `Paste & Map` to turn the clipboard into nodes immediately, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
 - Create a fresh blank canvas from the first viewport, and click an empty primary intake action to focus the composer instead of hitting a dead disabled state.
 - Launch guided workflow templates with source slots, ordered stages, prompt nodes, expected output targets, and Codex/MCP handoff nodes; use the live Workflow Map to jump between stages.
-- Preview detected intake types before mapping, including video source, web source, source notes, text source, PDF, and file paths.
+- Preview detected intake types before mapping, including video source, image source, web source, source notes, text source, PDF, and file paths.
 - Treat non-YouTube video links as first-class `source_video` nodes with attached notes, `video` artifacts, chunks, and preserved `media: video_reference` provenance.
+- Treat image URLs and uploaded screenshots as first-class `source_image` nodes with image previews, `image` artifacts, chunks, and preserved `imageUrl` or `imageDataUrl` provenance.
 - Choose the first pass before capture: `Map + Brief` by default, or `Claims`, `Ask`, and `Map only` when you want raw source nodes first.
 - Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata, source chunks, and citation-ready ids.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
@@ -65,7 +67,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 - Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect a selected source receipt with ingest mode/chunks/provenance, run source-scoped actions, copy selected source context, export selected or whole-canvas context/Codex handoff packets, export the result, and re-import portable canvas JSON.
 - Inspect local setup, data home, MCP build, and Codex MCP wiring from the in-app `Setup / MCP` panel.
 - Auto-select and open newly created sources, notes, files, and action answers in the inspector so the captured context is immediately usable.
-- Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/video/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
+- Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/video/image/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
 - Keep runtime data outside the repo by default.
 
 ## Quick Start
@@ -214,7 +216,7 @@ pnpm test:e2e
 - Next.js App Router, React, TypeScript, Tailwind.
 - `@xyflow/react` typed workflow canvas.
 - Zod schemas, chunked source artifacts, citations, context packets, Codex handoff prompts, and a local file-backed store in `packages/core`.
-- Source adapters for URL fetch, optional Firecrawl, PDF extraction, YouTube oEmbed/captions, and manual text.
+- Source adapters for URL fetch, optional Firecrawl, image upload/reference artifacts, PDF extraction, YouTube oEmbed/captions, and manual text.
 - `@modelcontextprotocol/sdk` stdio server in `packages/mcp`.
 - Vercel AI SDK dependency for future provider adapters; v0.1 actions remain deterministic and keyless.
 - Vitest, Playwright, security scan, CI, and visual QA evidence.
@@ -265,4 +267,4 @@ Client examples and workflow prompts live in `examples/mcp`.
 
 No v0.1 tool posts externally, scrapes social platforms, spends money, modifies external accounts, or deletes canvases. Runtime state lives in local files and can be inspected directly.
 
-URL/PDF/video ingestion is bounded: private and localhost URLs are rejected for arbitrary URL fetches, remote fetches have timeout/size limits, PDFs are capped, YouTube transcript fetching is read-only/best-effort, and Firecrawl is used only when both `FIRECRAWL_API_KEY` exists and a request explicitly opts in.
+URL/PDF/video/image ingestion is bounded: private and localhost URLs are rejected for arbitrary URL fetches, remote fetches have timeout/size limits, PDFs and uploaded images are capped, image URLs are stored as references without fetching arbitrary binary content, YouTube transcript fetching is read-only/best-effort, and Firecrawl is used only when both `FIRECRAWL_API_KEY` exists and a request explicitly opts in.

@@ -14,7 +14,7 @@ The activation runway is the first successful loop for Starlight Agent Canvas. I
    - Proof: the canvas has source nodes, artifacts, chunks, citations, output nodes, and exportable context.
 
 3. Map your own source
-   - Paste or drop a YouTube/video link, transcript, URL, PDF, file, or note.
+   - Paste or drop a YouTube/video link, image, transcript, URL, PDF, file, or note.
    - Use `Map + Brief` for immediate synthesis, or `Map only` when you want raw source nodes first.
    - Proof: a source node is selected and the inspector shows a context receipt.
 

@@ -4,7 +4,7 @@ This guide is for people trying Starlight Agent Canvas from GitHub and for local
 
 ## What You Get
 
-- A local web canvas for notes, URLs, YouTube transcripts, PDFs, text files, and agent outputs.
+- A local web canvas for notes, URLs, YouTube transcripts, images/screenshots, PDFs, text files, and agent outputs.
 - A file-backed data home outside the repo.
 - A safe stdio MCP server so agents can read, add to, run actions on, import, and export the same canvas as JSON, Markdown, or an agent context packet.
 - Deterministic local actions that work without model provider keys.
@@ -144,7 +144,7 @@ pnpm dev
 6. Use `Context` to copy a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
 7. Use the first-viewport quick starters: `Video`, `Web`, `Note`, or `Ask` when you want to start from your own material.
 8. If you click `Map + Brief` before adding context, confirm it focuses the composer and status line instead of silently failing.
-9. Paste or drop YouTube links, Loom/Vimeo/direct video links, URLs, transcripts, PDFs, files, and raw source text. Use `Paste & Map` when the clipboard should become canvas context immediately.
+9. Paste or drop YouTube links, Loom/Vimeo/direct video links, image URLs/screenshots, URLs, transcripts, PDFs, files, and raw source text. Use `Paste & Map` when the clipboard should become canvas context immediately.
 10. Use the `Drop -> Map -> Ask -> Handoff` loop as the mental model.
 11. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
 12. Inspect the new source/output pair on the canvas and the selected node in the inspector.
@@ -167,6 +167,7 @@ pnpm dev
 | --- | --- |
 | YouTube URL | Transcript/captions when available; manual transcript fallback; `source_youtube` node |
 | Loom/Vimeo/Wistia/TikTok/Drive/Dropbox/direct video URL | `source_video` node plus `video` artifact; attach transcript or notes for analysis |
+| Image URL or uploaded PNG/JPEG/WebP/GIF/AVIF | `source_image` node plus `image` artifact; attach visual notes, OCR text, claims, or design observations for analysis |
 | Web URL | Bounded readable-text fetch or safe reference fallback |
 | PDF | Local text extraction into PDF artifact |
 | Markdown/text/JSON/CSV/log | Manual source artifact with chunks |
@@ -218,5 +219,6 @@ The same exports are available from the terminal with `pnpm canvas -- export <ca
 - Import creates a duplicate title: this is intentional when a JSON export has the same canvas id as an existing local canvas.
 - Browser says the API is blocked from a remote host: this is intentional. Set `AGENT_CANVAS_ALLOW_REMOTE=1` only for a protected deployment.
 - YouTube has no transcript: paste a manual transcript or notes with the URL.
+- Image needs OCR or visual reasoning: add notes/OCR text in the image node body; first-class vision extraction is future work.
 - URL ingestion rejects a private host: local/private network URLs are blocked by default to prevent SSRF.
 - Playwright fails on a fresh machine: run `pnpm --filter @starlight-agent-canvas/web exec playwright install --with-deps chromium`.

@@ -287,6 +287,36 @@
       "path_or_url": "docs/visual-qa/mobile-activation-runway.png",
       "kind": "mobile activation runway screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-image-intake-preview.png",
+      "kind": "desktop image URL smart intake preview screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-image-upload-receipt.png",
+      "kind": "desktop uploaded image source node screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-image-source-receipt.png",
+      "kind": "desktop uploaded image source receipt screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-image-upload-receipt.png",
+      "kind": "mobile uploaded image source node screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-image-source-receipt.png",
+      "kind": "mobile uploaded image source receipt screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-image-upload-reduced-motion.png",
+      "kind": "desktop reduced-motion uploaded image screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -359,6 +389,11 @@
       "name": "activation-runway",
       "status": "pass",
       "notes": "The Setup/MCP panel now exposes a five-step activation runway with live setup/canvas/Codex state, copyable commands, proof-canvas action, first-run/prod-preview commands, and a copyable Codex activation prompt; desktop and mobile screenshots were inspected from the production preview."
+    },
+    {
+      "name": "image-intake-loop",
+      "status": "pass",
+      "notes": "Image URLs now preview as typed image sources, uploaded screenshots become source_image nodes with image artifacts, and desktop/mobile/reduced-motion captures prove the source receipt, thumbnail preview, selected-source actions, and command tray."
     }
   ],
   "score": {
@@ -430,7 +465,13 @@
       "docs/visual-qa/desktop-guided-workflow-template.png",
       "docs/visual-qa/mobile-guided-workflow-template.png",
       "docs/visual-qa/desktop-activation-runway.png",
-      "docs/visual-qa/mobile-activation-runway.png"
+      "docs/visual-qa/mobile-activation-runway.png",
+      "docs/visual-qa/desktop-image-intake-preview.png",
+      "docs/visual-qa/desktop-image-upload-receipt.png",
+      "docs/visual-qa/desktop-image-source-receipt.png",
+      "docs/visual-qa/mobile-image-upload-receipt.png",
+      "docs/visual-qa/mobile-image-source-receipt.png",
+      "docs/visual-qa/desktop-image-upload-reduced-motion.png"
     ],
     "productionMetrics": {
       "desktop": {
@@ -488,6 +529,10 @@
       "canvasCommandTray": true,
       "mobileCommandTrayNoOverlap": true,
       "mcpIngestVideoTool": true,
+      "imageUrlPreview": true,
+      "imageUploadTested": true,
+      "imageReceiptPreview": true,
+      "mcpIngestImageTool": true,
       "codexHandoffCommandTray": true,
       "codexHandoffApiExport": true,
       "codexHandoffMcpExport": true,

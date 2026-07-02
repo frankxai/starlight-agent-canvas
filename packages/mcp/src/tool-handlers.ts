@@ -72,6 +72,30 @@ function videoReferenceSource(url: string, manualTranscript = '', title?: string
   };
 }
 
+const MAX_IMAGE_BYTES = 5_000_000;
+const SUPPORTED_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/gif', 'image/avif']);
+
+function imageReferenceSource(url: string, description = '', title?: string): IngestedSource {
+  let fallbackTitle = 'Image source';
+  try {
+    fallbackTitle = `Image ${new URL(url).hostname.replace(/^www\./, '')}`;
+  } catch {
+    fallbackTitle = url.slice(0, 80) || fallbackTitle;
+  }
+  const notes = description.trim();
+  return {
+    title: title || fallbackTitle,
+    body: notes || `Image reference mapped from ${url}. Add alt text, visual observations, OCR text, design notes, or claims for analysis.`,
+    source: url,
+    metadata: {
+      url,
+      imageUrl: url,
+      ingest: notes ? 'manual_image_notes' : 'image_reference',
+      media: 'image_reference',
+    },
+  };
+}
+
 export function createToolHandlers(store = new FileCanvasStore()) {
   return {
     async list_canvases(): Promise<ToolResult> {
@@ -166,6 +190,67 @@ export function createToolHandlers(store = new FileCanvasStore()) {
         position: args.position,
       }));
       return ok(`Ingested video reference ${result.node.title} (${result.node.id})`, result);
+    },
+
+    async ingest_image(args: {
+      canvasId: string;
+      url?: string;
+      title?: string;
+      filename?: string;
+      mimeType?: string;
+      dataBase64?: string;
+      description?: string;
+      position?: { x: number; y: number };
+    }): Promise<ToolResult> {
+      if (args.url) {
+        const source = imageReferenceSource(args.url, args.description ?? '', args.title);
+        const result = await store.ingestSource(args.canvasId, ingestSourceInputSchema.parse({
+          kind: 'source_image',
+          title: source.title,
+          body: source.body,
+          source: source.source,
+          artifactKind: 'image',
+          metadata: source.metadata,
+          position: args.position,
+        }));
+        return ok(`Ingested image reference ${result.node.title} (${result.node.id})`, result);
+      }
+
+      if (!args.dataBase64 || !args.filename || !args.mimeType) {
+        throw new Error('Image ingest requires either url or filename, mimeType, and dataBase64.');
+      }
+      if (!SUPPORTED_IMAGE_TYPES.has(args.mimeType)) {
+        throw new Error('Only PNG, JPEG, WebP, GIF, and AVIF images can be ingested.');
+      }
+      const bytes = Buffer.from(args.dataBase64, 'base64');
+      if (bytes.byteLength > MAX_IMAGE_BYTES) {
+        throw new Error(`Image is larger than ${MAX_IMAGE_BYTES} bytes.`);
+      }
+      const dataUrl = `data:${args.mimeType};base64,${bytes.toString('base64')}`;
+      const body = args.description?.trim() || [
+        `Image source: ${args.filename}`,
+        `Type: ${args.mimeType}`,
+        `Size: ${bytes.byteLength} bytes`,
+        '',
+        'Add visual observations, OCR text, design notes, claims, or questions here so agents can reason over the image.',
+      ].join('\n');
+      const result = await store.ingestSource(args.canvasId, ingestSourceInputSchema.parse({
+        kind: 'source_image',
+        title: args.title || args.filename,
+        body,
+        source: args.filename,
+        artifactKind: 'image',
+        metadata: {
+          ingest: 'mcp_image_upload',
+          filename: args.filename,
+          mimeType: args.mimeType,
+          fileSize: bytes.byteLength,
+          imageDataUrl: dataUrl,
+          media: 'image_upload',
+        },
+        position: args.position,
+      }));
+      return ok(`Ingested image source ${result.node.title} (${result.node.id})`, result);
     },
 
     async ingest_pdf(args: { canvasId: string; filename: string; dataBase64: string; position?: { x: number; y: number } }): Promise<ToolResult> {

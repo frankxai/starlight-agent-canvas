@@ -61,6 +61,31 @@ describe('MCP tool handlers', () => {
     expect(genericVideoArtifact.kind).toBe('video');
     expect(genericVideoArtifact.chunks[0].id).toContain('chunk-001');
 
+    const imageReference = await handlers.ingest_image({
+      canvasId: canvas.id,
+      url: 'https://example.com/workflow.png',
+      title: 'Workflow screenshot',
+      description: 'Visual notes from a workflow screenshot about composer and canvas states.',
+      position: { x: 760, y: 520 },
+    });
+    const imageReferenceNode = imageReference.structuredContent?.node as { kind: string };
+    const imageReferenceArtifact = imageReference.structuredContent?.artifact as { kind: string; metadata: Record<string, unknown> };
+    expect(imageReferenceNode.kind).toBe('source_image');
+    expect(imageReferenceArtifact.kind).toBe('image');
+    expect(imageReferenceArtifact.metadata.imageUrl).toBe('https://example.com/workflow.png');
+
+    const imageUpload = await handlers.ingest_image({
+      canvasId: canvas.id,
+      filename: 'local-screenshot.png',
+      mimeType: 'image/png',
+      dataBase64: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).toString('base64'),
+      description: 'Uploaded screenshot notes for visual QA.',
+      position: { x: 960, y: 520 },
+    });
+    const imageUploadArtifact = imageUpload.structuredContent?.artifact as { kind: string; metadata: Record<string, unknown> };
+    expect(imageUploadArtifact.kind).toBe('image');
+    expect(imageUploadArtifact.metadata.imageDataUrl).toContain('data:image/png;base64');
+
     const url = await handlers.ingest_url({
       canvasId: canvas.id,
       url: 'http://127.0.0.1/starlight-agent-canvas-test',

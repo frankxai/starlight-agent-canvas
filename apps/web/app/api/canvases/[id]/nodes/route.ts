@@ -39,6 +39,22 @@ function videoReferenceSource(url: string, manualNotes = ''): IngestedSource {
   };
 }
 
+function imageReferenceSource(url: string, manualNotes = ''): IngestedSource {
+  const parsed = new URL(url);
+  const notes = manualNotes.trim();
+  return {
+    title: `Image ${parsed.hostname.replace(/^www\./, '')}`,
+    body: notes || `Image reference mapped from ${url}. Add alt text, visual observations, claims, or design notes so agents can reason over the image.`,
+    source: url,
+    metadata: {
+      url,
+      imageUrl: url,
+      ingest: notes ? 'manual_image_notes' : 'image_reference',
+      media: 'image_reference',
+    },
+  };
+}
+
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await context.params;
@@ -83,6 +99,21 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         source: source.source,
         artifactKind: 'video',
         metadata: { ...source.metadata, media: metadata.media ?? 'video_reference' },
+        position: body.position,
+      });
+      return NextResponse.json(result);
+    }
+
+    if (body.kind === 'source_image' && metadata.url) {
+      const url = String(metadata.url);
+      const source = imageReferenceSource(url, String(body.body || ''));
+      const result = await getStore().ingestSource(id, {
+        kind: 'source_image',
+        title: body.title || source.title,
+        body: source.body,
+        source: source.source,
+        artifactKind: 'image',
+        metadata: { ...source.metadata, media: metadata.media ?? 'image_reference' },
         position: body.position,
       });
       return NextResponse.json(result);

@@ -6,7 +6,7 @@ Starlight Agent Canvas is an OSS-first, local-first, MCP-native research and wor
 
 ## Problem
 
-Creators and builders collect context across YouTube, PDFs, web pages, notes, repo plans, prompts, and agent outputs. Closed SaaS canvases make this work visible, but they often lock context into a hosted surface that agents cannot safely share, inspect, export, or mutate through local tools. Coding agents also need durable memory that is more structured than chat history and safer than giving every tool broad file or account access.
+Creators and builders collect context across YouTube, images/screenshots, PDFs, web pages, notes, repo plans, prompts, and agent outputs. Closed SaaS canvases make this work visible, but they often lock context into a hosted surface that agents cannot safely share, inspect, export, or mutate through local tools. Coding agents also need durable memory that is more structured than chat history and safer than giving every tool broad file or account access.
 
 ## Product Promise
 
@@ -22,10 +22,11 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 - The first screen is the usable workspace, not a landing page.
 - First run opens a user-owned blank canvas with templates nearby, not a pre-filled demo as the primary experience.
-- User can paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
-- The composer previews what it detected before mapping: YouTube source, non-YouTube video reference, web source, source notes, text, PDF, or file.
+- User can paste or drop URLs, YouTube links, image URLs/screenshots, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
+- The composer previews what it detected before mapping: YouTube source, non-YouTube video reference, image source, web source, source notes, text, PDF, or file.
 - Non-YouTube video links are captured as first-class `source_video` nodes with `video` artifacts, attached notes/transcripts, chunks, and `media: video_reference` provenance; full provider-specific transcription is deferred.
-- The first-viewport composer exposes quick starters for `Video`, `Web`, `Note`, and `Ask`, plus a visible `Drop -> Map -> Ask -> Handoff` loop.
+- Image links and uploaded screenshots are captured as first-class `source_image` nodes with `image` artifacts, local preview metadata, optional visual notes/OCR text, chunks, and `media: image_reference` or `media: image_upload` provenance; first-class OCR/vision extraction is deferred.
+- The first-viewport composer exposes quick starters for `Video`, `Image`, `Web`, `Note`, and `Ask`, plus a visible `Drop -> Map -> Ask -> Handoff` loop.
 - Templates launch guided workflow canvases with ordered stages, source slots, prompt nodes, expected output targets, and Codex/MCP handoff nodes.
 - User can inspect a live Workflow Map and click a stage to focus the corresponding canvas node.
 - User can create notes directly on the canvas and edit selected node title/body.
@@ -44,7 +45,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can follow a live activation runway from install health to proof canvas, mapped source context, context export, and Codex MCP wiring.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
 - Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
-- MCP clients can list, read, create, import, add/update positioned nodes, ingest text/URL/YouTube/video/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
+- MCP clients can list, read, create, import, add/update positioned nodes, ingest text/URL/YouTube/video/image/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
 
 ## Non-Goals
@@ -101,9 +102,10 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can click a citation from an answer or run log and land back on the cited source/chunk.
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
-- A user can start from `Video`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
+- A user can start from `Video`, `Image`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
 - A user can launch a workflow template and understand the ordered stages from the Workflow Map without reading docs.
 - A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
+- A user can add an image URL or uploaded screenshot, see a thumbnail in the graph/inspector, and preserve the image artifact/provenance in JSON/context export.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context/Codex handoff for the whole canvas or selected node ids, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.
 
