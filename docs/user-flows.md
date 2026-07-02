@@ -150,10 +150,12 @@ Expected result: templates are not decorative examples; they are reusable operat
 3. Confirm data home, MCP build, Codex config, and Codex server status.
 4. Follow the `Activation runway`: install health, proof canvas, source mapping, context export, and Codex MCP wiring.
 5. Copy `Setup`, `Codex`, `Smoke`, `first-run check`, or `prod preview` commands when a status needs action.
-6. Copy the Codex activation prompt when Codex should continue from the current local canvas.
-7. Restart Codex after installing MCP config.
-8. Run `pnpm doctor:json` when an agent, CI job, or setup helper needs parseable readiness.
-9. Ask Codex to list canvases through MCP.
+6. Inspect the `Agent toolbelt`: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
+7. Copy the agent prompt, adoption report command, or terminal Codex handoff command when the next step should move from UI to Codex.
+8. Copy the Codex activation prompt when Codex should continue from the current local canvas.
+9. Restart Codex after installing MCP config.
+10. Run `pnpm doctor:json` or `pnpm adoption:report:json` when an agent, CI job, or setup helper needs parseable readiness.
+11. Ask Codex to list canvases through MCP.
 
 Expected result: install and agent wiring status are visible inside the product surface, the next human action is obvious, and the write path remains explicit and backed by local scripts.
 

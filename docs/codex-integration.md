@@ -38,6 +38,7 @@ Run `pnpm doctor` any time the local setup feels uncertain.
 It verifies that Codex has the `starlight-agent-canvas` server/env blocks and that they point at this repo's current built MCP CLI plus the active `AGENT_CANVAS_HOME`.
 It also verifies that the built core/MCP artifacts include the current video and image node/tool schema, which catches stale MCP builds after source media support changes.
 The in-app `Setup / MCP` panel also exposes the activation runway and a copyable Codex activation prompt backed by `/api/setup/status`.
+It also exposes the Agent toolbelt so the human can see the MCP sequence Codex should use: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
 
 When Codex or another agent needs parseable setup state, run:
 
@@ -58,6 +59,7 @@ The adoption report includes doctor health, release audit health, demo canvas pr
 Optional terminal bridge:
 
 ```powershell
+pnpm adoption:report
 pnpm canvas -- list
 pnpm canvas -- demo
 pnpm canvas -- export latest --format context --out .agent-canvas/latest-context.md

@@ -99,6 +99,16 @@
       "inspected": true
     },
     {
+      "path_or_url": "docs/visual-qa/desktop-agent-toolbelt.png",
+      "kind": "desktop setup agent toolbelt screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-agent-toolbelt.png",
+      "kind": "mobile setup agent toolbelt screenshot",
+      "inspected": true
+    },
+    {
       "path_or_url": "docs/visual-qa/desktop-smart-intake-preview.png",
       "kind": "desktop smart intake preview screenshot",
       "inspected": true
@@ -436,6 +446,11 @@
       "notes": "The app shows data home, MCP build, Codex config, Codex server wiring, safe paths, and copyable setup commands from a real local status route."
     },
     {
+      "name": "agent-toolbelt",
+      "status": "pass",
+      "notes": "The Setup/MCP panel now shows the Codex MCP tool sequence, adoption report command, agent prompt, and terminal Codex handoff command; desktop and mobile screenshots were inspected."
+    },
+    {
       "name": "human-intake-affordance",
       "status": "pass",
       "notes": "The first viewport now exposes New blank canvas, Source, Note, and Ask modes with Paste & Map clipboard intake, blocked/empty clipboard manual fallback, active empty-submit focus feedback, Map + Brief, note capture, file upload, detected source chips, created-node inspector selection, and an in-graph Source/Paste & Map/File/Note/Ask/Context command tray."
@@ -543,6 +558,8 @@
       "docs/visual-qa/mobile-context-canvas.png",
       "docs/visual-qa/desktop-setup-mcp-panel.png",
       "docs/visual-qa/mobile-setup-mcp-panel.png",
+      "docs/visual-qa/desktop-agent-toolbelt.png",
+      "docs/visual-qa/mobile-agent-toolbelt.png",
       "docs/visual-qa/desktop-smart-intake-preview.png",
       "docs/visual-qa/desktop-smart-intake-mapped.png",
       "docs/visual-qa/desktop-empty-center-capture.png",

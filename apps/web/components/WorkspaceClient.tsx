@@ -159,6 +159,19 @@ type SetupStatus = {
     verifyCommand: string;
     docs: string[];
   };
+  adoption: {
+    reportCommand: string;
+    jsonCommand: string;
+    docs: string[];
+  };
+  agent: {
+    prompt: string;
+    terminalHandoffCommand: string;
+    tools: Array<{
+      name: string;
+      detail: string;
+    }>;
+  };
   activation: {
     firstRunCheckCommand: string;
     previewCommand: string;
@@ -759,6 +772,7 @@ function WorkspaceInner() {
     { label: 'Setup', command: setupStatus.setup.localCommand },
     { label: 'Codex', command: setupStatus.codex.installWriteCommand },
     { label: 'Smoke', command: setupStatus.mcp.smokeCommand },
+    { label: 'Report', command: setupStatus.adoption.reportCommand },
   ] : [], [setupStatus]);
   const activationRunway = useMemo(() => {
     if (!setupStatus) return [];
@@ -3159,7 +3173,61 @@ function WorkspaceInner() {
                       </button>
                     </div>
                   </div>
-                  <div className="mt-3 grid grid-cols-3 gap-2">
+                  <div className="mt-3 rounded-md border border-starlight-violet/25 bg-starlight-violet/10 p-3" data-testid="agent-toolbelt">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+                        <Network className="h-3.5 w-3.5 text-starlight-violet" aria-hidden="true" />
+                        Agent toolbelt
+                      </span>
+                      <button
+                        type="button"
+                        data-testid="agent-toolbelt-prompt"
+                        onClick={() => copyCommand(setupStatus.agent.prompt, 'agent toolbelt prompt')}
+                        className="inline-flex shrink-0 items-center gap-1 rounded-md border border-starlight-violet/35 bg-starlight-bg px-2 py-1 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-violet"
+                      >
+                        <Bot className="h-3 w-3" aria-hidden="true" />
+                        Prompt
+                      </button>
+                    </div>
+                    <div className="mt-3 grid gap-1.5">
+                      {setupStatus.agent.tools.map((tool, index) => (
+                        <div
+                          key={tool.name}
+                          data-testid={`agent-tool-${tool.name}`}
+                          className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-2 rounded-md border border-starlight-border bg-starlight-bg/85 p-2"
+                        >
+                          <span className="flex h-5 w-5 items-center justify-center rounded border border-starlight-violet/35 text-[10px] font-semibold text-starlight-violet">
+                            {index + 1}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate font-mono text-[11px] font-semibold text-starlight-ink">{tool.name}</span>
+                            <span className="mt-0.5 block truncate text-[10px] text-starlight-muted">{tool.detail}</span>
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5">
+                      <button
+                        type="button"
+                        data-testid="agent-toolbelt-report"
+                        onClick={() => copyCommand(setupStatus.adoption.reportCommand, 'adoption report command')}
+                        className="inline-flex items-center justify-center gap-1 rounded-md border border-starlight-border bg-starlight-bg px-2 py-1.5 text-[10px] font-semibold text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink"
+                      >
+                        <Terminal className="h-3 w-3" aria-hidden="true" />
+                        Report
+                      </button>
+                      <button
+                        type="button"
+                        data-testid="agent-toolbelt-terminal-handoff"
+                        onClick={() => copyCommand(setupStatus.agent.terminalHandoffCommand, 'terminal Codex handoff command')}
+                        className="inline-flex items-center justify-center gap-1 rounded-md border border-starlight-border bg-starlight-bg px-2 py-1.5 text-[10px] font-semibold text-starlight-muted transition hover:border-starlight-gold hover:text-starlight-ink"
+                      >
+                        <Copy className="h-3 w-3" aria-hidden="true" />
+                        CLI handoff
+                      </button>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4">
                     {setupCommands.map((item) => (
                       <button
                         key={item.label}

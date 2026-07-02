@@ -71,6 +71,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 - Click answer citations or run-log citation chips to refocus the cited source node and highlighted chunk.
 - Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect a selected source receipt with ingest mode/chunks/provenance, run source-scoped actions, copy selected source context, export selected or whole-canvas context/Codex handoff packets, export the result, and re-import portable canvas JSON.
 - Inspect local setup, data home, MCP build, and Codex MCP wiring from the in-app `Setup / MCP` panel.
+- Inspect the in-app Agent toolbelt for the Codex MCP path: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`, plus copy adoption report and terminal Codex handoff commands.
 - Auto-select and open newly created sources, notes, files, and action answers in the inspector so the captured context is immediately usable.
 - Expose safe stdio MCP tools so coding agents can get the latest canvas, ingest mixed pasted context with one `ingest_anything` call, ingest positioned text/URL/YouTube/video/image/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
 - Keep runtime data outside the repo by default.

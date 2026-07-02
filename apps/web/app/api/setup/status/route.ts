@@ -142,8 +142,40 @@ export async function GET() {
       verifyCommand: 'pnpm verify',
       docs: [
         'docs/install.md',
+        'docs/adoption-report.md',
         'docs/mcp-setup.md',
         'docs/codex-integration.md',
+      ],
+    },
+    adoption: {
+      reportCommand: 'pnpm adoption:report',
+      jsonCommand: 'pnpm adoption:report:json',
+      docs: ['docs/adoption-report.md', 'docs/readiness-evidence.md'],
+    },
+    agent: {
+      prompt: [
+        'Use starlight-agent-canvas as shared local context.',
+        'Call get_latest_canvas, read the graph before writing, add durable evidence through ingest_anything when new context appears, run the smallest useful action, then export_canvas with format "codex".',
+        'Return node ids, artifact ids, chunk ids, and every node/action changed.',
+      ].join(' '),
+      terminalHandoffCommand: 'pnpm canvas -- export latest --format codex --out .agent-canvas/latest-codex.md',
+      tools: [
+        {
+          name: 'get_latest_canvas',
+          detail: 'resume freshest graph',
+        },
+        {
+          name: 'ingest_anything',
+          detail: 'map links, notes, media',
+        },
+        {
+          name: 'run_node_action',
+          detail: 'brief, claims, ask',
+        },
+        {
+          name: 'export_canvas',
+          detail: 'codex/context handoff',
+        },
       ],
     },
     activation: {

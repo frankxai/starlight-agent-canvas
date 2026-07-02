@@ -43,6 +43,8 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
 - User can export portable JSON, readable Markdown, general agent context packets, and Codex-ready continuation prompts; user can re-import portable JSON.
 - User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
+- User can see the in-app agent tool path for Codex/MCP work: `get_latest_canvas`, `ingest_anything`, `run_node_action`, and `export_canvas`.
+- User can copy the adoption report command, agent prompt, and terminal Codex handoff command from inside the workspace.
 - User can follow a live activation runway from install health to proof canvas, mapped source context, context export, and Codex MCP wiring.
 - User can follow a live human workflow loop from blank canvas to Codex handoff without discovering hidden shortcuts or reading docs first.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
@@ -73,6 +75,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - `pnpm doctor:json` emits a stable pass/warn/fail health contract with repo root, canvas home, MCP CLI path, Codex config path, checks, and next steps.
 - `pnpm adoption:report` and `pnpm adoption:report:json` combine doctor health, release audit health, demo proof, visual evidence, Git/GitHub state, Codex MCP path/home, first-success commands, and a compact Codex prompt.
 - The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
+- The setup/MCP status panel exposes the adoption report command and agent toolbelt from `/api/setup/status`.
 - `/api/setup/status` exposes an activation contract with steps, proof commands, and a Codex activation prompt.
 - `pnpm verify`, `pnpm test:e2e`, and `pnpm mcp:smoke` pass.
 - `pnpm canvas:smoke` passes and proves demo import, list, search, context export, and Codex handoff export from the terminal.
@@ -100,6 +103,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 - A new local user can install, seed, and open the app in under 10 minutes.
 - A local operator can confirm data home, MCP build, Codex config, and Codex server wiring without leaving the workspace.
+- A local operator can see the exact MCP tool path Codex should use and copy the adoption report or terminal handoff command without leaving the workspace.
 - A new user can follow the activation runway and understand the next install, demo, mapping, export, or Codex action without reading code.
 - An agent or CI job can parse `pnpm doctor:json` and distinguish required failures from optional wiring warnings.
 - A contributor or Codex session can parse `pnpm adoption:report:json` and understand install, release, proof, visual, GitHub, and Codex state before choosing the next workflow.
