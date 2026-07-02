@@ -61,7 +61,7 @@ Use `docs/readiness-evidence.md` as the current proof matrix before tagging or a
 
 ## First Good Issues
 
-- Add richer empty/error states to the canvas.
+- Add richer PDF, drag/drop, and clipboard-permission browser coverage.
 - Add a CLI command for importing/exporting canvas files.
 - Add a local SQLite store adapter behind the existing store contract.
 - Add citation-to-node navigation from the inspector.

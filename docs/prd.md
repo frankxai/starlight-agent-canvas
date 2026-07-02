@@ -21,8 +21,12 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 ## v0.1 Goals
 
 - The first screen is the usable workspace, not a landing page.
+- First run opens a user-owned blank canvas with templates nearby, not a pre-filled demo as the primary experience.
 - User can paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
+- The composer previews what it detected before mapping: video source, web source, source notes, text, PDF, or file.
 - User can create notes directly on the canvas and edit selected node title/body.
+- Empty canvas, composer, toolbar, and inspector all expose direct add/map actions.
+- Newly created source, note, file, and action nodes become selected and open in the inspector.
 - User can see the active selected context before running actions.
 - User can run deterministic local actions: summarize, claims, compare, matrix, implementation brief, and cited answer question.
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
@@ -60,6 +64,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 ## Design Principles
 
 - The canvas is both display and input.
+- First-use affordances beat hidden shortcuts.
 - Every source becomes an artifact plus a visible node.
 - Every durable source artifact gets chunk ids that answers and context exports can cite.
 - Every action output becomes inspectable context.
@@ -74,6 +79,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A new local user can install, seed, and open the app in under 10 minutes.
 - A local operator can confirm data home, MCP build, Codex config, and Codex server wiring without leaving the workspace.
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
+- A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.
 

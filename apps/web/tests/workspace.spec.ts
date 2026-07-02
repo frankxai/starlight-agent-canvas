@@ -40,6 +40,26 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('intake-ingest')).toBeDisabled();
   await expect(page.getByTestId('quick-note')).toBeEnabled();
 
+  await page.getByTestId('intake-text').fill('https://example.com/research\nExample source notes about workflow mapping and source context.');
+  await expect(page.getByTestId('intake-preview')).toContainText('Web source');
+  await expect(page.getByTestId('intake-preview')).toContainText('Source notes');
+  await page.getByTestId('intake-ingest').click();
+  await expect(page.getByTestId('status')).toContainText('Mapped 2 item(s): Web source, Source notes.');
+
+  await page.getByTestId('intake-text').fill('https://youtu.be/abcdefghijk\nManual transcript: this video explains canvas intake, context extraction, and cited synthesis.');
+  await expect(page.getByTestId('intake-preview')).toContainText('Video source');
+  await expect(page.getByTestId('intake-preview')).toContainText('manual transcript attached');
+  await expect(page.getByTestId('intake-preview')).not.toContainText('Source notes');
+  await page.getByTestId('intake-ingest').click();
+  await expect(page.getByTestId('inspector-body')).toHaveValue(/Manual transcript/);
+  await expect(page.getByTestId('quick-note')).toBeEnabled();
+
+  const markdownPath = testInfo.outputPath(`uploaded-${testInfo.project.name}.md`);
+  await writeFile(markdownPath, '# Uploaded markdown source\n\nUploaded markdown source with context chunks for agent synthesis.', 'utf8');
+  await page.locator('input[type="file"][multiple]').first().setInputFiles(markdownPath);
+  await expect(page.getByTestId('inspector-body')).toHaveValue(/Uploaded markdown source/);
+  await expect(page.getByTestId('quick-note')).toBeEnabled();
+
   await page.evaluate(() => {
     const data = new DataTransfer();
     data.setData('text/plain', 'Pasted anywhere source: creators paste video notes directly onto the canvas for synthesis.');
@@ -69,8 +89,19 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   const exportResponse = await page.request.get(exportHref!);
   await expect(exportResponse).toBeOK();
   expect(exportResponse.headers()['content-type']).toContain('application/json');
-  const exportedCanvas = await exportResponse.json() as { id: string; title: string };
+  const exportedCanvas = await exportResponse.json() as {
+    id: string;
+    title: string;
+    nodes: Array<{ kind: string; body: string; metadata: Record<string, unknown> }>;
+    artifacts: Array<{ kind: string; body: string; chunks?: unknown[]; metadata: Record<string, unknown> }>;
+  };
   expect(JSON.stringify(exportedCanvas)).toContain('Edited canvas note');
+  expect(exportedCanvas.nodes.some((node) => node.kind === 'source_url')).toBe(true);
+  expect(exportedCanvas.nodes.some((node) => node.kind === 'source_youtube' && node.body.includes('Manual transcript'))).toBe(true);
+  expect(exportedCanvas.nodes.some((node) => node.metadata.artifactId)).toBe(true);
+  expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'url' && Array.isArray(artifact.chunks) && artifact.chunks.length > 0)).toBe(true);
+  expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'youtube' && artifact.body.includes('Manual transcript'))).toBe(true);
+  expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'markdown' && artifact.body.includes('Uploaded markdown source'))).toBe(true);
 
   const contextResponse = await page.request.get(exportHref!.replace('format=json', 'format=context'));
   await expect(contextResponse).toBeOK();

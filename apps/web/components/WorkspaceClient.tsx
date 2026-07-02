@@ -121,6 +121,13 @@ type SetupStatus = {
   };
 };
 
+type IntakePlanItem = {
+  id: 'youtube' | 'url' | 'text' | 'pdf' | 'file';
+  label: string;
+  detail: string;
+  active: boolean;
+};
+
 const KIND_STYLE: Record<CanvasNodeKind, { label: string; accent: string; bg: string }> = {
   note: { label: 'Note', accent: '#F5C36A', bg: 'rgba(245,195,106,0.08)' },
   source_url: { label: 'URL', accent: '#79E6C5', bg: 'rgba(121,230,197,0.08)' },
@@ -249,6 +256,7 @@ function metadataCitations(metadata: Record<string, unknown>): SourceCitation[] 
 }
 
 const URL_PATTERN = /https?:\/\/[^\s<>"']+/gi;
+const YOUTUBE_ID_PATTERN = /^[a-zA-Z0-9_-]{11}$/;
 
 function extractUrls(value: string): string[] {
   return Array.from(new Set((value.match(URL_PATTERN) ?? [])
@@ -267,6 +275,71 @@ function isYoutubeLink(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+function isYoutubeVideoId(value: string): boolean {
+  return YOUTUBE_ID_PATTERN.test(value.trim());
+}
+
+function normalizeYoutubeReference(value: string): string {
+  const trimmed = value.trim();
+  return isYoutubeVideoId(trimmed) ? `https://www.youtube.com/watch?v=${trimmed}` : trimmed;
+}
+
+function buildIntakePlan(value: string): IntakePlanItem[] {
+  const text = value.trim();
+  if (!text) {
+    return [
+      { id: 'youtube', label: 'YouTube', detail: 'captions or transcript', active: false },
+      { id: 'url', label: 'URL', detail: 'readable text', active: false },
+      { id: 'pdf', label: 'PDF', detail: 'file upload', active: false },
+      { id: 'text', label: 'Notes', detail: 'source text', active: false },
+    ];
+  }
+
+  const urls = isYoutubeVideoId(text) ? [normalizeYoutubeReference(text)] : extractUrls(text);
+  const youtubeUrls = urls.filter(isYoutubeLink);
+  const webUrls = urls.filter((item) => !isYoutubeLink(item));
+  const remaining = removeUrls(text, urls);
+  const textChars = (remaining || (!urls.length ? text : '')).length;
+  const singleYoutubeWithAttachedText = urls.length === 1 && youtubeUrls.length === 1;
+  const plan: IntakePlanItem[] = [];
+
+  if (youtubeUrls.length) {
+    plan.push({
+      id: 'youtube',
+      label: youtubeUrls.length === 1 ? 'Video source' : `${youtubeUrls.length} video sources`,
+      detail: remaining.length > 24 ? 'manual transcript attached' : 'captions first',
+      active: true,
+    });
+  }
+
+  if (webUrls.length) {
+    plan.push({
+      id: 'url',
+      label: webUrls.length === 1 ? 'Web source' : `${webUrls.length} web sources`,
+      detail: 'fetch readable text',
+      active: true,
+    });
+  }
+
+  if ((textChars > 24 && !singleYoutubeWithAttachedText) || !urls.length) {
+    plan.push({
+      id: 'text',
+      label: urls.length ? 'Source notes' : 'Text source',
+      detail: `${Math.max(textChars, text.length)} chars`,
+      active: true,
+    });
+  }
+
+  return plan.length ? plan : [{ id: 'url', label: `${urls.length} source link${urls.length === 1 ? '' : 's'}`, detail: 'reference node', active: true }];
+}
+
+function intakePlanIcon(id: IntakePlanItem['id']) {
+  if (id === 'youtube') return <Youtube className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'url') return <Link className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'pdf' || id === 'file') return <FileText className="h-3.5 w-3.5" aria-hidden="true" />;
+  return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
 }
 
 function hostTitle(value: string): string {
@@ -336,6 +409,7 @@ function WorkspaceInner() {
   const selectedCitations = useMemo(() => selectedNode ? metadataCitations(selectedNode.metadata) : [], [selectedNode]);
   const baseFlow = useMemo(() => (canvas ? toFlow(canvas, compactCanvas) : { nodes: [], edges: [] }), [canvas, compactCanvas]);
   const canMutate = Boolean(canvas) && !busy;
+  const intakePlan = useMemo(() => buildIntakePlan(intakeText), [intakeText]);
   const setupChecks = useMemo(() => {
     if (!setupStatus) return [];
     return [
@@ -366,6 +440,14 @@ function WorkspaceInner() {
     { label: 'Codex', command: setupStatus.codex.installWriteCommand },
     { label: 'Smoke', command: setupStatus.mcp.smokeCommand },
   ] : [], [setupStatus]);
+
+  const focusNode = useCallback((node?: CanvasNode) => {
+    if (!node) return;
+    setSelectedIds([node.id]);
+    window.setTimeout(() => {
+      setCenter(node.position.x + 130, node.position.y + 80, { zoom: compactCanvas ? 0.72 : 1, duration: 350 });
+    }, 0);
+  }, [compactCanvas, setCenter]);
 
   useEffect(() => {
     setFlowNodes(baseFlow.nodes);
@@ -404,7 +486,7 @@ function WorkspaceInner() {
           const created = await api<{ canvas: CanvasRecord }>('/api/canvases', {
             method: 'POST',
             headers: { 'content-type': 'application/json' },
-            body: JSON.stringify({ title: 'Competitor teardown starter', template: 'competitor_teardown' }),
+            body: JSON.stringify({ title: 'My agent canvas', template: 'blank' }),
           });
           if (cancelled) return;
           setCanvas(created.canvas);
@@ -488,8 +570,9 @@ function WorkspaceInner() {
         body: JSON.stringify({ kind: noteKind, title: noteTitle, body: noteBody, metadata: {} }),
       }),
       `Added ${formatKind(noteKind)} node.`,
+      (result) => focusNode(result.node),
     );
-  }, [canvas, mutateCanvas, noteBody, noteKind, noteTitle]);
+  }, [canvas, focusNode, mutateCanvas, noteBody, noteKind, noteTitle]);
 
   const addCanvasNoteAt = useCallback(async (position?: FlowPosition, body = '') => {
     if (!canvas) return;
@@ -508,10 +591,10 @@ function WorkspaceInner() {
       }),
       'Added canvas note.',
       (result) => {
-        if (result.node) setSelectedIds([result.node.id]);
+        focusNode(result.node);
       },
     );
-  }, [canvas, mutateCanvas]);
+  }, [canvas, focusNode, mutateCanvas]);
 
   const saveSelectedNode = useCallback(async () => {
     if (!canvas || !selectedNode) return;
@@ -537,8 +620,9 @@ function WorkspaceInner() {
         body: JSON.stringify({ kind: 'source_url', title: hostTitle(url), body: '', metadata: { url } }),
       }),
       'Ingested URL source.',
+      (result) => focusNode(result.node),
     );
-  }, [canvas, mutateCanvas, url]);
+  }, [canvas, focusNode, mutateCanvas, url]);
 
   const addYoutube = useCallback(async () => {
     if (!canvas || !youtubeUrl.trim()) return;
@@ -549,8 +633,9 @@ function WorkspaceInner() {
         body: JSON.stringify({ kind: 'source_youtube', title: hostTitle(youtubeUrl), body: transcript, metadata: { url: youtubeUrl } }),
       }),
       'Ingested video source.',
+      (result) => focusNode(result.node),
     );
-  }, [canvas, mutateCanvas, transcript, youtubeUrl]);
+  }, [canvas, focusNode, mutateCanvas, transcript, youtubeUrl]);
 
   const ingestFiles = useCallback(async (files: File[], position?: FlowPosition) => {
     if (!canvas || !files.length) return;
@@ -607,7 +692,7 @@ function WorkspaceInner() {
         count += 1;
       }
       if (last?.canvas) setCanvas(last.canvas);
-      if (last?.node) setSelectedIds([last.node.id]);
+      focusNode(last?.node);
       await refreshList();
       setStatus(`Ingested ${count} file source(s).`);
     } catch (error) {
@@ -615,12 +700,14 @@ function WorkspaceInner() {
     } finally {
       setBusy(false);
     }
-  }, [canvas, refreshList]);
+  }, [canvas, focusNode, refreshList]);
 
   const intakeAnything = useCallback(async (value: string, position?: FlowPosition) => {
     if (!canvas || !value.trim()) return;
-    const urls = extractUrls(value);
-    const remaining = removeUrls(value, urls);
+    const trimmedValue = value.trim();
+    const directYoutubeId = isYoutubeVideoId(trimmedValue);
+    const urls = directYoutubeId ? [normalizeYoutubeReference(trimmedValue)] : extractUrls(value);
+    const remaining = directYoutubeId ? '' : removeUrls(value, urls);
     setBusy(true);
     try {
       let last: CanvasMutationResponse | null = null;
@@ -658,15 +745,16 @@ function WorkspaceInner() {
       }
 
       if (last?.canvas) setCanvas(last.canvas);
-      if (last?.node) setSelectedIds([last.node.id]);
+      focusNode(last?.node);
       await refreshList();
-      setStatus(`Mapped ${count} source item(s).`);
+      const summary = buildIntakePlan(value).filter((item) => item.active).map((item) => item.label).join(', ');
+      setStatus(summary ? `Mapped ${count} item(s): ${summary}.` : `Mapped ${count} source item(s).`);
     } catch (error) {
       setStatus((error as Error).message);
     } finally {
       setBusy(false);
     }
-  }, [canvas, refreshList]);
+  }, [canvas, focusNode, refreshList]);
 
   const submitCanvasIntake = useCallback(async () => {
     const text = intakeText.trim();
@@ -674,6 +762,17 @@ function WorkspaceInner() {
     await intakeAnything(text);
     setIntakeText('');
   }, [intakeAnything, intakeText]);
+
+  const pasteClipboardToIntake = useCallback(async () => {
+    try {
+      const text = (await navigator.clipboard.readText()).trim();
+      if (!text) throw new Error('Clipboard is empty.');
+      setIntakeText(text);
+      setStatus('Loaded clipboard into intake.');
+    } catch (error) {
+      setStatus((error as Error).message);
+    }
+  }, []);
 
   const submitCanvasNote = useCallback(async () => {
     await addCanvasNoteAt(undefined, intakeText);
@@ -749,7 +848,7 @@ function WorkspaceInner() {
         body: JSON.stringify({ action, inputNodeIds: selectedIds, prompt }),
       });
       if (result.canvas) setCanvas(result.canvas);
-      if (result.outputNode) setSelectedIds([result.outputNode.id]);
+      focusNode(result.outputNode);
       await refreshList();
       setStatus(`Ran ${action.replace(/_/g, ' ')}.`);
     } catch (error) {
@@ -757,7 +856,7 @@ function WorkspaceInner() {
     } finally {
       setBusy(false);
     }
-  }, [canvas, refreshList, selectedIds]);
+  }, [canvas, focusNode, refreshList, selectedIds]);
 
   const askCanvas = useCallback(async () => {
     await runAction('answer_question', askPrompt);
@@ -904,10 +1003,39 @@ function WorkspaceInner() {
                 data-testid="rail-intake-text"
                 value={intakeText}
                 onChange={(event) => setIntakeText(event.target.value)}
+                onKeyDown={(event) => {
+                  if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                    event.preventDefault();
+                    void submitCanvasIntake();
+                  }
+                }}
                 className="min-h-24 w-full rounded-md border border-starlight-border bg-starlight-surface px-3 py-2 text-sm leading-6"
                 placeholder="Paste a YouTube link, URL, transcript, or note"
               />
-              <div className="grid grid-cols-[1fr_auto] gap-2">
+              <div className="flex flex-wrap gap-1.5" data-testid="rail-intake-preview">
+                {intakePlan.map((item) => (
+                  <span
+                    key={`${item.id}-${item.label}`}
+                    className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 text-[10px] ${
+                      item.active ? 'border-starlight-accent/45 bg-starlight-accent/10 text-starlight-ink' : 'border-starlight-border bg-starlight-surface text-starlight-muted'
+                    }`}
+                  >
+                    {intakePlanIcon(item.id)}
+                    <span className="truncate">{item.label}</span>
+                  </span>
+                ))}
+              </div>
+              <div className="grid grid-cols-[auto_1fr_auto] gap-2">
+                <button
+                  data-testid="rail-intake-paste"
+                  type="button"
+                  disabled={!canMutate}
+                  onClick={pasteClipboardToIntake}
+                  className="flex items-center justify-center gap-2 rounded-md border border-starlight-border px-3 py-2 text-sm font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <ClipboardPaste className="h-4 w-4" aria-hidden="true" />
+                  Paste
+                </button>
                 <button
                   data-testid="rail-intake-ingest"
                   type="button"
@@ -916,7 +1044,7 @@ function WorkspaceInner() {
                   className="flex items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 py-2 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   <UploadCloud className="h-4 w-4" aria-hidden="true" />
-                  Map Source
+                  Map
                 </button>
                 <label className="flex cursor-pointer items-center justify-center rounded-md border border-starlight-border px-3 py-2 text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink">
                   <FileUp className="h-4 w-4" aria-hidden="true" />
@@ -1079,14 +1207,30 @@ function WorkspaceInner() {
               </div>
             ) : null}
             <div className="absolute left-3 right-3 top-3 z-20 rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:w-[min(720px,calc(100%-2rem))]">
-              <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto] md:items-start">
+              <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-start">
                 <textarea
                   data-testid="intake-text"
                   value={intakeText}
                   onChange={(event) => setIntakeText(event.target.value)}
+                  onKeyDown={(event) => {
+                    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+                      event.preventDefault();
+                      void submitCanvasIntake();
+                    }
+                  }}
                   className="min-h-16 w-full resize-none rounded-md border border-starlight-border bg-starlight-bg/80 px-3 py-2 text-sm leading-5 text-starlight-ink"
                   placeholder="Paste a YouTube link, URL, transcript, PDF notes, or raw idea"
                 />
+                <button
+                  data-testid="intake-paste"
+                  type="button"
+                  disabled={!canMutate}
+                  onClick={pasteClipboardToIntake}
+                  className="flex h-10 items-center justify-center gap-2 rounded-md border border-starlight-border px-3 text-sm font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <ClipboardPaste className="h-4 w-4" aria-hidden="true" />
+                  Paste
+                </button>
                 <button
                   data-testid="intake-ingest"
                   type="button"
@@ -1108,11 +1252,19 @@ function WorkspaceInner() {
                   Note
                 </button>
               </div>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-starlight-muted">
-                <span>Paste anywhere.</span>
-                <span className="hidden sm:inline">Drop files or links.</span>
-                <span className="hidden sm:inline">Drag handles to connect.</span>
-                <span className="hidden sm:inline">Ask with selected nodes scoped.</span>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-starlight-muted" data-testid="intake-preview">
+                {intakePlan.map((item) => (
+                  <span
+                    key={`${item.id}-${item.label}`}
+                    className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 ${
+                      item.active ? 'border-starlight-accent/45 bg-starlight-accent/10 text-starlight-ink' : 'border-starlight-border bg-starlight-bg/80 text-starlight-muted'
+                    }`}
+                  >
+                    {intakePlanIcon(item.id)}
+                    <span className="truncate font-medium">{item.label}</span>
+                    <span className="hidden text-starlight-muted sm:inline">{item.detail}</span>
+                  </span>
+                ))}
                 <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink">
                   <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
                   File
@@ -1132,6 +1284,10 @@ function WorkspaceInner() {
               <span className="rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-muted">
                 {selectedIds.length ? `${selectedIds.length} selected` : `${canvas?.nodes.length ?? 0} nodes`}
               </span>
+              <button type="button" onClick={() => addCanvasNoteAt()} disabled={!canMutate} className="flex items-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-1 text-xs font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
+                <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
+                Note
+              </button>
               <select
                 aria-label="Connection kind"
                 value={edgeKind}
@@ -1176,12 +1332,44 @@ function WorkspaceInner() {
             </div>
             <div className="absolute inset-0 pt-[188px] sm:pt-0">
               {!canvas?.nodes.length ? (
-                <div className="pointer-events-none absolute left-1/2 top-[52%] z-10 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-starlight-accent/25 bg-starlight-surface/82 p-5 text-center shadow-command backdrop-blur">
+                <div className="absolute left-1/2 top-[54%] z-10 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-starlight-accent/25 bg-starlight-surface/88 p-5 text-center shadow-command backdrop-blur" data-testid="empty-canvas-actions">
                   <UploadCloud className="mx-auto h-7 w-7 text-starlight-accent" aria-hidden="true" />
                   <h2 className="mt-3 text-base font-semibold text-starlight-ink">Drop context here</h2>
                   <p className="mt-2 text-sm leading-6 text-starlight-muted">
                     Paste or drop a YouTube link, URL, transcript, PDF, markdown, or raw notes. The canvas will turn it into source nodes, chunks, citations, and agent-ready context.
                   </p>
+                  <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                    <button
+                      type="button"
+                      disabled={!canMutate || !intakeText.trim()}
+                      onClick={submitCanvasIntake}
+                      className="flex items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 py-2 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <UploadCloud className="h-4 w-4" aria-hidden="true" />
+                      Map
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!canMutate}
+                      onClick={() => addCanvasNoteAt({ x: 120, y: 140 })}
+                      className="flex items-center justify-center gap-2 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-3 py-2 text-sm font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                    >
+                      <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
+                      Note
+                    </button>
+                    <label className={`flex items-center justify-center gap-2 rounded-md border border-starlight-accent/45 bg-starlight-accent/10 px-3 py-2 text-sm font-semibold text-starlight-accent transition hover:border-starlight-accent ${canMutate ? 'cursor-pointer' : 'cursor-not-allowed opacity-45'}`}>
+                      <FileUp className="h-4 w-4" aria-hidden="true" />
+                      Upload
+                      <input
+                        type="file"
+                        multiple
+                        accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
+                        disabled={!canMutate}
+                        onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []), { x: 120, y: 140 })}
+                        className="sr-only"
+                      />
+                    </label>
+                  </div>
                 </div>
               ) : null}
               <ReactFlow
@@ -1282,59 +1470,6 @@ function WorkspaceInner() {
               </div>
             </section>
 
-            <section className="mt-4 rounded-lg border border-starlight-border bg-starlight-panel/70 p-4" data-testid="setup-panel">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <Settings2 className="h-4 w-4 text-starlight-mint" aria-hidden="true" />
-                  Setup / MCP
-                </div>
-                <span className="rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[10px] uppercase tracking-[0.08em] text-starlight-muted">
-                  local
-                </span>
-              </div>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {setupChecks.length ? setupChecks.map((check) => (
-                  <div key={check.label} className="rounded-md border border-starlight-border bg-starlight-surface p-2">
-                    <div className="flex items-center gap-1.5">
-                      {check.ok ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
-                      ) : (
-                        <TriangleAlert className="h-3.5 w-3.5 text-starlight-gold" aria-hidden="true" />
-                      )}
-                      <span className="truncate text-[11px] font-semibold text-starlight-ink">{check.label}</span>
-                    </div>
-                    <div className="mt-1 text-[10px] text-starlight-muted">{check.detail}</div>
-                  </div>
-                )) : (
-                  <div className="col-span-2 rounded-md border border-starlight-border bg-starlight-surface p-3 text-xs text-starlight-muted">
-                    Loading setup status...
-                  </div>
-                )}
-              </div>
-              {setupStatus ? (
-                <>
-                  <div className="mt-3 space-y-1.5 rounded-md border border-starlight-border bg-starlight-bg p-3 text-[11px] leading-5 text-starlight-muted">
-                    <div className="truncate">Home: {shortPath(setupStatus.canvasHome)}</div>
-                    <div className="truncate">MCP: {shortPath(setupStatus.mcp.cliPath)}</div>
-                    <div className="truncate">Codex: {shortPath(setupStatus.codex.configPath)}</div>
-                  </div>
-                  <div className="mt-3 grid grid-cols-3 gap-2">
-                    {setupCommands.map((item) => (
-                      <button
-                        key={item.label}
-                        type="button"
-                        onClick={() => copyCommand(item.command, `${item.label} command`)}
-                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-mint/35 bg-starlight-mint/10 px-2 py-2 text-[11px] font-semibold text-starlight-mint transition hover:border-starlight-mint"
-                      >
-                        {item.label === 'Smoke' ? <Terminal className="h-3.5 w-3.5" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </>
-              ) : null}
-            </section>
-
             <section className="mt-4 rounded-lg border border-starlight-border bg-starlight-panel/70 p-4" data-testid="inspector">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Braces className="h-4 w-4 text-starlight-violet" aria-hidden="true" />
@@ -1391,8 +1526,73 @@ function WorkspaceInner() {
                   ) : null}
                 </div>
               ) : (
-                <p className="mt-3 text-xs leading-5 text-starlight-muted">Select a node to inspect source metadata and body text.</p>
+                <div className="mt-3 space-y-3">
+                  <p className="text-xs leading-5 text-starlight-muted">Select a node to edit source metadata and body text, or create the first node directly.</p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" onClick={() => addCanvasNoteAt()} disabled={!canMutate} className="flex items-center justify-center gap-2 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-3 py-2 text-xs font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45">
+                      <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
+                      Add note
+                    </button>
+                    <button type="button" onClick={submitCanvasIntake} disabled={!canMutate || !intakeText.trim()} className="flex items-center justify-center gap-2 rounded-md border border-starlight-accent/45 bg-starlight-accent/10 px-3 py-2 text-xs font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45">
+                      <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />
+                      Map source
+                    </button>
+                  </div>
+                </div>
               )}
+            </section>
+
+            <section className="mt-4 rounded-lg border border-starlight-border bg-starlight-panel/70 p-4" data-testid="setup-panel">
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Settings2 className="h-4 w-4 text-starlight-mint" aria-hidden="true" />
+                  Setup / MCP
+                </div>
+                <span className="rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[10px] uppercase tracking-[0.08em] text-starlight-muted">
+                  local
+                </span>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                {setupChecks.length ? setupChecks.map((check) => (
+                  <div key={check.label} className="rounded-md border border-starlight-border bg-starlight-surface p-2">
+                    <div className="flex items-center gap-1.5">
+                      {check.ok ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
+                      ) : (
+                        <TriangleAlert className="h-3.5 w-3.5 text-starlight-gold" aria-hidden="true" />
+                      )}
+                      <span className="truncate text-[11px] font-semibold text-starlight-ink">{check.label}</span>
+                    </div>
+                    <div className="mt-1 text-[10px] text-starlight-muted">{check.detail}</div>
+                  </div>
+                )) : (
+                  <div className="col-span-2 rounded-md border border-starlight-border bg-starlight-surface p-3 text-xs text-starlight-muted">
+                    Loading setup status...
+                  </div>
+                )}
+              </div>
+              {setupStatus ? (
+                <>
+                  <div className="mt-3 space-y-1.5 rounded-md border border-starlight-border bg-starlight-bg p-3 text-[11px] leading-5 text-starlight-muted">
+                    <div className="truncate">Home: {shortPath(setupStatus.canvasHome)}</div>
+                    <div className="truncate">MCP: {shortPath(setupStatus.mcp.cliPath)}</div>
+                    <div className="truncate">Codex: {shortPath(setupStatus.codex.configPath)}</div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    {setupCommands.map((item) => (
+                      <button
+                        key={item.label}
+                        type="button"
+                        onClick={() => copyCommand(item.command, `${item.label} command`)}
+                        className="flex items-center justify-center gap-1.5 rounded-md border border-starlight-mint/35 bg-starlight-mint/10 px-2 py-2 text-[11px] font-semibold text-starlight-mint transition hover:border-starlight-mint"
+                      >
+                        {item.label === 'Smoke' ? <Terminal className="h-3.5 w-3.5" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
+                        {item.label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              ) : null}
             </section>
 
             <section className="mt-4 rounded-lg border border-starlight-border bg-starlight-panel/70 p-4">

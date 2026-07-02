@@ -4,26 +4,28 @@
 
 ```mermaid
 flowchart LR
-  open["Open app"] --> paste["Paste source into canvas composer"]
-  paste --> map["Click Map"]
+  open["Open blank canvas"] --> paste["Paste source into canvas composer"]
+  paste --> preview["Review detected source chips"]
+  preview --> map["Click Map"]
   map --> inspect["Inspect/edit created node"]
   inspect --> scope["Confirm selected context tray"]
   scope --> action["Run summarize or ask"]
   action --> export["Export JSON or Markdown"]
 ```
 
-Expected result: the user sees a typed source node, can edit it in the inspector, and can run source-grounded actions without leaving the first screen.
+Expected result: the user sees what will be created before mapping, the new typed source node is selected, the inspector opens it for editing, and source-grounded actions run without leaving the first screen.
 
 ## Flow 2: YouTube Research
 
 1. Paste a YouTube URL into the canvas composer.
 2. Add a manual transcript or notes in the same box when captions are unavailable.
-3. Click `Map`.
-4. Confirm the created node is selected and visible in the inspector.
-5. Run `Claims` or `Ask Canvas`.
-6. Inspect the cited node/chunk ids in the output inspector.
-7. Search a claim or transcript phrase and jump back to the source node.
-8. Export the output node as part of the canvas.
+3. Confirm the intake preview shows `Video source` and `manual transcript attached`.
+4. Click `Map`.
+5. Confirm the created video node is selected and visible in the inspector.
+6. Run `Claims` or `Ask Canvas`.
+7. Inspect the cited node/chunk ids in the output inspector.
+8. Search a claim or transcript phrase and jump back to the source node.
+9. Export the output node as part of the canvas.
 
 Design note: YouTube ingestion is transcript-first. The app tries title lookup and captions, but manual transcript fallback is part of the core product path.
 
@@ -39,7 +41,7 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 ## Flow 4: Human Note-Making
 
 1. Double-click blank canvas space.
-2. Select the new note.
+2. Or click `Note` in the composer, empty canvas panel, toolbar, or inspector empty state.
 3. Edit title/body in the inspector.
 4. Connect it to source nodes.
 5. Confirm the selected context tray shows the intended nodes.
