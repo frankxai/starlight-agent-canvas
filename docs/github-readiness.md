@@ -57,16 +57,17 @@ Use labels:
 
 1. Run `pnpm doctor` and confirm it reports Node/pnpm, workspaces, built MCP server, `.mcp.json`, and Codex MCP path/home checks.
 2. Run `pnpm verify`.
-3. Run `pnpm mcp:smoke`.
-4. Run `pnpm test:e2e`.
-5. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
-6. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
-7. Run the Starlight staged/full security scan.
-8. Confirm visual QA screenshots are current.
-9. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
-10. Confirm `.env` and private canvas exports are not staged.
-11. Update README links and docs index.
-12. Tag release only after GitHub CI passes.
+3. Run `pnpm canvas:smoke`.
+4. Run `pnpm mcp:smoke`.
+5. Run `pnpm test:e2e`.
+6. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
+7. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
+8. Run the Starlight staged/full security scan.
+9. Confirm visual QA screenshots are current.
+10. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
+11. Confirm `.env` and private canvas exports are not staged.
+12. Update README links and docs index.
+13. Tag release only after GitHub CI passes.
 
 Public install proof to keep current:
 
@@ -86,7 +87,7 @@ Use `docs/readiness-evidence.md` as the current proof matrix before tagging or a
 ## First Good Issues
 
 - Add richer PDF, drag/drop, and clipboard-permission browser coverage.
-- Add a CLI command for importing/exporting canvas files.
+- Add a standalone packaged CLI binary once the local script surface stabilizes.
 - Add a local SQLite store adapter behind the existing store contract.
 - Add citation-to-node navigation from the inspector.
 - Add MCP smoke fixtures for public URL fallback edge cases.

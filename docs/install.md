@@ -84,6 +84,17 @@ pnpm seed:starlight
 
 This creates or refreshes `canvas-starlight-agent-canvas-os` in your configured `AGENT_CANVAS_HOME`.
 
+Terminal canvas operations:
+
+```powershell
+pnpm canvas -- demo
+pnpm canvas -- list
+pnpm canvas -- export latest --format context --out .agent-canvas/demo-context.md
+pnpm canvas:smoke
+```
+
+The CLI, web app, and MCP server operate over the same local store. See `docs/cli.md`.
+
 ## Install From Frank's Local Estate
 
 ```powershell
@@ -176,6 +187,8 @@ See `docs/mcp-setup.md` and `docs/codex-integration.md` for the operating workfl
 - `JSON`: portable canvas state for import/re-hydration.
 - `MD`: readable human handoff.
 - `Context`: agent packet with metadata, operating contract, node index, evidence corpus, recent runs, and a continuation prompt.
+
+The same exports are available from the terminal with `pnpm canvas -- export <canvas-id|latest> --format json|markdown|context`.
 
 ## Troubleshooting
 

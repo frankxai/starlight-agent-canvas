@@ -15,6 +15,16 @@ pnpm mcp:smoke
 
 The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests text, URL fallback, YouTube/manual transcript, and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context, asserts chunk-manifest output, and imports the portable JSON back as local context.
 
+The terminal CLI is a companion, not a replacement:
+
+```powershell
+pnpm canvas -- list
+pnpm canvas -- export latest --format context
+pnpm canvas:smoke
+```
+
+It uses the same `AGENT_CANVAS_HOME` and is useful for install checks, scripts, or handing context to an agent before MCP is restarted.
+
 ## Codex
 
 Generate a Codex config block for your machine:

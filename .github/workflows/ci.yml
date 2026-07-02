@@ -21,6 +21,7 @@ jobs:
       - run: pnpm doctor
       - run: pnpm typecheck
       - run: pnpm test
+      - run: pnpm canvas:smoke
       - run: pnpm mcp:smoke
       - run: pnpm build
       - run: pnpm --filter @starlight-agent-canvas/web exec playwright install --with-deps chromium

@@ -7,6 +7,7 @@ cd C:\Users\frank\starlight\repos\starlight-agent-canvas
 C:\Users\frank\starlight\repos\security\Invoke-RepoSecurityScan.ps1 -Path .
 pnpm doctor
 pnpm verify
+pnpm canvas:smoke
 pnpm mcp:smoke
 pnpm test:e2e
 ```
@@ -34,6 +35,8 @@ C:\Users\frank\.starlight\agent-canvas
 The seed canvas lays out the north star, technology stack, MCP boundary, workflows, mobile access, production gates, and implementation brief output.
 
 Portable JSON import/export is part of the production boundary. Import must never silently overwrite an existing canvas; same-id imports are saved as copies unless a future explicit replace mode is added to a trusted admin path. Agent context export is also part of the boundary: it should remain deterministic, local, and safe to paste into Codex, Claude, Gemini, or another MCP-compatible agent.
+
+The local CLI is part of the same boundary. `pnpm canvas -- demo`, `pnpm canvas -- list`, `pnpm canvas -- import`, `pnpm canvas -- export`, and `pnpm canvas -- search` operate over the shared local store and do not expose destructive actions.
 
 ## Environment
 

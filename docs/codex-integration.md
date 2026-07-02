@@ -37,6 +37,16 @@ AGENT_CANVAS_HOME = "/absolute/path/to/.starlight/agent-canvas"
 Run `pnpm doctor` any time the local setup feels uncertain.
 It verifies that Codex has the `starlight-agent-canvas` server/env blocks and that they point at this repo's current built MCP CLI plus the active `AGENT_CANVAS_HOME`.
 
+Optional terminal bridge:
+
+```powershell
+pnpm canvas -- list
+pnpm canvas -- demo
+pnpm canvas -- export latest --format context --out .agent-canvas/latest-context.md
+```
+
+Use this when Codex should continue from a checked-in or attached context packet before the MCP host has been restarted.
+
 ## Agent Operating Contract
 
 Codex should treat the canvas as a typed local context layer:
@@ -76,6 +86,8 @@ For implementation continuation, prefer `export_canvas` with `format: "context"`
 - `run_node_action`: summarize, compare, build matrix, build brief, or answer a question.
 - `search_artifacts`: find local source material across canvases, including artifact and chunk ids when available.
 - `export_canvas`: produce JSON, Markdown, or an agent context packet for handoff.
+
+If MCP is temporarily unavailable, `pnpm canvas -- export latest --format context` produces the same class of local context packet from the shared store.
 
 For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Use this for agent-generated canvases so human review starts from a coherent visual map.
 

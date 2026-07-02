@@ -36,6 +36,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can search local evidence and jump from a result back to the matching graph node/chunk.
 - User can export portable JSON, readable Markdown, and agent context packets; user can re-import portable JSON.
 - User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
+- User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
 - MCP clients can list, read, create, import, add/update positioned nodes, ingest text/URL/YouTube/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
 
@@ -60,6 +61,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - `pnpm doctor` explains local readiness and missing build steps.
 - The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
 - `pnpm verify`, `pnpm test:e2e`, and `pnpm mcp:smoke` pass.
+- `pnpm canvas:smoke` passes and proves demo import, list, search, and context export from the terminal.
 - README links to install, PRD, user flows, MCP setup, Codex integration, system design, and production readiness.
 - GitHub has issue templates, PR template, CI, and a readiness checklist.
 - Visual evidence proves desktop and mobile first-use paths.

@@ -4,7 +4,7 @@ Last local verification: 2026-07-02.
 
 This matrix connects the product promises in `docs/prd.md` and `docs/user-flows.md` to current evidence. It is intentionally practical: if a row cannot point to a command, screenshot, test, or file, it is not considered proven.
 
-Latest local proof commit: `a1537ca feat: clarify self-serve canvas intake`.
+Latest local proof commit: use `git log --oneline -1`; this matrix tracks evidence by artifact instead of relying on a hand-maintained hash.
 
 | Promise | Current Evidence | Status |
 | --- | --- | --- |
@@ -27,6 +27,7 @@ Latest local proof commit: `a1537ca feat: clarify self-serve canvas intake`.
 | MCP can ingest text, URL, YouTube, and PDF sources | MCP tool schemas; handler tests; smoke test includes text, URL fallback, YouTube/manual transcript, PDF, connected nodes, chunk-aware search, and context chunk manifest assertions | Proven locally for text, URL fallback, YouTube/manual transcript, and PDF; live URL quality remains best-effort |
 | MCP and web support graph positioning | Web drag persistence and MCP optional `position` inputs; MCP handler test asserts position | Proven locally |
 | New users have a one-command setup path | `scripts/setup.mjs`, `pnpm setup:local`, install docs, dry-run command verification | Proven locally |
+| Terminal users can operate local canvases without browser or MCP restart | `scripts/canvas.mjs`, `scripts/canvas-smoke.mjs`, `pnpm canvas:smoke`, `docs/cli.md`, CI `canvas:smoke` step | Proven locally for demo import, list, search, and context export against a throwaway local home |
 | Codex MCP can be installed safely | `scripts/install-codex-mcp.mjs`, `pnpm mcp:install:codex`, timestamped backup before `--write`, dry-run verification, and `pnpm doctor` path/home checks | Proven locally |
 | Setup and Codex status are visible in the app | `apps/web/app/api/setup/status/route.ts`, `Setup / MCP` panel in `apps/web/components/WorkspaceClient.tsx`, Playwright setup-panel assertion; server is considered wired only when config sections, CLI path, and canvas home match | Proven locally |
 | Local data remains outside Git | `.gitignore`, `AGENT_CANVAS_HOME`, `packages/core/src/home.ts`, `pnpm doctor` | Proven by repo structure and doctor |

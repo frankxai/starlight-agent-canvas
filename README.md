@@ -95,6 +95,7 @@ pnpm install
 pnpm doctor
 pnpm mcp:build
 pnpm mcp:smoke
+pnpm canvas:smoke
 pnpm seed:starlight
 pnpm dev
 ```
@@ -173,16 +174,29 @@ Example MCP client entry:
 
 Run `pnpm mcp:config -- --client json` to print this block with paths for your machine.
 
+## Local CLI
+
+```powershell
+pnpm canvas -- list
+pnpm canvas -- demo
+pnpm canvas -- export latest --format context --out .agent-canvas/demo-context.md
+pnpm canvas -- search "Codex context handoff"
+pnpm canvas:smoke
+```
+
+The CLI uses the same local data home as the web app and MCP server. It gives terminal users a safe way to import the demo, list local canvases, export JSON/Markdown/context, and search artifacts without opening the browser. See `docs/cli.md`.
+
 ## Verify
 
 ```powershell
 pnpm doctor
 pnpm verify
+pnpm canvas:smoke
 pnpm mcp:smoke
 pnpm test:e2e
 ```
 
-`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health. `pnpm canvas:smoke` proves terminal demo import, list, search, and context export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context export against a local throwaway data home. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 
@@ -201,7 +215,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 ## Current Proof
 
 - Last local verification date: `2026-07-02`.
-- Latest committed product slice: `a1537ca feat: clarify self-serve canvas intake`.
+- Latest committed product slice: use `git log --oneline -1`.
 - Visual QA score: `28/30` in `docs/design-loop-evidence.json`.
 - Evidence matrix: `docs/readiness-evidence.md`.
 - Real UI captures: `docs/visual-qa/desktop-self-serve-video-intake.png`, `docs/visual-qa/desktop-self-serve-video-mapped.png`, `docs/visual-qa/mobile-self-serve-note-intake.png`.
@@ -213,6 +227,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 - User flows: `docs/user-flows.md`
 - Codex integration: `docs/codex-integration.md`
 - Demo walkthrough: `docs/demo-walkthrough.md`
+- Local CLI: `docs/cli.md`
 - MCP setup: `docs/mcp-setup.md`
 - System design: `docs/system-design.md`
 - Technology stack: `docs/technology-stack.md`
