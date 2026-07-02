@@ -19,6 +19,7 @@ README first-read requirements before public announcement:
 - Includes a concrete input behavior matrix.
 - Explains that non-YouTube video links are references plus notes in v0.1, not automatic full transcription.
 - Shows a one-click `Demo` path that imports the real bundled example canvas from the app.
+- Shows the first-viewport human operating loop: `Capture -> Map -> Inspect -> Ask -> Handoff`.
 - Links to install, PRD, user flows, Codex integration, MCP setup, and readiness evidence.
 - Links to the human/agent operator loop and documents `pnpm doctor:json` as the parseable local health contract.
 - Links to `docs/activation.md` and shows the in-app activation runway as the first install-to-Codex success path.

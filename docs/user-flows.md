@@ -14,7 +14,7 @@ flowchart LR
   action --> export["Export JSON or Markdown"]
 ```
 
-Expected result: the user can use either the top composer or the center empty-canvas capture box as the first input surface. The user sees what will be created before mapping, the new typed source node is selected, the viewport frames the new source/action cluster, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
+Expected result: the user can use either the top composer or the center empty-canvas capture box as the first input surface. The live operator loop shows Capture, Map, Inspect, Ask, and Handoff state from real canvas data. The user sees what will be created before mapping, the new typed source node is selected, the viewport frames the new source/action cluster, the inspector opens a context receipt with chunks/provenance, source-grounded actions run without leaving the first screen, and the handoff lane shows whether the canvas is ready for Codex.
 
 ## Flow 1A: Self-Serve Quick Starter
 
@@ -25,10 +25,12 @@ Expected result: the user can use either the top composer or the center empty-ca
 5. If the primary `Map + Brief` action is clicked before adding context, confirm it focuses the composer instead of silently doing nothing.
 6. Paste or drop context.
 7. Confirm the visible loop remains clear: `Drop -> Map -> Ask -> Handoff`.
-8. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-9. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
-10. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
-11. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
+8. Confirm the live operator loop advances from `Capture` to `Map` after source nodes exist.
+9. Choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+10. Use the loop's `Inspect`, `Ask`, and `Codex` controls as direct next actions when the canvas state is ready.
+11. Check handoff readiness: evidence, synthesis, selected scope, and Codex/MCP status.
+12. Review the Codex export preview for included nodes, chunks, edges, runs, and excluded nodes.
+13. Inspect the created nodes and use `Context`, `Codex`, or MCP `export_canvas` for handoff. With selected nodes, handoff stays scoped to the selected evidence.
 
 Expected result: a new user can populate the canvas without reading docs or discovering hidden shortcuts.
 

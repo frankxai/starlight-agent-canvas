@@ -193,6 +193,17 @@ type WorkflowMapStep = {
   node?: CanvasNode;
 };
 
+type OperatorLoopStepId = 'capture' | 'map' | 'inspect' | 'ask' | 'handoff';
+
+type OperatorLoopStep = {
+  id: OperatorLoopStepId;
+  label: string;
+  detail: string;
+  ok: boolean;
+  enabled: boolean;
+  actionLabel: string;
+};
+
 const INTAKE_ACTIONS: Array<{ id: IntakeActionMode; label: string; detail: string }> = [
   { id: 'summarize', label: 'Brief', detail: 'summary output' },
   { id: 'claims', label: 'Claims', detail: 'extract claims' },
@@ -801,6 +812,56 @@ function WorkspaceInner() {
       },
     ];
   }, [canvas?.nodes, canvas?.runs.length, selectedIds.length, setupStatus?.codex.serverConfigured]);
+  const operatorLoop = useMemo<OperatorLoopStep[]>(() => {
+    const nodes = canvas?.nodes ?? [];
+    const sourceCount = nodes.filter((node) => node.kind.startsWith('source_')).length;
+    const outputCount = nodes.filter((node) => node.kind === 'output').length;
+    const runCount = canvas?.runs.length ?? 0;
+    const detectedCount = intakePlan.filter((item) => item.active).length;
+    const scopeCount = contextScope?.nodes.length ?? 0;
+    return [
+      {
+        id: 'capture',
+        label: 'Capture',
+        detail: detectedCount ? `${detectedCount} detected` : nodes.length ? `${nodes.length} nodes` : 'empty',
+        ok: detectedCount > 0 || nodes.length > 0,
+        enabled: canMutate,
+        actionLabel: 'Add',
+      },
+      {
+        id: 'map',
+        label: 'Map',
+        detail: sourceCount ? `${sourceCount} source${sourceCount === 1 ? '' : 's'}` : 'no source',
+        ok: sourceCount > 0,
+        enabled: canMutate,
+        actionLabel: 'Map',
+      },
+      {
+        id: 'inspect',
+        label: 'Inspect',
+        detail: selectedNode ? shortPath(selectedNode.title, 22) : nodes.length ? 'select node' : 'no node',
+        ok: Boolean(selectedNode),
+        enabled: Boolean(nodes.length),
+        actionLabel: 'Open',
+      },
+      {
+        id: 'ask',
+        label: 'Ask',
+        detail: outputCount || runCount ? `${outputCount} output${outputCount === 1 ? '' : 's'}` : sourceCount ? 'ready' : 'needs source',
+        ok: outputCount > 0 || runCount > 0,
+        enabled: canMutate && Boolean(nodes.length),
+        actionLabel: 'Ask',
+      },
+      {
+        id: 'handoff',
+        label: 'Handoff',
+        detail: scopeCount ? `${contextScope?.mode === 'selection' ? 'selected' : 'canvas'} ${scopeCount}` : 'pending',
+        ok: scopeCount > 0,
+        enabled: Boolean(canvas && !busy && scopeCount),
+        actionLabel: 'Codex',
+      },
+    ];
+  }, [busy, canMutate, canvas, contextScope?.mode, contextScope?.nodes.length, intakePlan, selectedNode]);
   const workflowMap = useMemo<WorkflowMapStep[]>(() => {
     if (!canvas?.nodes.length) {
       return CONTEXT_LOOP_STEPS.map((step, index) => ({
@@ -1533,6 +1594,42 @@ function WorkspaceInner() {
     await submitCanvasIntake();
   }, [askCanvas, composerMode, submitCanvasIntake, submitCanvasNote]);
 
+  const runOperatorLoopStep = useCallback(async (id: OperatorLoopStepId) => {
+    if (id === 'capture') {
+      requestComposerInput('source');
+      return;
+    }
+
+    if (id === 'map') {
+      await submitActiveComposer();
+      return;
+    }
+
+    if (id === 'inspect') {
+      const node = selectedNode
+        ?? canvas?.nodes.find((candidate) => candidate.kind.startsWith('source_'))
+        ?? canvas?.nodes[0];
+      if (node) {
+        focusNode(node);
+      } else {
+        requestComposerInput('source');
+      }
+      return;
+    }
+
+    if (id === 'ask') {
+      if (!canvas?.nodes.length) {
+        requestComposerInput('source');
+        return;
+      }
+      setComposerMode('ask');
+      await askCanvas();
+      return;
+    }
+
+    await copyCodexHandoff();
+  }, [askCanvas, canvas?.nodes, copyCodexHandoff, focusNode, requestComposerInput, selectedNode, submitActiveComposer]);
+
   useEffect(() => {
     const onPaste = (event: ClipboardEvent) => {
       const target = event.target;
@@ -1985,7 +2082,7 @@ function WorkspaceInner() {
                 </p>
               </div>
             ) : null}
-            <div className="absolute left-3 right-3 top-3 z-20 rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:w-[min(760px,calc(100%-2rem))]" data-testid="live-composer">
+            <div className="absolute left-3 right-3 top-3 z-20 max-h-[calc(100%-5.25rem)] overflow-y-auto rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:max-h-none md:w-[min(760px,calc(100%-2rem))] md:overflow-visible" data-testid="live-composer">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <div className="inline-flex items-center gap-1.5 rounded-md border border-starlight-mint/35 bg-starlight-mint/10 px-2.5 py-1 text-xs font-semibold text-starlight-ink" data-testid="live-intake-heading">
@@ -2069,6 +2166,36 @@ function WorkspaceInner() {
                     </div>
                   ))}
                 </div>
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-1.5 md:grid-cols-5" data-testid="operator-loop">
+                {operatorLoop.map((step) => (
+                  <button
+                    key={step.id}
+                    type="button"
+                    data-testid={`operator-loop-${step.id}`}
+                    disabled={!step.enabled}
+                    onClick={() => void runOperatorLoopStep(step.id)}
+                    aria-label={`${step.label}: ${step.actionLabel}`}
+                    className={`min-h-14 rounded-md border px-2 py-1.5 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                      step.ok
+                        ? 'border-starlight-mint/40 bg-starlight-mint/10 hover:border-starlight-mint'
+                        : 'border-starlight-border bg-starlight-bg/75 hover:border-starlight-accent/70'
+                    }`}
+                  >
+                    <span className="flex min-w-0 items-center gap-1.5">
+                      {step.ok ? (
+                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-starlight-mint" aria-hidden="true" />
+                      ) : (
+                        <MousePointerClick className="h-3.5 w-3.5 shrink-0 text-starlight-gold" aria-hidden="true" />
+                      )}
+                      <span className="truncate text-[11px] font-semibold text-starlight-ink">{step.label}</span>
+                      <span className="ml-auto shrink-0 rounded border border-starlight-border bg-starlight-surface px-1.5 py-0.5 text-[9px] uppercase text-starlight-muted">
+                        {step.actionLabel}
+                      </span>
+                    </span>
+                    <span className="mt-1 block truncate text-[10px] text-starlight-muted">{step.detail}</span>
+                  </button>
+                ))}
               </div>
               <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-start">
                 <textarea

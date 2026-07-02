@@ -37,6 +37,13 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('codex-export-preview')).toContainText('Codex export preview');
   await expect(page.getByTestId('codex-export-mode')).toContainText('canvas');
   await expect(page.getByTestId('codex-export-rules')).toContainText('Whole canvas exports all nodes');
+  await expect(page.getByTestId('operator-loop')).toContainText('Capture');
+  await expect(page.getByTestId('operator-loop')).toContainText('Map');
+  await expect(page.getByTestId('operator-loop')).toContainText('Inspect');
+  await expect(page.getByTestId('operator-loop')).toContainText('Ask');
+  await expect(page.getByTestId('operator-loop')).toContainText('Handoff');
+  await expect(page.getByTestId('operator-loop-capture')).toContainText('empty');
+  await expect(page.getByTestId('operator-loop-map')).toContainText('no source');
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
   await expect(page.getByTestId('setup-codex-handoff')).toBeEnabled();
@@ -111,6 +118,8 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();
   await page.getByTestId('intake-ingest').click();
   await expect(page.getByTestId('status')).toContainText('Mapped 1 item(s): Video link.');
+  await expect(page.getByTestId('operator-loop-map')).toContainText('1 source');
+  await expect(page.getByTestId('operator-loop-inspect')).toContainText('Video example.com');
   {
     const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
     expect(exportHref).toBeTruthy();
@@ -283,6 +292,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('inspector-title')).toHaveValue('answer question output');
   await expect(page.getByTestId('inspector')).toContainText('Citations');
   await expect(page.getByTestId('copy-context')).toBeEnabled();
+  await expect(page.getByTestId('operator-loop-ask')).toContainText('output');
 
   const searchInput = page.getByPlaceholder('Search canvases');
   await searchInput.scrollIntoViewIfNeeded();
@@ -314,6 +324,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('codex-export-rules')).toContainText('Excludes');
   await expect(page.getByTestId('codex-export-rules')).toContainText('Edges export only when both endpoints are selected');
   await expect(page.getByTestId('codex-preview-handoff')).toBeEnabled();
+  await expect(page.getByTestId('operator-loop-handoff')).toContainText('selected');
 
   const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
   expect(exportHref).toBeTruthy();

@@ -27,6 +27,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - Non-YouTube video links are captured as first-class `source_video` nodes with `video` artifacts, attached notes/transcripts, chunks, and `media: video_reference` provenance; full provider-specific transcription is deferred.
 - Image links and uploaded screenshots are captured as first-class `source_image` nodes with `image` artifacts, local preview metadata, optional visual notes/OCR text, chunks, and `media: image_reference` or `media: image_upload` provenance; first-class OCR/vision extraction is deferred.
 - The first-viewport composer exposes quick starters for `Video`, `Image`, `Web`, `Note`, and `Ask`, plus a visible `Drop -> Map -> Ask -> Handoff` loop.
+- The first-viewport composer exposes a live operator loop for `Capture -> Map -> Inspect -> Ask -> Handoff`, backed by actual canvas state and direct actions.
 - Templates launch guided workflow canvases with ordered stages, source slots, prompt nodes, expected output targets, and Codex/MCP handoff nodes.
 - User can inspect a live Workflow Map and click a stage to focus the corresponding canvas node.
 - User can create notes directly on the canvas and edit selected node title/body.
@@ -43,6 +44,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can export portable JSON, readable Markdown, general agent context packets, and Codex-ready continuation prompts; user can re-import portable JSON.
 - User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
 - User can follow a live activation runway from install health to proof canvas, mapped source context, context export, and Codex MCP wiring.
+- User can follow a live human workflow loop from blank canvas to Codex handoff without discovering hidden shortcuts or reading docs first.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
 - Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
 - MCP clients can list, read, get the latest canvas, create, import, add/update positioned nodes, ingest mixed paste-anything content, ingest text/URL/YouTube/video/image/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
@@ -103,6 +105,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - A user can start from `Video`, `Image`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
+- A user can see which workflow stage is complete and trigger the next one from the first viewport.
 - A user can launch a workflow template and understand the ordered stages from the Workflow Map without reading docs.
 - A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
 - A user can add an image URL or uploaded screenshot, see a thumbnail in the graph/inspector, and preserve the image artifact/provenance in JSON/context export.

@@ -44,9 +44,10 @@ The web app and MCP server operate over the same local data home. A source added
 2. Open `http://localhost:3000`.
 3. Confirm the in-app `Setup / MCP` panel.
 4. Click `New` for a fresh blank graph, `Demo` for a working proof canvas, or `Video`, `Image`, `Web`, `Note`, or `Ask` to start from your own material.
-5. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
-6. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
-7. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP. When nodes are selected, these exports stay scoped to the selected evidence.
+5. Use the live `Capture -> Map -> Inspect -> Ask -> Handoff` loop in the first viewport to see what is ready and trigger the next move.
+6. Paste/drop context and choose `Map + Brief`, `Claims`, `Ask`, or `Map only`.
+7. Inspect the selected source receipt: kind, ingest method, chunks, URL/file, chars.
+8. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP. When nodes are selected, these exports stay scoped to the selected evidence.
 
 For the full human plus agent operating loop, see `docs/operator-loop.md`.
 For the install-to-Codex first success path, see `docs/activation.md`.
@@ -56,6 +57,7 @@ For the install-to-Codex first success path, see `docs/activation.md`.
 - Create local canvases with portable JSON import/export, Markdown handoff exports, agent context packets, and Codex-ready continuation prompts.
 - Drop or paste URLs, YouTube links, image URLs/screenshots, transcripts, PDFs, text/Markdown/JSON/CSV files, and raw notes.
 - Use the canvas itself as the intake surface: paste into the top composer, click `Paste & Map` to turn the clipboard into nodes immediately, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
+- Follow a live operator loop in the first viewport: `Capture`, `Map`, `Inspect`, `Ask`, and `Handoff` update from actual canvas state and expose direct actions.
 - Create a fresh blank canvas from the first viewport, and click an empty primary intake action to focus the composer instead of hitting a dead disabled state.
 - Launch guided workflow templates with source slots, ordered stages, prompt nodes, expected output targets, and Codex/MCP handoff nodes; use the live Workflow Map to jump between stages.
 - Preview detected intake types before mapping, including video source, image source, web source, source notes, text source, PDF, and file paths.
