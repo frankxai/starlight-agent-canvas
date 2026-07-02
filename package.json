@@ -28,6 +28,8 @@
     "setup:local": "node scripts/setup.mjs",
     "doctor": "node scripts/doctor.mjs",
     "doctor:json": "node scripts/doctor.mjs --json",
+    "adoption:report": "node scripts/adoption-report.mjs",
+    "adoption:report:json": "node scripts/adoption-report.mjs --json",
     "first-run:check": "node scripts/first-run-check.mjs",
     "release:audit": "node scripts/release-audit.mjs",
     "canvas": "pnpm --filter @starlight-agent-canvas/core build && node scripts/canvas.mjs",

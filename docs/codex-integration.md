@@ -47,6 +47,14 @@ pnpm doctor:json
 
 Use `summary.fail === 0` as the local health gate. Optional Codex wiring can still appear as warnings until the user chooses `pnpm mcp:install:codex -- --write` and restarts Codex.
 
+When Codex needs the broader adoption state before deciding how to operate, run:
+
+```powershell
+pnpm adoption:report:json
+```
+
+The adoption report includes doctor health, release audit health, demo canvas proof, visual QA score, Git/GitHub state when available, Codex MCP path/home, and a compact recommended Codex prompt.
+
 Optional terminal bridge:
 
 ```powershell
@@ -64,6 +72,7 @@ Codex should treat the canvas as a typed local context layer:
 
 - Read before writing when a canvas already exists.
 - Check `pnpm doctor:json` when MCP setup or data-home state is uncertain.
+- Check `pnpm adoption:report:json` when install, GitHub, visual proof, or release readiness is part of the handoff.
 - Add source nodes for durable evidence, not one-off chat snippets.
 - Run actions to create output nodes that the human can inspect.
 - Cite node ids and chunk ids when using source-grounded answers or context packets.

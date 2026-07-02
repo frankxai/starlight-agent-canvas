@@ -47,6 +47,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can follow a live human workflow loop from blank canvas to Codex handoff without discovering hidden shortcuts or reading docs first.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
 - Operators and agents can parse local readiness through `pnpm doctor:json`, not only human console text.
+- Operators, GitHub contributors, and agents can parse adoption readiness through `pnpm adoption:report:json`, not only scattered docs and screenshots.
 - MCP clients can list, read, get the latest canvas, create, import, add/update positioned nodes, ingest mixed paste-anything content, ingest text/URL/YouTube/video/image/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
 
@@ -70,6 +71,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 
 - `pnpm doctor` explains local readiness and missing build steps.
 - `pnpm doctor:json` emits a stable pass/warn/fail health contract with repo root, canvas home, MCP CLI path, Codex config path, checks, and next steps.
+- `pnpm adoption:report` and `pnpm adoption:report:json` combine doctor health, release audit health, demo proof, visual evidence, Git/GitHub state, Codex MCP path/home, first-success commands, and a compact Codex prompt.
 - The web workspace exposes a setup/MCP status panel backed by local status APIs, not hardcoded badges.
 - `/api/setup/status` exposes an activation contract with steps, proof commands, and a Codex activation prompt.
 - `pnpm verify`, `pnpm test:e2e`, and `pnpm mcp:smoke` pass.
@@ -100,6 +102,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A local operator can confirm data home, MCP build, Codex config, and Codex server wiring without leaving the workspace.
 - A new user can follow the activation runway and understand the next install, demo, mapping, export, or Codex action without reading code.
 - An agent or CI job can parse `pnpm doctor:json` and distinguish required failures from optional wiring warnings.
+- A contributor or Codex session can parse `pnpm adoption:report:json` and understand install, release, proof, visual, GitHub, and Codex state before choosing the next workflow.
 - A user can map a YouTube/manual transcript source and run `Ask Canvas` with citations in under 2 minutes after launch.
 - A user can click a citation from an answer or run log and land back on the cited source/chunk.
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.

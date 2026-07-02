@@ -187,8 +187,10 @@ Expected result: a canvas can move between human review, repo artifacts, Codex/C
 2. Run `node scripts/setup.mjs` for the full first-run path.
 3. Run `pnpm doctor` for human-readable readiness.
 4. Run `pnpm doctor:json` for machine-readable readiness.
-5. Confirm `summary.fail` is `0`.
-6. Treat Codex config warnings as optional until MCP is intentionally installed.
-7. Run `pnpm release:audit`, `pnpm canvas:smoke`, and `pnpm mcp:smoke` before a release or important handoff.
+5. Run `pnpm adoption:report` for the combined install, release, demo, visual, GitHub, and Codex snapshot.
+6. Run `pnpm adoption:report:json` when Codex, CI, or another automation needs to parse that same adoption state.
+7. Confirm `summary.fail` is `0` in doctor and release audit sections.
+8. Treat Codex config warnings as optional until MCP is intentionally installed.
+9. Run `pnpm release:audit`, `pnpm canvas:smoke`, and `pnpm mcp:smoke` before a release or important handoff.
 
 Expected result: a contributor, operator, or agent can prove local health without reading implementation files or guessing which warnings are release blockers.

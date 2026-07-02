@@ -97,6 +97,8 @@ function checkPackageScripts() {
     'setup:local',
     'doctor',
     'doctor:json',
+    'adoption:report',
+    'adoption:report:json',
     'first-run:check',
     'release:audit',
     'canvas',
@@ -118,6 +120,7 @@ function checkCi() {
   const requiredSteps = [
     'pnpm doctor',
     'pnpm doctor:json',
+    'pnpm adoption:report:json',
     'pnpm release:audit',
     'pnpm typecheck',
     'pnpm test',
@@ -301,6 +304,13 @@ checkFiles('oss surface files', [
   'pnpm-lock.yaml',
 ]);
 
+checkFiles('operator scripts', [
+  'scripts/adoption-report.mjs',
+  'scripts/doctor.mjs',
+  'scripts/release-audit.mjs',
+  'scripts/setup.mjs',
+]);
+
 checkFiles('community files', [
   'CODE_OF_CONDUCT.md',
   'SUPPORT.md',
@@ -322,6 +332,7 @@ checkFiles('github templates', [
 checkFiles('docs surface', [
   'docs/install.md',
   'docs/activation.md',
+  'docs/adoption-report.md',
   'docs/cli.md',
   'docs/prd.md',
   'docs/user-flows.md',
@@ -364,6 +375,10 @@ checkTrackedFiles('required tracked files', [
   'package.json',
   'pnpm-workspace.yaml',
   'pnpm-lock.yaml',
+  'scripts/adoption-report.mjs',
+  'scripts/doctor.mjs',
+  'scripts/release-audit.mjs',
+  'scripts/setup.mjs',
   '.github/CODEOWNERS',
   '.github/workflows/ci.yml',
   '.github/dependabot.yml',
@@ -374,6 +389,7 @@ checkTrackedFiles('required tracked files', [
   '.github/ISSUE_TEMPLATE/setup_help.yml',
   'docs/install.md',
   'docs/activation.md',
+  'docs/adoption-report.md',
   'docs/cli.md',
   'docs/prd.md',
   'docs/user-flows.md',

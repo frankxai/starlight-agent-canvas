@@ -91,6 +91,15 @@ pnpm doctor:json
 
 The JSON output includes `ok`, `summary`, `repoRoot`, `canvasHome`, `mcpCliPath`, `codexConfigPath`, `checks`, and `nextSteps`. Warnings are expected when optional Codex wiring has not been installed yet; failures mean the local repo is not ready to operate.
 
+For the broader adoption snapshot that combines install health, release audit health, demo proof, visual QA evidence, Git/GitHub state, and Codex MCP wiring, run:
+
+```powershell
+pnpm adoption:report
+pnpm adoption:report:json
+```
+
+Use `pnpm adoption:report -- --out .agent-canvas/adoption-report.md` when you want a local handoff artifact for Codex, a PR, or a setup issue.
+
 Manual sample data:
 
 ```powershell
@@ -159,8 +168,9 @@ pnpm dev
 22. Build the MCP server with `pnpm mcp:build`.
 23. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
 24. Run `pnpm doctor` to confirm Codex points at this MCP server.
-25. Ask the agent to list canvases and add a source node.
-26. Keep building with the same shared canvas context.
+25. Run `pnpm adoption:report` to confirm the install, proof canvas, visual evidence, and Codex handoff path are coherent.
+26. Ask the agent to list canvases and add a source node.
+27. Keep building with the same shared canvas context.
 
 ## Input Behavior
 
