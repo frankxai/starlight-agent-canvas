@@ -51,6 +51,26 @@ function sourceFallback(kind: 'source_url' | 'source_youtube', url: string, erro
   };
 }
 
+function videoReferenceSource(url: string, manualTranscript = '', title?: string): IngestedSource {
+  let fallbackTitle = 'Video source';
+  try {
+    fallbackTitle = `Video ${new URL(url).hostname.replace(/^www\./, '')}`;
+  } catch {
+    fallbackTitle = url.slice(0, 80) || fallbackTitle;
+  }
+  const notes = manualTranscript.trim();
+  return {
+    title: title || fallbackTitle,
+    body: notes || `Video transcript was not fetched from ${url}. The reference is saved so an agent can attach transcript text, timestamp notes, claims, or a later extraction pass.`,
+    source: url,
+    metadata: {
+      url,
+      ingest: notes ? 'manual_video_transcript' : 'video_reference',
+      media: 'video_reference',
+    },
+  };
+}
+
 export function createToolHandlers(store = new FileCanvasStore()) {
   return {
     async list_canvases(): Promise<ToolResult> {
@@ -131,6 +151,20 @@ export function createToolHandlers(store = new FileCanvasStore()) {
         position: args.position,
       }));
       return ok(`Ingested video source ${result.node.title} (${result.node.id})`, result);
+    },
+
+    async ingest_video(args: { canvasId: string; url: string; manualTranscript?: string; title?: string; position?: { x: number; y: number } }): Promise<ToolResult> {
+      const source = videoReferenceSource(args.url, args.manualTranscript ?? '', args.title);
+      const result = await store.ingestSource(args.canvasId, ingestSourceInputSchema.parse({
+        kind: 'source_video',
+        title: source.title,
+        body: source.body,
+        source: source.source,
+        artifactKind: 'video',
+        metadata: source.metadata,
+        position: args.position,
+      }));
+      return ok(`Ingested video reference ${result.node.title} (${result.node.id})`, result);
     },
 
     async ingest_pdf(args: { canvasId: string; filename: string; dataBase64: string; position?: { x: number; y: number } }): Promise<ToolResult> {

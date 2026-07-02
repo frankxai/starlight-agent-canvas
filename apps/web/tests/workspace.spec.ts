@@ -39,19 +39,33 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('canvas-quick-start')).toContainText('Web');
   await expect(page.getByTestId('canvas-quick-start')).toContainText('Note');
   await expect(page.getByTestId('canvas-quick-start')).toContainText('Ask');
+  await expect(page.getByTestId('canvas-command-tray')).toContainText('Source');
+  await expect(page.getByTestId('canvas-command-tray')).toContainText('Paste');
+  await expect(page.getByTestId('canvas-command-tray')).toContainText('File');
+  await expect(page.getByTestId('canvas-command-tray')).toContainText('Note');
+  await expect(page.getByTestId('canvas-command-tray')).toContainText('Ask');
+  await expect(page.getByTestId('canvas-command-tray')).toContainText('Context');
+  await page.getByTestId('canvas-toolbar-source').click();
+  await expect(page.getByTestId('status')).toContainText('Paste or drop a YouTube link');
+  await expect(page.getByTestId('intake-text')).toBeFocused();
   await page.getByTestId('canvas-quick-start').getByRole('button', { name: /Video/ }).click();
   await expect(page.getByTestId('status')).toContainText('Ready for a video link');
   await page.getByTestId('intake-text').fill('https://example.com/demo.mp4\nManual video notes about workflow intake.');
   await expect(page.getByTestId('intake-preview')).toContainText('Video link');
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Map only' }).click();
   await page.getByTestId('intake-ingest').click();
-  await expect(page.getByTestId('status')).toContainText('Mapped 2 item(s): Video link, Source notes.');
+  await expect(page.getByTestId('status')).toContainText('Mapped 1 item(s): Video link.');
   {
     const exportHref = await page.getByLabel('Export JSON').getAttribute('href');
     expect(exportHref).toBeTruthy();
     const exportResponse = await page.request.get(exportHref!);
     await expect(exportResponse).toBeOK();
-    expect(await exportResponse.text()).toContain('video_reference');
+    const exported = await exportResponse.json() as {
+      nodes: Array<{ kind: string; body: string; metadata: Record<string, unknown> }>;
+      artifacts: Array<{ kind: string; body: string; metadata: Record<string, unknown> }>;
+    };
+    expect(exported.nodes.some((node) => node.kind === 'source_video' && node.body.includes('Manual video notes'))).toBe(true);
+    expect(exported.artifacts.some((artifact) => artifact.kind === 'video' && artifact.body.includes('Manual video notes'))).toBe(true);
   }
   await page.getByTestId('intake-preview').getByRole('button', { name: 'Brief' }).click();
   await page.getByTestId('intake-text').fill('');
@@ -173,9 +187,11 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
     artifacts: Array<{ kind: string; body: string; chunks?: unknown[]; metadata: Record<string, unknown> }>;
   };
   expect(JSON.stringify(exportedCanvas)).toContain('Edited canvas note');
+  expect(exportedCanvas.nodes.some((node) => node.kind === 'source_video')).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.kind === 'source_url')).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.kind === 'source_youtube' && node.body.includes('Manual transcript'))).toBe(true);
   expect(exportedCanvas.nodes.some((node) => node.metadata.artifactId)).toBe(true);
+  expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'video' && artifact.body.includes('Manual video notes'))).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'url' && Array.isArray(artifact.chunks) && artifact.chunks.length > 0)).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'youtube' && artifact.body.includes('Manual transcript'))).toBe(true);
   expect(exportedCanvas.artifacts.some((artifact) => artifact.kind === 'markdown' && artifact.body.includes('Uploaded markdown source'))).toBe(true);

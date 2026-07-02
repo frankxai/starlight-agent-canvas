@@ -79,6 +79,7 @@ For implementation continuation, prefer `export_canvas` with `format: "context"`
 - `ingest_text_source`: add pasted research, transcripts, repo notes, or meeting notes.
 - `ingest_url`: add a public URL as source context.
 - `ingest_youtube`: add a YouTube URL plus optional manual transcript.
+- `ingest_video`: add a Loom, Vimeo, direct video, Drive, Dropbox, or similar video URL plus optional manual transcript/notes.
 - `ingest_pdf`: add a base64 PDF as a local PDF source artifact.
 - `add_node`: create note, prompt, MCP tool, agent run, or output nodes.
 - `update_node`: clean up titles, bodies, metadata, or positions.
@@ -105,7 +106,7 @@ When the human clicks `Context` in the UI, the app copies the same agent context
 
 When the human clicks `Copy source` in a selected node receipt, Codex should treat that as a narrower source-only packet. Use it when the task is about one YouTube video, PDF, page, or note instead of the whole canvas.
 
-For non-YouTube video links, Codex should treat the node as a video reference unless transcript text or notes were provided. The web app preserves `media: video_reference` provenance so agents do not overstate what was extracted.
+For non-YouTube video links, Codex should use `ingest_video` or treat the UI-created `source_video` node as a video reference unless transcript text or notes were provided. The app preserves `media: video_reference` provenance so agents do not overstate what was extracted.
 
 ## Happy Path Transcript
 

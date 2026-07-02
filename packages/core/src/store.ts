@@ -207,7 +207,9 @@ export class FileCanvasStore {
             ? 'pdf'
             : parsed.kind === 'source_youtube'
               ? 'youtube'
-              : 'manual');
+              : parsed.kind === 'source_video'
+                ? 'video'
+                : 'manual');
       const artifact: CanvasArtifact = {
         id: makeId('artifact', parsed.title),
         kind: artifactKind,

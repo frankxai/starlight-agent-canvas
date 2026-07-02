@@ -12,6 +12,7 @@ export const nodeKindSchema = z.enum([
   'source_url',
   'source_pdf',
   'source_youtube',
+  'source_video',
   'prompt',
   'mcp_tool',
   'agent_run',
@@ -69,7 +70,7 @@ export const sourceChunkSchema = z.object({
 
 export const canvasArtifactSchema = z.object({
   id: z.string().min(1),
-  kind: z.enum(['url', 'pdf', 'youtube', 'markdown', 'json', 'manual']),
+  kind: z.enum(['url', 'pdf', 'youtube', 'video', 'markdown', 'json', 'manual']),
   title: z.string().min(1),
   body: z.string().default(''),
   source: z.string().optional(),
@@ -135,13 +136,13 @@ export const addNodeInputSchema = z.object({
 });
 
 export const ingestSourceInputSchema = z.object({
-  kind: z.enum(['note', 'source_url', 'source_pdf', 'source_youtube']).default('note'),
+  kind: z.enum(['note', 'source_url', 'source_pdf', 'source_youtube', 'source_video']).default('note'),
   title: z.string().min(1),
   body: z.string().default(''),
   source: z.string().optional(),
   position: positionSchema.optional(),
   metadata: z.record(z.unknown()).default({}),
-  artifactKind: z.enum(['url', 'pdf', 'youtube', 'markdown', 'json', 'manual']).optional(),
+  artifactKind: z.enum(['url', 'pdf', 'youtube', 'video', 'markdown', 'json', 'manual']).optional(),
 });
 
 export const updateNodeInputSchema = z.object({

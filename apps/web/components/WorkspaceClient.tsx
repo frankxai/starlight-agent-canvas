@@ -172,6 +172,7 @@ const KIND_STYLE: Record<CanvasNodeKind, { label: string; accent: string; bg: st
   source_url: { label: 'URL', accent: '#79E6C5', bg: 'rgba(121,230,197,0.08)' },
   source_pdf: { label: 'PDF', accent: '#F1F3F9', bg: 'rgba(241,243,249,0.07)' },
   source_youtube: { label: 'Video', accent: '#F97066', bg: 'rgba(249,112,102,0.08)' },
+  source_video: { label: 'Video', accent: '#F97066', bg: 'rgba(249,112,102,0.08)' },
   prompt: { label: 'Prompt', accent: '#A78BFA', bg: 'rgba(167,139,250,0.08)' },
   mcp_tool: { label: 'MCP', accent: '#6EA8FE', bg: 'rgba(110,168,254,0.08)' },
   agent_run: { label: 'Run', accent: '#79E6C5', bg: 'rgba(121,230,197,0.08)' },
@@ -406,7 +407,7 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
   const webUrls = urls.filter((item) => !isYoutubeLink(item) && !isKnownVideoLink(item));
   const remaining = removeUrls(text, urls);
   const textChars = (remaining || (!urls.length ? text : '')).length;
-  const singleYoutubeWithAttachedText = urls.length === 1 && youtubeUrls.length === 1;
+  const singleVideoWithAttachedText = urls.length === 1 && (youtubeUrls.length === 1 || videoUrls.length === 1);
   const plan: IntakePlanItem[] = [];
 
   if (youtubeUrls.length) {
@@ -422,7 +423,7 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
     plan.push({
       id: 'video',
       label: videoUrls.length === 1 ? 'Video link' : `${videoUrls.length} video links`,
-      detail: 'reference plus notes',
+      detail: remaining.length > 24 ? 'manual notes attached' : 'reference plus notes',
       active: true,
     });
   }
@@ -436,7 +437,7 @@ function buildIntakePlan(value: string): IntakePlanItem[] {
     });
   }
 
-  if ((textChars > 24 && !singleYoutubeWithAttachedText) || !urls.length) {
+  if ((textChars > 24 && !singleVideoWithAttachedText) || !urls.length) {
     plan.push({
       id: 'text',
       label: urls.length ? 'Source notes' : 'Text source',
@@ -990,8 +991,8 @@ function WorkspaceInner() {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            kind: youtube ? 'source_youtube' : 'source_url',
-            body: youtube && urls.length === 1 ? remaining : '',
+            kind: youtube ? 'source_youtube' : videoReference ? 'source_video' : 'source_url',
+            body: (youtube || videoReference) && urls.length === 1 ? remaining : '',
             position: nodePosition,
             metadata: { url: sourceUrl, media: videoReference ? 'video_reference' : undefined },
           }),
@@ -1000,7 +1001,8 @@ function WorkspaceInner() {
         count += 1;
       }
 
-      const shouldKeepText = !urls.length || (remaining.length > 24 && !(urls.length === 1 && isYoutubeLink(urls[0])));
+      const singleVideoReferenceWithAttachedText = urls.length === 1 && (isYoutubeLink(urls[0]) || isKnownVideoLink(urls[0]));
+      const shouldKeepText = !urls.length || (remaining.length > 24 && !singleVideoReferenceWithAttachedText);
       if (shouldKeepText) {
         const nodePosition = offsetPosition(position, count);
         last = await api<CanvasMutationResponse>(`/api/canvases/${canvas.id}/ingest/text`, {
@@ -1790,46 +1792,96 @@ function WorkspaceInner() {
                 )}
               </div>
             </div>
-            <div className="absolute bottom-3 left-3 top-auto z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-2 rounded-lg border border-starlight-border bg-starlight-surface/88 p-1.5 shadow-command backdrop-blur sm:bottom-4 sm:left-4 sm:max-w-[calc(100%-2rem)] sm:p-2">
+            <div
+              className="absolute bottom-3 left-3 top-auto z-10 flex max-w-[calc(100%-1.5rem)] flex-nowrap items-center gap-2 overflow-x-auto rounded-lg border border-starlight-border bg-starlight-surface/88 p-1.5 shadow-command backdrop-blur sm:bottom-4 sm:left-4 sm:max-w-[calc(100%-2rem)] sm:flex-wrap sm:overflow-visible sm:p-2"
+              data-testid="canvas-command-tray"
+            >
               <span className="hidden px-2 text-xs text-starlight-muted sm:inline">{canvas?.title ?? 'Loading canvas'}</span>
-              <span className="rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-muted">
+              <span className="shrink-0 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-muted">
                 {selectedIds.length ? `${selectedIds.length} selected` : `${canvas?.nodes.length ?? 0} nodes`}
               </span>
-              <button type="button" onClick={() => addCanvasNoteAt()} disabled={!canMutate} className="flex items-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-1 text-xs font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
+              <button
+                type="button"
+                data-testid="canvas-toolbar-source"
+                onClick={() => requestComposerInput('source')}
+                disabled={!canMutate}
+                className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-accent/45 bg-starlight-accent/10 px-2 py-1 text-xs font-semibold text-starlight-accent disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />
+                Source
+              </button>
+              <button
+                type="button"
+                data-testid="canvas-toolbar-paste"
+                onClick={pasteClipboardToIntake}
+                disabled={!canMutate}
+                className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
+                Paste
+              </button>
+              <label className={`flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink ${canMutate ? 'cursor-pointer hover:border-starlight-accent' : 'cursor-not-allowed opacity-45'}`}>
+                <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
+                File
+                <input
+                  data-testid="canvas-toolbar-file-source"
+                  type="file"
+                  aria-label="Upload source to canvas"
+                  multiple
+                  accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
+                  disabled={!canMutate}
+                  onChange={(event) => {
+                    void ingestFiles(Array.from(event.currentTarget.files ?? []));
+                    event.currentTarget.value = '';
+                  }}
+                  className="sr-only"
+                />
+              </label>
+              <button type="button" onClick={() => addCanvasNoteAt()} disabled={!canMutate} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-1 text-xs font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
                 <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
                 Note
+              </button>
+              <button
+                type="button"
+                data-testid="canvas-toolbar-ask"
+                onClick={() => requestComposerInput('ask')}
+                disabled={!canMutate}
+                className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-violet/45 bg-starlight-violet/10 px-2 py-1 text-xs font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                Ask
               </button>
               <select
                 aria-label="Connection kind"
                 value={edgeKind}
                 onChange={(event) => setEdgeKind(event.target.value as CanvasEdgeKind)}
-                className="max-w-[132px] rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-xs text-starlight-ink"
+                className="max-w-[132px] shrink-0 rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-xs text-starlight-ink"
               >
                 {EDGE_KINDS.map((kind) => (
                   <option key={kind.id} value={kind.id}>{kind.label}</option>
                 ))}
               </select>
-              <button type="button" onClick={connectSelected} disabled={!canMutate || selectedIds.length < 2} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
+              <button type="button" onClick={connectSelected} disabled={!canMutate || selectedIds.length < 2} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
                 <GitBranch className="h-3.5 w-3.5" aria-hidden="true" />
                 <span className="hidden sm:inline">Connect</span>
               </button>
-              <a aria-label="Export JSON" href={canvas ? `/api/canvases/${canvas.id}/export?format=json` : '#'} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
+              <a aria-label="Export JSON" href={canvas ? `/api/canvases/${canvas.id}/export?format=json` : '#'} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 JSON
               </a>
-              <a aria-label="Export Markdown" href={canvas ? `/api/canvases/${canvas.id}/export?format=markdown` : '#'} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
+              <a aria-label="Export Markdown" href={canvas ? `/api/canvases/${canvas.id}/export?format=markdown` : '#'} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink">
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
                 MD
               </a>
-              <button type="button" data-testid="copy-context" onClick={copyCanvasContext} disabled={!canvas || busy} className="flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
+              <button type="button" data-testid="copy-context" onClick={copyCanvasContext} disabled={!canvas || busy} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
                 <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />
                 Context
               </button>
-              <button type="button" data-testid="load-demo-canvas-toolbar" onClick={loadDemoCanvas} disabled={busy} className="flex items-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-1 text-xs font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
+              <button type="button" data-testid="load-demo-canvas-toolbar" onClick={loadDemoCanvas} disabled={busy} className="flex shrink-0 items-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 py-1 text-xs font-semibold text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40">
                 <LayoutTemplate className="h-3.5 w-3.5" aria-hidden="true" />
                 Demo
               </button>
-              <label className={`flex items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink ${canMutate ? 'cursor-pointer hover:border-starlight-accent' : 'cursor-not-allowed opacity-45'}`}>
+              <label className={`flex shrink-0 items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-xs text-starlight-ink ${canMutate ? 'cursor-pointer hover:border-starlight-accent' : 'cursor-not-allowed opacity-45'}`}>
                 <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
                 Import
                 <input

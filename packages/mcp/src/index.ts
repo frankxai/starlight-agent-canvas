@@ -127,7 +127,7 @@ function registerOperatorPrompts(server: McpServer) {
           text: [
             'Use the starlight-agent-canvas MCP server as a local, typed operating canvas.',
             'Start by calling list_canvases and get_canvas for canvas-starlight-agent-canvas-os when present.',
-            'Use ingest_url, ingest_youtube, or ingest_text_source for sources so artifacts, provenance, and typed nodes stay connected.',
+            'Use ingest_url, ingest_youtube, ingest_video, or ingest_text_source for sources so artifacts, provenance, and typed nodes stay connected.',
             'Add prompts, MCP tools, agent runs, and outputs as typed nodes. Connect evidence with references, derives_from, compares, runs, or exports edges.',
             'Run local actions for summaries, claims, comparisons, decision matrices, implementation briefs, and source-grounded answers.',
             'Prefer export_canvas with format "context" for agent continuation, JSON for portable rehydration, and Markdown for human-readable handoff.',
@@ -208,7 +208,7 @@ export function createAgentCanvasMcpServer() {
       description: 'Add a typed node to a local canvas.',
       inputSchema: {
         canvasId: canvasIdSchema,
-        kind: z.enum(['note', 'source_url', 'source_pdf', 'source_youtube', 'prompt', 'mcp_tool', 'agent_run', 'output']),
+        kind: z.enum(['note', 'source_url', 'source_pdf', 'source_youtube', 'source_video', 'prompt', 'mcp_tool', 'agent_run', 'output']),
         title: z.string().min(1),
         body: z.string().optional(),
         position: z.object({ x: z.number(), y: z.number() }).optional(),
@@ -290,6 +290,23 @@ export function createAgentCanvasMcpServer() {
       annotations: SAFE_NETWORK_SOURCE_INTAKE,
     },
     async (args) => handlers.ingest_youtube(args),
+  );
+
+  server.registerTool(
+    'ingest_video',
+    {
+      title: 'Ingest Video Reference',
+      description: 'Create a durable video source node from a Loom, Vimeo, direct video, Drive, or other video URL plus optional transcript or notes.',
+      inputSchema: {
+        canvasId: canvasIdSchema,
+        url: z.string().url(),
+        title: z.string().min(1).optional(),
+        manualTranscript: z.string().optional(),
+        position: z.object({ x: z.number(), y: z.number() }).optional(),
+      },
+      annotations: SAFE_NETWORK_SOURCE_INTAKE,
+    },
+    async (args) => handlers.ingest_video(args),
   );
 
   server.registerTool(

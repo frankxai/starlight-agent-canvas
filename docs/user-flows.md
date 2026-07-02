@@ -61,9 +61,9 @@ Design note: YouTube ingestion is transcript-first. The app tries title lookup a
 1. Click `Video`.
 2. Paste a Loom, Vimeo, Wistia, TikTok, Drive, Dropbox, or direct video URL.
 3. Paste notes or a manual transcript beneath the URL when available.
-4. Confirm the intake preview shows `Video link` plus `Source notes` when notes are present.
-5. Click `Map only` when you want the raw reference and notes as separate nodes, or `Map + Brief` when you want an immediate output.
-6. Export JSON/context and confirm the source keeps `media: video_reference` provenance.
+4. Confirm the intake preview shows `Video link` with `manual notes attached` when notes are present.
+5. Click `Map only` when you want the raw video reference node, or `Map + Brief` when you want an immediate output.
+6. Export JSON/context and confirm the source is a `source_video` node with a `video` artifact and `media: video_reference` provenance.
 
 Expected result: the canvas accepts arbitrary video links as local context references without claiming unsupported video download or platform transcription.
 

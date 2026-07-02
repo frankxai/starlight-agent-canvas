@@ -202,6 +202,21 @@
       "path_or_url": "docs/visual-qa/desktop-demo-proof-reduced-motion.png",
       "kind": "desktop reduced-motion one-click demo screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-source-video-command-tray.png",
+      "kind": "desktop source_video command tray screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-source-video-command-tray.png",
+      "kind": "mobile source_video command tray screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-source-video-reduced-motion.png",
+      "kind": "desktop reduced-motion source_video command tray screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -238,12 +253,17 @@
     {
       "name": "human-intake-affordance",
       "status": "pass",
-      "notes": "The first viewport now exposes New blank canvas, Source, Note, and Ask modes with clipboard paste, active empty-submit focus feedback, Map + Brief, note capture, file upload, detected source chips, and created-node inspector selection."
+      "notes": "The first viewport now exposes New blank canvas, Source, Note, and Ask modes with clipboard paste, active empty-submit focus feedback, Map + Brief, note capture, file upload, detected source chips, created-node inspector selection, and an in-graph Source/Paste/File/Note/Ask/Context command tray."
     },
     {
       "name": "source-receipt-loop",
       "status": "pass",
       "notes": "Selected sources now expose artifact kind, ingest mode, source URL/file, chunk count, chunk preview, selected-source ask/summary/claims, and selected context copy."
+    },
+    {
+      "name": "source-video-command-tray",
+      "status": "pass",
+      "notes": "Generic video links now create source_video nodes with video artifacts and attached manual notes; desktop, mobile, and reduced-motion screenshots prove the command tray and mobile layout."
     }
   ],
   "score": {
@@ -302,7 +322,10 @@
       "docs/visual-qa/desktop-first-viewport.png",
       "docs/visual-qa/mobile-first-viewport.png",
       "docs/visual-qa/mobile-graph-viewport.png",
-      "docs/visual-qa/desktop-reduced-motion.png"
+      "docs/visual-qa/desktop-reduced-motion.png",
+      "docs/visual-qa/desktop-source-video-command-tray.png",
+      "docs/visual-qa/mobile-source-video-command-tray.png",
+      "docs/visual-qa/desktop-source-video-reduced-motion.png"
     ],
     "productionMetrics": {
       "desktop": {
@@ -355,7 +378,11 @@
       "oneClickDemoLoader": true,
       "contextLoopVisibleOnMobile": true,
       "namedUploadControlTested": true,
-      "mobileToolbarReduced": true
+      "mobileToolbarReduced": true,
+      "sourceVideoNode": true,
+      "canvasCommandTray": true,
+      "mobileCommandTrayNoOverlap": true,
+      "mcpIngestVideoTool": true
     },
     "metrics": {
       "desktop": {

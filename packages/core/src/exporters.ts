@@ -78,7 +78,7 @@ export function exportCanvasAsAgentContext(canvas: CanvasRecord): string {
     '- Treat sources, notes, prompts, runs, and outputs as inspectable canvas state.',
     '- Cite node ids and chunk ids when making claims from this packet.',
     '- If MCP is available, read the live canvas before mutating it and write durable findings back as nodes.',
-    '- Use `ingest_text_source`, `ingest_url`, or `ingest_youtube` for new evidence instead of keeping important context only in chat.',
+    '- Use `ingest_text_source`, `ingest_url`, `ingest_youtube`, or `ingest_video` for new evidence instead of keeping important context only in chat.',
     '- Use `run_node_action` for deterministic local summaries, claims, comparisons, matrices, build briefs, and source-grounded answers.',
     '- Do not post externally, spend money, mutate accounts, expose secrets, or assume destructive tools exist.',
     '',

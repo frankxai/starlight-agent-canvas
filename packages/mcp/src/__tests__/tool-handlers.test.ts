@@ -48,6 +48,19 @@ describe('MCP tool handlers', () => {
     expect(videoArtifact.kind).toBe('youtube');
     expect(videoArtifact.chunks[0].id).toContain('chunk-001');
 
+    const genericVideo = await handlers.ingest_video({
+      canvasId: canvas.id,
+      url: 'https://vimeo.com/123456789',
+      title: 'Vimeo workflow note',
+      manualTranscript: 'Transcript notes from a generic video source about agent workflow maps.',
+      position: { x: 680, y: 360 },
+    });
+    const genericVideoNode = genericVideo.structuredContent?.node as { id: string; kind: string };
+    const genericVideoArtifact = genericVideo.structuredContent?.artifact as { kind: string; chunks: Array<{ id: string }> };
+    expect(genericVideoNode.kind).toBe('source_video');
+    expect(genericVideoArtifact.kind).toBe('video');
+    expect(genericVideoArtifact.chunks[0].id).toContain('chunk-001');
+
     const url = await handlers.ingest_url({
       canvasId: canvas.id,
       url: 'http://127.0.0.1/starlight-agent-canvas-test',

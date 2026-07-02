@@ -147,7 +147,7 @@ pnpm dev
 | Input | Result |
 | --- | --- |
 | YouTube URL | Transcript/captions when available; manual transcript fallback; `source_youtube` node |
-| Loom/Vimeo/Wistia/TikTok/Drive/Dropbox/direct video URL | Safe URL source plus `media: video_reference`; attach transcript or notes for analysis |
+| Loom/Vimeo/Wistia/TikTok/Drive/Dropbox/direct video URL | `source_video` node plus `video` artifact; attach transcript or notes for analysis |
 | Web URL | Bounded readable-text fetch or safe reference fallback |
 | PDF | Local text extraction into PDF artifact |
 | Markdown/text/JSON/CSV/log | Manual source artifact with chunks |

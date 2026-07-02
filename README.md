@@ -28,7 +28,7 @@ The web app and MCP server operate over the same local data home. A source added
 | Input | v0.1 behavior | Notes |
 | --- | --- | --- |
 | YouTube URL | Title/captions when available, manual transcript fallback, `source_youtube` node, chunks, citations | Transcript-first; no video download |
-| Loom/Vimeo/Wistia/TikTok/Drive/Dropbox/direct video URL | Safe video reference plus attached notes, provenance metadata, chunks | Use notes/transcripts for analysis until provider transcript adapters land |
+| Loom/Vimeo/Wistia/TikTok/Drive/Dropbox/direct video URL | Safe `source_video` node plus attached notes, `video` artifact, provenance metadata, chunks | Use notes/transcripts for analysis until provider transcript adapters land |
 | Public web URL | Bounded fetch into a URL artifact, or safe reference fallback | Private/localhost targets blocked by default |
 | PDF upload | Local text extraction into a PDF artifact | File size capped |
 | Markdown/text/JSON/CSV/log | Local source artifact with chunks | Works without model keys |
@@ -51,7 +51,7 @@ The web app and MCP server operate over the same local data home. A source added
 - Use the canvas itself as the intake surface: paste into the top composer, paste anywhere on the canvas, drop files/links, or double-click blank space for a note.
 - Create a fresh blank canvas from the first viewport, and click an empty primary intake action to focus the composer instead of hitting a dead disabled state.
 - Preview detected intake types before mapping, including video source, web source, source notes, text source, PDF, and file paths.
-- Treat non-YouTube video links as safe video references with attached notes and preserved `media: video_reference` provenance.
+- Treat non-YouTube video links as first-class `source_video` nodes with attached notes, `video` artifacts, chunks, and preserved `media: video_reference` provenance.
 - Choose the first pass before capture: `Map + Brief` by default, or `Claims`, `Ask`, and `Map only` when you want raw source nodes first.
 - Store ingested sources as durable artifacts plus typed canvas nodes with provenance metadata, source chunks, and citation-ready ids.
 - Ingest public URL text with bounded fetches; use Firecrawl only when explicitly requested.
@@ -60,7 +60,7 @@ The web app and MCP server operate over the same local data home. A source added
 - Drag nodes, persist positions, connect nodes directly, edit selected node titles/bodies, inspect a selected source receipt with ingest mode/chunks/provenance, run source-scoped actions, copy selected source context, export an agent-ready context packet, export the result, and re-import portable canvas JSON.
 - Inspect local setup, data home, MCP build, and Codex MCP wiring from the in-app `Setup / MCP` panel.
 - Auto-select and open newly created sources, notes, files, and action answers in the inspector so the captured context is immediately usable.
-- Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
+- Expose safe stdio MCP tools so coding agents can ingest positioned text/URL/YouTube/video/PDF sources, update nodes, run actions, import portable context, search artifacts, and export canvas state.
 - Keep runtime data outside the repo by default.
 
 ## Quick Start

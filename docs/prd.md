@@ -24,7 +24,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - First run opens a user-owned blank canvas with templates nearby, not a pre-filled demo as the primary experience.
 - User can paste or drop URLs, YouTube links, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
 - The composer previews what it detected before mapping: YouTube source, non-YouTube video reference, web source, source notes, text, PDF, or file.
-- Non-YouTube video links are captured as safe source references with attached notes and `media: video_reference` provenance; full provider-specific transcription is deferred.
+- Non-YouTube video links are captured as first-class `source_video` nodes with `video` artifacts, attached notes/transcripts, chunks, and `media: video_reference` provenance; full provider-specific transcription is deferred.
 - The first-viewport composer exposes quick starters for `Video`, `Web`, `Note`, and `Ask`, plus a visible `Drop -> Map -> Ask -> Handoff` loop.
 - User can create notes directly on the canvas and edit selected node title/body.
 - Empty canvas, composer, toolbar, and inspector all expose direct add/map actions.
@@ -37,7 +37,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - User can export portable JSON, readable Markdown, and agent context packets; user can re-import portable JSON.
 - User can inspect local setup, data home, MCP build status, and Codex MCP wiring from inside the workspace.
 - User can use a terminal CLI to list, import, search, and export local canvases when browser or MCP host restart is inconvenient.
-- MCP clients can list, read, create, import, add/update positioned nodes, ingest text/URL/YouTube/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
+- MCP clients can list, read, create, import, add/update positioned nodes, ingest text/URL/YouTube/video/PDF sources, connect nodes, run actions, search node/artifact evidence, and export.
 - Runtime data lives outside Git by default.
 
 ## Non-Goals
@@ -88,7 +88,7 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 - A user can select any source and run `Ask selected` or copy its source context without exporting the whole canvas.
 - A user can identify what `Map` will create before clicking it, then immediately edit the created node.
 - A user can start from `Video`, `Web`, `Note`, or `Ask` without knowing hidden shortcuts.
-- A user can add a non-YouTube video reference plus notes and preserve the media provenance in JSON/context export.
+- A user can add a non-YouTube `source_video` reference plus notes and preserve the video artifact/provenance in JSON/context export.
 - An MCP client can ingest a text source, run an action, export Markdown/JSON/context, and import portable JSON through smoke tests.
 - Contributors can identify the right issue template and local verification command without reading code.
 
@@ -112,6 +112,6 @@ Turn mixed source material into reusable, inspectable, portable agent context. A
 ## Risks
 
 - Large local files can outgrow JSON storage. Mitigation: cap input sizes now and plan SQLite/history later.
-- Live URL/video ingestion is inherently unreliable. Mitigation: graceful fallback nodes and manual transcript support.
+- Live URL/video ingestion is inherently unreliable. Mitigation: graceful fallback nodes, first-class video references, and manual transcript support.
 - MCP tools can create messy canvases if too broad. Mitigation: safe, typed tools and no destructive actions in v0.1.
 - OSS users may expect hosted collaboration. Mitigation: position clearly as local-first v0.1.

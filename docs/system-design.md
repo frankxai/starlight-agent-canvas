@@ -40,7 +40,7 @@ Exports have three roles: JSON is portable state, Markdown is a readable handoff
 
 ## Node Kinds
 
-`note`, `source_url`, `source_pdf`, `source_youtube`, `prompt`, `mcp_tool`, `agent_run`, `output`
+`note`, `source_url`, `source_pdf`, `source_youtube`, `source_video`, `prompt`, `mcp_tool`, `agent_run`, `output`
 
 ## Edge Kinds
 
@@ -52,8 +52,8 @@ v0.1 ships deterministic local actions: summarize, extract claims, compare sourc
 
 ## MCP Boundary
 
-The MCP server exposes safe local tools only. It can list/get/create/import canvases, add/update/ingest positioned nodes, ingest text/URL/YouTube/PDF sources, connect nodes, run actions, search node/artifact/chunk evidence, and export. It never posts, pays, scrapes social platforms, or deletes data.
+The MCP server exposes safe local tools only. It can list/get/create/import canvases, add/update/ingest positioned nodes, ingest text/URL/YouTube/video/PDF sources, connect nodes, run actions, search node/artifact/chunk evidence, and export. It never posts, pays, scrapes social platforms, or deletes data.
 
 ## Network Boundary
 
-The Next.js API is localhost-only unless `AGENT_CANVAS_ALLOW_REMOTE=1` is set. URL ingestion rejects localhost/private networks and unsupported schemes, applies timeout and byte limits, and uses Firecrawl only when explicitly requested. PDF ingestion validates type and size before parse. YouTube ingestion is transcript-first: manual transcript, best-effort public captions, then metadata/reference fallback.
+The Next.js API is localhost-only unless `AGENT_CANVAS_ALLOW_REMOTE=1` is set. URL ingestion rejects localhost/private networks and unsupported schemes, applies timeout and byte limits, and uses Firecrawl only when explicitly requested. PDF ingestion validates type and size before parse. YouTube ingestion is transcript-first: manual transcript, best-effort public captions, then metadata/reference fallback. Generic video ingestion is reference-first: Loom, Vimeo, Wistia, TikTok, Drive, Dropbox, and direct video links become `source_video` nodes with `video` artifacts, optional manual transcript/notes, chunks, and provenance, without downloading or rehosting media.

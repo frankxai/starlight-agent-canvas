@@ -64,7 +64,7 @@ const canvas = {
       'mcp_tool',
       'MCP Boundary',
       [
-        'Exposed tools: list_canvases, get_canvas, create_canvas, add_node, update_node, ingest_text_source, ingest_url, ingest_youtube, connect_nodes, run_node_action, search_artifacts, export_canvas.',
+        'Exposed tools: list_canvases, get_canvas, create_canvas, add_node, update_node, ingest_text_source, ingest_url, ingest_youtube, ingest_video, ingest_pdf, connect_nodes, run_node_action, search_artifacts, export_canvas.',
         'No destructive tools. No posting. No social scraping. No payments. No external account mutation.',
         'Runtime state is under AGENT_CANVAS_HOME. Frank local default: C:/Users/frank/.starlight/agent-canvas.',
       ].join('\n'),
@@ -115,8 +115,8 @@ const canvas = {
       'Implementation Brief Output',
       [
         'Recommendation: keep v0.1 focused on local ownership, typed context, safe agent actions, and excellent inspectability.',
-        'Now shipping: universal intake, source artifacts, URL/PDF/text ingestion, YouTube captions/manual transcripts, direct graph connections, persisted node positions, source-grounded ask, and MCP source tools.',
-        'Next best investments: chunk-level citations, richer media/OCR, optional provider-backed action adapters, hosted preview with auth/storage, and a tldraw sketch mode once the typed workflow core is stable.',
+        'Now shipping: universal intake, source artifacts, URL/PDF/text ingestion, YouTube captions/manual transcripts, first-class generic video references, direct graph connections, persisted node positions, source-grounded ask, and MCP source tools.',
+        'Next best investments: provider-specific transcript adapters, richer media/OCR, optional provider-backed action adapters, hosted preview with auth/storage, and a tldraw sketch mode once the typed workflow core is stable.',
       ].join('\n\n'),
       { x: 1160, y: 190 },
       { generatedBy: 'seed-starlight-canvas.mjs' },

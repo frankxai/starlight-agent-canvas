@@ -13,7 +13,7 @@ pnpm mcp:install:codex
 pnpm mcp:smoke
 ```
 
-The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests text, URL fallback, YouTube/manual transcript, and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context, asserts chunk-manifest output, and imports the portable JSON back as local context.
+The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests text, URL fallback, YouTube/manual transcript, generic video reference, and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context, asserts chunk-manifest output, and imports the portable JSON back as local context.
 
 The terminal CLI is a companion, not a replacement:
 
@@ -110,6 +110,7 @@ Use the same stdio shape when the host supports MCP servers:
 - `ingest_text_source`
 - `ingest_url`
 - `ingest_youtube`
+- `ingest_video`
 - `ingest_pdf`
 - `connect_nodes`
 - `run_node_action`
@@ -124,7 +125,7 @@ Use the same stdio shape when the host supports MCP servers:
 - `markdown`: readable handoff.
 - `context`: agent context packet with operating contract, node index, evidence corpus, recent runs, and continuation prompt.
 
-`add_node`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
+`add_node`, `ingest_text_source`, `ingest_url`, `ingest_youtube`, `ingest_video`, and `ingest_pdf` accept optional `{ x, y }` positions so agents can lay out context intentionally instead of only appending nodes to the default grid.
 
 `search_artifacts` searches node text and durable source artifacts. Results include artifact ids, chunk ids, scores, and source metadata when available.
 
@@ -148,4 +149,4 @@ Prompt:
 
 ## Boundary
 
-The server is local-only and non-destructive in v0.1. It does not delete canvases, post externally, scrape social platforms, spend money, alter external accounts, or require provider keys. `ingest_url` and `ingest_youtube` are read-only network source intake tools that create local artifacts and nodes.
+The server is local-only and non-destructive in v0.1. It does not delete canvases, post externally, scrape social platforms, spend money, alter external accounts, or require provider keys. `ingest_url`, `ingest_youtube`, and `ingest_video` are source intake tools that create local artifacts and nodes; generic video links are saved as reference context with optional manual transcript or notes.

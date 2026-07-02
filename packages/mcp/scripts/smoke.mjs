@@ -19,6 +19,7 @@ const expectedTools = [
   'ingest_text_source',
   'ingest_url',
   'ingest_youtube',
+  'ingest_video',
   'ingest_pdf',
   'connect_nodes',
   'run_node_action',
@@ -96,6 +97,24 @@ try {
   }
   if (!Array.isArray(videoArtifact.chunks) || !videoArtifact.chunks.length) {
     throw new Error('ingest_youtube did not create source chunks.');
+  }
+
+  const genericVideo = await client.callTool({
+    name: 'ingest_video',
+    arguments: {
+      canvasId,
+      url: 'https://vimeo.com/123456789',
+      title: 'Smoke generic video reference',
+      manualTranscript: 'Manual transcript: generic video references become source_video nodes with video artifacts.',
+      position: { x: 680, y: 360 },
+    },
+  });
+  const genericVideoArtifact = genericVideo.structuredContent?.artifact;
+  if (genericVideo.structuredContent?.node?.kind !== 'source_video' || genericVideoArtifact?.kind !== 'video') {
+    throw new Error('ingest_video did not return a source_video node and video artifact.');
+  }
+  if (!Array.isArray(genericVideoArtifact.chunks) || !genericVideoArtifact.chunks.length) {
+    throw new Error('ingest_video did not create source chunks.');
   }
 
   const urlSource = await client.callTool({

@@ -22,6 +22,15 @@ describe('canvas schema', () => {
     });
     expect(source.kind).toBe('note');
 
+    const video = ingestSourceInputSchema.parse({
+      kind: 'source_video',
+      title: 'Video notes',
+      body: 'Manual transcript notes.',
+      artifactKind: 'video',
+    });
+    expect(video.kind).toBe('source_video');
+    expect(video.artifactKind).toBe('video');
+
     const action = runActionInputSchema.parse({
       action: 'answer_question',
     });
