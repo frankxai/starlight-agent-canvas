@@ -13,7 +13,7 @@ pnpm mcp:install:codex
 pnpm mcp:smoke
 ```
 
-The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests text and PDF sources, updates node position, runs an action, exports Markdown/JSON/context, and imports the portable JSON back as local context.
+The smoke command starts the server over stdio, lists tools, creates a throwaway canvas in `.agent-canvas/mcp-smoke`, ingests text, URL fallback, YouTube/manual transcript, and PDF sources, connects nodes, updates node position, runs an action, searches artifacts, exports Markdown/JSON/context, asserts chunk-manifest output, and imports the portable JSON back as local context.
 
 ## Codex
 
@@ -74,7 +74,12 @@ The output shape is:
 }
 ```
 
-For Claude Desktop, merge the `mcpServers.starlight-agent-canvas` entry into `C:\Users\frank\AppData\Roaming\Claude\claude_desktop_config.json`, then restart Claude.
+For Claude Desktop, merge the `mcpServers.starlight-agent-canvas` entry into your Claude Desktop config, then restart Claude.
+
+Common config locations:
+
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
 ## Gemini / Other Agent Hosts
 
@@ -118,6 +123,8 @@ Use the same stdio shape when the host supports MCP servers:
 The server also exposes local guide resources:
 
 - `starlight-agent-canvas://docs/mcp-setup`
+- `starlight-agent-canvas://docs/codex-integration`
+- `starlight-agent-canvas://docs/demo-walkthrough`
 - `starlight-agent-canvas://docs/technology-stack`
 - `starlight-agent-canvas://docs/production-readiness`
 

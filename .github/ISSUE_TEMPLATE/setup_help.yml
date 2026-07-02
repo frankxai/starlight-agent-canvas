@@ -1,0 +1,74 @@
+name: Setup / MCP Help
+description: Get help with install, doctor, Codex, Claude, Gemini, or MCP wiring.
+title: "setup: "
+labels: ["setup", "mcp"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please redact private paths if needed and never paste secrets, tokens, API keys, or private canvas content.
+  - type: dropdown
+    id: client
+    attributes:
+      label: Client
+      options:
+        - Web app only
+        - Codex
+        - Claude Desktop
+        - Gemini-compatible MCP host
+        - Other MCP host
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to do?
+      placeholder: |
+        Install locally, run the web app, wire Codex, import the demo canvas, export context, etc.
+    validations:
+      required: true
+  - type: textarea
+    id: commands
+    attributes:
+      label: Commands run
+      placeholder: |
+        pnpm install
+        pnpm doctor
+        pnpm mcp:build
+        pnpm mcp:smoke
+    validations:
+      required: true
+  - type: textarea
+    id: doctor
+    attributes:
+      label: `pnpm doctor` output
+      description: Redact private usernames or local paths if needed.
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: smoke
+    attributes:
+      label: `pnpm mcp:smoke` output
+      description: Redact private usernames or local paths if needed.
+      render: text
+    validations:
+      required: false
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        OS:
+        Node:
+        pnpm:
+        Browser:
+        MCP client/version:
+        AGENT_CANVAS_HOME set? yes/no
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Extra context
+      description: Screenshots, redacted config shape, or where the setup flow became unclear.

@@ -28,6 +28,7 @@ This repo includes:
 - Bug report template.
 - Feature request template.
 - Integration request template.
+- Setup / MCP help template.
 - Pull request template.
 
 Use labels:
@@ -65,7 +66,7 @@ Use `docs/readiness-evidence.md` as the current proof matrix before tagging or a
 - Add a CLI command for importing/exporting canvas files.
 - Add a local SQLite store adapter behind the existing store contract.
 - Add citation-to-node navigation from the inspector.
-- Add more MCP smoke fixtures for YouTube/manual transcript workflows.
+- Add MCP smoke fixtures for public URL fallback edge cases.
 - Add docs screenshots for Mac/Linux install.
 
 ## Public Positioning

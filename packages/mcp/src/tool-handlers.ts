@@ -85,13 +85,23 @@ export function createToolHandlers(store = new FileCanvasStore()) {
       return ok(`Updated node ${result.node.title} (${result.node.id})`, result);
     },
 
-    async ingest_text_source(args: { canvasId: string; title: string; body: string; source?: string; metadata?: Record<string, unknown>; position?: { x: number; y: number } }): Promise<ToolResult> {
-      const { canvasId, position, ...input } = args;
+    async ingest_text_source(args: {
+      canvasId: string;
+      title: string;
+      body: string;
+      source?: string;
+      artifactKind?: 'markdown' | 'json' | 'manual';
+      filename?: string;
+      mimeType?: string;
+      metadata?: Record<string, unknown>;
+      position?: { x: number; y: number };
+    }): Promise<ToolResult> {
+      const { canvasId, position, artifactKind, filename, mimeType, ...input } = args;
       const result = await store.ingestSource(canvasId, ingestSourceInputSchema.parse({
         ...input,
         kind: 'note',
-        artifactKind: 'manual',
-        metadata: { ingest: 'mcp_text_source', ...(input.metadata ?? {}) },
+        artifactKind: artifactKind ?? 'manual',
+        metadata: { ingest: 'mcp_text_source', filename, mimeType, ...(input.metadata ?? {}) },
         position,
       }));
       return ok(`Ingested text source ${result.node.title} (${result.node.id})`, result);

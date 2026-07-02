@@ -59,6 +59,8 @@ run the smallest useful action, and export Markdown when the workflow needs a ha
 Keep mutations explicit and summarize every node/action you changed.
 ```
 
+For implementation continuation, prefer `export_canvas` with `format: "context"` over Markdown. The context packet includes the operating contract, node index, source chunk manifest, evidence corpus, recent runs, and continuation prompt.
+
 ## Common Codex Moves
 
 - `list_canvases`: find the active local canvas.
@@ -89,6 +91,21 @@ For graph layout, pass `position: { x, y }` when creating or ingesting nodes. Us
 When the human clicks `Context` in the UI, the app copies the same agent context packet that MCP exposes through `export_canvas` with `format: "context"`. That packet includes a source chunk manifest; cite those chunk ids when making claims.
 
 When the human clicks `Copy source` in a selected node receipt, Codex should treat that as a narrower source-only packet. Use it when the task is about one YouTube video, PDF, page, or note instead of the whole canvas.
+
+## Happy Path Transcript
+
+Use this as a smoke prompt after wiring Codex:
+
+```text
+Use starlight-agent-canvas.
+List canvases.
+Import examples/demo-canvas.json as local canvas state.
+Read the imported canvas.
+Run answer_question on source-youtube-nodeflow:
+"What should we build next to make this canvas feel closer to Poppy AI or Nodeflow while staying MCP-native?"
+Export the canvas with format "context".
+Return the node ids, artifact ids, and chunk ids you used.
+```
 
 ## Safety Notes
 

@@ -1,41 +1,261 @@
 {
   "schemaVersion": "starlight.agentCanvas.v1",
   "id": "demo-agent-canvas",
-  "title": "Demo: MCP Agent Canvas",
-  "description": "Portable demo canvas showing source, action, and output nodes.",
+  "title": "Demo: YouTube To Codex Context Canvas",
+  "description": "Portable demo canvas proving the v0.1 loop: map a YouTube/manual transcript source, add human notes, run Map + Brief, and export agent-ready context with chunks and citations.",
   "createdAt": "2026-07-01T00:00:00.000Z",
   "updatedAt": "2026-07-01T00:00:00.000Z",
   "nodes": [
     {
-      "id": "source-nodeflow",
-      "kind": "source_url",
-      "title": "Nodeflow benchmark",
-      "body": "Visual source-connected research workflow benchmark.",
+      "id": "source-youtube-nodeflow",
+      "kind": "source_youtube",
+      "title": "Nodeflow-style video source",
+      "body": "Manual transcript: The research canvas should accept YouTube links, pasted transcripts, URLs, PDFs, notes, and files. The user should see each source become a durable node with a receipt, chunks, provenance, and actions. The strongest wedge is not a generic AI board; it is an MCP-native context layer that humans and agents can both read and update. The first workflow should map a source, create a brief, surface citations, and let Codex continue from exported context.",
       "position": { "x": 80, "y": 120 },
-      "metadata": { "url": "https://get.nodeflowai.com/" },
+      "metadata": {
+        "url": "https://youtu.be/abcdefghijk",
+        "videoId": "abcdefghijk",
+        "ingest": "manual_transcript",
+        "artifactId": "artifact-youtube-nodeflow",
+        "source": "https://youtu.be/abcdefghijk"
+      },
       "createdAt": "2026-07-01T00:00:00.000Z",
       "updatedAt": "2026-07-01T00:00:00.000Z"
     },
     {
-      "id": "output-brief",
+      "id": "source-url-poppy",
+      "kind": "source_url",
+      "title": "Poppy AI benchmark notes",
+      "body": "Readable source notes: Poppy-style workflows make it easy for creators to collect web pages, video notes, prompts, and outputs in one visual space. The Starlight angle is to keep the same human affordance while adding local-first storage, safe MCP tools, portable exports, and source chunk ids an agent can cite.",
+      "position": { "x": 80, "y": 360 },
+      "metadata": {
+        "url": "https://example.com/poppy-ai-benchmark",
+        "ingest": "basic_fetch",
+        "artifactId": "artifact-url-poppy",
+        "source": "https://example.com/poppy-ai-benchmark"
+      },
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "id": "note-human-wedge",
+      "kind": "note",
+      "title": "Human product wedge note",
+      "body": "Human note: make the canvas feel immediately usable. The first viewport must expose Source, Note, and Ask modes; every paste/drop should create inspectable context; the user should be able to copy selected source context or export the whole canvas for Codex.",
+      "position": { "x": 80, "y": 600 },
+      "metadata": {
+        "artifactId": "artifact-human-wedge",
+        "ingest": "mcp_text_source",
+        "source": "manual paste"
+      },
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "id": "output-map-brief",
       "kind": "output",
-      "title": "Implementation brief",
-      "body": "Build the open-source MCP-native context layer, not a closed creator board clone.",
-      "position": { "x": 460, "y": 120 },
-      "metadata": { "action": "implementation_brief" },
+      "title": "Map + Brief output",
+      "body": "## Summary\n\nThe canvas should behave as a local-first research/workflow context layer. It maps video, web, and human notes into typed source nodes, keeps chunked artifacts behind those nodes, and lets the human or Codex run source-grounded actions.\n\n## Highest-leverage next moves\n\n1. Make Source / Note / Ask the obvious first interaction.\n2. Prove YouTube/manual transcript ingestion with chunk citations.\n3. Keep MCP setup generated from local paths instead of static machine-specific snippets.\n4. Export `context` for Codex whenever the workflow should continue outside the browser.",
+      "position": { "x": 470, "y": 260 },
+      "metadata": {
+        "action": "summarize",
+        "inputNodeIds": [
+          "source-youtube-nodeflow",
+          "source-url-poppy",
+          "note-human-wedge"
+        ],
+        "citations": [
+          {
+            "id": "cite-video-001",
+            "nodeId": "source-youtube-nodeflow",
+            "nodeTitle": "Nodeflow-style video source",
+            "artifactId": "artifact-youtube-nodeflow",
+            "chunkId": "artifact-youtube-nodeflow:chunk-001",
+            "chunkIndex": 0,
+            "source": "https://youtu.be/abcdefghijk",
+            "quote": "accept YouTube links, pasted transcripts, URLs, PDFs, notes, and files",
+            "score": 0.96
+          },
+          {
+            "id": "cite-note-001",
+            "nodeId": "note-human-wedge",
+            "nodeTitle": "Human product wedge note",
+            "artifactId": "artifact-human-wedge",
+            "chunkId": "artifact-human-wedge:chunk-001",
+            "chunkIndex": 0,
+            "source": "manual paste",
+            "quote": "The first viewport must expose Source, Note, and Ask modes",
+            "score": 0.94
+          }
+        ]
+      },
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "updatedAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "id": "output-codex-handoff",
+      "kind": "output",
+      "title": "Codex context handoff",
+      "body": "Use `export_canvas` with `format: \"context\"` or click `Context` in the toolbar. The exported packet includes the operating contract, node index, edge map, source chunk manifest, evidence corpus, recent runs, and continuation prompt so Codex can continue implementation while citing node and chunk ids.",
+      "position": { "x": 850, "y": 260 },
+      "metadata": {
+        "action": "answer_question",
+        "prompt": "How should Codex continue from this canvas?",
+        "inputNodeIds": [
+          "output-map-brief"
+        ],
+        "citations": [
+          {
+            "id": "cite-brief-001",
+            "nodeId": "output-map-brief",
+            "nodeTitle": "Map + Brief output",
+            "quote": "Export `context` for Codex whenever the workflow should continue outside the browser.",
+            "score": 0.91
+          }
+        ]
+      },
       "createdAt": "2026-07-01T00:00:00.000Z",
       "updatedAt": "2026-07-01T00:00:00.000Z"
     }
   ],
   "edges": [
     {
-      "id": "edge-source-brief",
-      "source": "source-nodeflow",
-      "target": "output-brief",
+      "id": "edge-video-brief",
+      "source": "source-youtube-nodeflow",
+      "target": "output-map-brief",
       "kind": "derives_from",
+      "createdAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "id": "edge-url-brief",
+      "source": "source-url-poppy",
+      "target": "output-map-brief",
+      "kind": "references",
+      "createdAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "id": "edge-note-brief",
+      "source": "note-human-wedge",
+      "target": "output-map-brief",
+      "kind": "derives_from",
+      "createdAt": "2026-07-01T00:00:00.000Z"
+    },
+    {
+      "id": "edge-brief-codex",
+      "source": "output-map-brief",
+      "target": "output-codex-handoff",
+      "kind": "exports",
       "createdAt": "2026-07-01T00:00:00.000Z"
     }
   ],
-  "runs": [],
-  "artifacts": []
+  "runs": [
+    {
+      "id": "run-map-brief",
+      "action": "summarize",
+      "inputNodeIds": [
+        "source-youtube-nodeflow",
+        "source-url-poppy",
+        "note-human-wedge"
+      ],
+      "outputNodeId": "output-map-brief",
+      "summary": "Created a source-grounded Map + Brief from video, web, and human note context.",
+      "status": "completed",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "metadata": {
+        "mode": "map_plus_brief",
+        "citations": [
+          {
+            "id": "cite-video-001",
+            "nodeId": "source-youtube-nodeflow",
+            "nodeTitle": "Nodeflow-style video source",
+            "artifactId": "artifact-youtube-nodeflow",
+            "chunkId": "artifact-youtube-nodeflow:chunk-001",
+            "chunkIndex": 0,
+            "source": "https://youtu.be/abcdefghijk",
+            "quote": "accept YouTube links, pasted transcripts, URLs, PDFs, notes, and files",
+            "score": 0.96
+          }
+        ]
+      }
+    },
+    {
+      "id": "run-codex-handoff",
+      "action": "answer_question",
+      "inputNodeIds": [
+        "output-map-brief"
+      ],
+      "outputNodeId": "output-codex-handoff",
+      "summary": "Explained how Codex should continue from exported context.",
+      "status": "completed",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "metadata": {
+        "prompt": "How should Codex continue from this canvas?"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "artifact-youtube-nodeflow",
+      "kind": "youtube",
+      "title": "Nodeflow-style video source",
+      "body": "Manual transcript: The research canvas should accept YouTube links, pasted transcripts, URLs, PDFs, notes, and files. The user should see each source become a durable node with a receipt, chunks, provenance, and actions. The strongest wedge is not a generic AI board; it is an MCP-native context layer that humans and agents can both read and update. The first workflow should map a source, create a brief, surface citations, and let Codex continue from exported context.",
+      "source": "https://youtu.be/abcdefghijk",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "metadata": {
+        "url": "https://youtu.be/abcdefghijk",
+        "videoId": "abcdefghijk",
+        "ingest": "manual_transcript"
+      },
+      "chunks": [
+        {
+          "id": "artifact-youtube-nodeflow:chunk-001",
+          "index": 0,
+          "text": "Manual transcript: The research canvas should accept YouTube links, pasted transcripts, URLs, PDFs, notes, and files. The user should see each source become a durable node with a receipt, chunks, provenance, and actions. The strongest wedge is not a generic AI board; it is an MCP-native context layer that humans and agents can both read and update. The first workflow should map a source, create a brief, surface citations, and let Codex continue from exported context.",
+          "startOffset": 0,
+          "endOffset": 464
+        }
+      ]
+    },
+    {
+      "id": "artifact-url-poppy",
+      "kind": "url",
+      "title": "Poppy AI benchmark notes",
+      "body": "Readable source notes: Poppy-style workflows make it easy for creators to collect web pages, video notes, prompts, and outputs in one visual space. The Starlight angle is to keep the same human affordance while adding local-first storage, safe MCP tools, portable exports, and source chunk ids an agent can cite.",
+      "source": "https://example.com/poppy-ai-benchmark",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "metadata": {
+        "url": "https://example.com/poppy-ai-benchmark",
+        "ingest": "basic_fetch"
+      },
+      "chunks": [
+        {
+          "id": "artifact-url-poppy:chunk-001",
+          "index": 0,
+          "text": "Readable source notes: Poppy-style workflows make it easy for creators to collect web pages, video notes, prompts, and outputs in one visual space. The Starlight angle is to keep the same human affordance while adding local-first storage, safe MCP tools, portable exports, and source chunk ids an agent can cite.",
+          "startOffset": 0,
+          "endOffset": 310
+        }
+      ]
+    },
+    {
+      "id": "artifact-human-wedge",
+      "kind": "markdown",
+      "title": "Human product wedge note",
+      "body": "Human note: make the canvas feel immediately usable. The first viewport must expose Source, Note, and Ask modes; every paste/drop should create inspectable context; the user should be able to copy selected source context or export the whole canvas for Codex.",
+      "source": "manual paste",
+      "createdAt": "2026-07-01T00:00:00.000Z",
+      "metadata": {
+        "ingest": "mcp_text_source"
+      },
+      "chunks": [
+        {
+          "id": "artifact-human-wedge:chunk-001",
+          "index": 0,
+          "text": "Human note: make the canvas feel immediately usable. The first viewport must expose Source, Note, and Ask modes; every paste/drop should create inspectable context; the user should be able to copy selected source context or export the whole canvas for Codex.",
+          "startOffset": 0,
+          "endOffset": 252
+        }
+      ]
+    }
+  ]
 }

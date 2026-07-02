@@ -4,7 +4,7 @@ OSS-first, MCP-native research and workflow canvas for Codex, Claude, Gemini, cr
 
 This is not a Poppy or Nodeflow clone. It is a local-first agent context layer: sources, prompts, MCP tools, agent runs, and outputs become typed nodes on a portable canvas.
 
-![Starlight Agent Canvas desktop workspace](docs/visual-qa/desktop-live-canvas-composer.png)
+![Starlight Agent Canvas Source Note Ask composer](docs/visual-qa/desktop-live-composer-modes.png)
 
 ## Why It Exists
 
@@ -32,8 +32,8 @@ Most AI canvases make research visible for a human but awkward for local agents.
 From a GitHub clone:
 
 ```powershell
-# Use the clone URL from this repository's GitHub Code button.
-git clone https://github.com/<owner>/starlight-agent-canvas.git
+# Use the clone URL from this repository's GitHub Code button or project release page.
+git clone <repo-url>
 cd starlight-agent-canvas
 corepack enable
 corepack prepare pnpm@11.7.0 --activate
@@ -67,6 +67,14 @@ pnpm dev
 The web app starts at `http://localhost:3000` unless Next.js chooses another port.
 API routes are localhost-only unless `AGENT_CANVAS_ALLOW_REMOTE=1` is set intentionally.
 
+Try the portable demo:
+
+```text
+Open the app -> Import -> examples/demo-canvas.json -> select the YouTube source -> click Context.
+```
+
+The demo proves YouTube/manual transcript context, URL notes, human notes, source artifacts, chunk ids, Map + Brief output, and Codex context handoff. See `docs/demo-walkthrough.md`.
+
 Optional local data path:
 
 ```powershell
@@ -96,10 +104,9 @@ pnpm mcp:config -- --client json
 pnpm mcp:install:codex
 pnpm mcp:install:codex -- --write
 pnpm mcp:smoke
-pnpm mcp:start
 ```
 
-For Codex-specific operating guidance, see `docs/codex-integration.md`.
+`pnpm mcp:start` is only for manual stdio debugging. Normal MCP clients spawn the server from the generated config. For Codex-specific operating guidance, see `docs/codex-integration.md`.
 
 Example MCP client entry:
 
@@ -144,7 +151,7 @@ pnpm test:e2e
 
 See `docs/technology-stack.md`, `docs/mcp-setup.md`, and `docs/production-readiness.md`.
 
-Client examples live in `examples/mcp`.
+Client examples and workflow prompts live in `examples/mcp`.
 
 ## Docs
 
@@ -152,6 +159,7 @@ Client examples live in `examples/mcp`.
 - PRD: `docs/prd.md`
 - User flows: `docs/user-flows.md`
 - Codex integration: `docs/codex-integration.md`
+- Demo walkthrough: `docs/demo-walkthrough.md`
 - MCP setup: `docs/mcp-setup.md`
 - System design: `docs/system-design.md`
 - Technology stack: `docs/technology-stack.md`

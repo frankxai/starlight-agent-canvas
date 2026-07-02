@@ -1,12 +1,13 @@
 {
+  "//": "Template only. Run `pnpm mcp:config -- --client claude` to print machine-specific absolute paths.",
   "mcpServers": {
     "starlight-agent-canvas": {
-      "command": "C:/Program Files/nodejs/node.exe",
+      "command": "/absolute/path/to/node",
       "args": [
-        "C:/Users/frank/starlight/repos/starlight-agent-canvas/packages/mcp/dist/cli.js"
+        "/absolute/path/to/starlight-agent-canvas/packages/mcp/dist/cli.js"
       ],
       "env": {
-        "AGENT_CANVAS_HOME": "C:/Users/frank/.starlight/agent-canvas"
+        "AGENT_CANVAS_HOME": "/absolute/path/to/.starlight/agent-canvas"
       }
     }
   }

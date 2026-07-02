@@ -13,7 +13,7 @@ Last reviewed: 2026-07-01.
 - Source intake: SSRF-hardened URL fetch, optional Firecrawl, PDF extraction, YouTube oEmbed and best-effort public captions, manual text/transcript ingestion.
 - MCP package: `@modelcontextprotocol/sdk` stdio server with positioned source ingest/update/action/import/export tools, including PDF ingest, chunk-backed search, and agent context export.
 - QA: Vitest, Playwright desktop/mobile, security scan, visual QA screenshots.
-- Storage: local JSON files under `AGENT_CANVAS_HOME`, defaulting to `C:\Users\frank\.starlight\agent-canvas`.
+- Storage: local JSON files under `AGENT_CANVAS_HOME`, defaulting to `<home>/.starlight/agent-canvas`.
 - Write safety: per-canvas in-process queues plus atomic file locks under `AGENT_CANVAS_HOME\.locks`.
 
 ## Why This Stack

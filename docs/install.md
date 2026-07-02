@@ -26,8 +26,8 @@ corepack prepare pnpm@11.7.0 --activate
 ## Install From GitHub
 
 ```powershell
-# Use the clone URL from this repository's GitHub Code button.
-git clone https://github.com/<owner>/starlight-agent-canvas.git
+# Use the clone URL from this repository's GitHub Code button or project release page.
+git clone <repo-url>
 cd starlight-agent-canvas
 corepack enable
 corepack prepare pnpm@11.7.0 --activate
@@ -91,20 +91,22 @@ pnpm dev
 
 1. Open the web app.
 2. Check the `Setup / MCP` panel for data home, MCP build, and Codex wiring status.
-3. Paste a YouTube link, URL, transcript, or raw note into the top canvas composer.
-4. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
-5. Inspect the new source/output pair on the canvas and the selected node in the inspector.
-6. Select a source node and inspect the context receipt: source kind, ingest method, chunks, URL/file, and character count.
-7. Run `Source summary`, `Extract claims`, or `Ask selected` when you want the action scoped to only that source.
-8. Use the action drawer for multi-node or whole-canvas `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
-9. Click `Copy source` for selected-source context, or `Context` when you want a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
-10. Export JSON or Markdown from the canvas toolbar.
-11. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
-12. Build the MCP server with `pnpm mcp:build`.
-13. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
-14. Run `pnpm doctor` to confirm Codex points at this MCP server.
-15. Ask the agent to list canvases and add a source node.
-16. Keep building with the same shared canvas context.
+3. Use the top canvas composer in `Source` mode for YouTube links, URLs, transcripts, PDFs, files, and raw source text.
+4. Switch to `Note` mode when you want to add human thinking directly, or `Ask` mode when you want the same composer to query selected nodes or the whole canvas.
+5. Keep the default `Map + Brief` when you want an immediate output node, or switch to `Map only` when you want raw source nodes first.
+6. Inspect the new source/output pair on the canvas and the selected node in the inspector.
+7. Select a source node and inspect the context receipt: source kind, ingest method, chunks, URL/file, and character count.
+8. Run `Source summary`, `Extract claims`, or `Ask selected` when you want the action scoped to only that source.
+9. Use the action drawer for multi-node or whole-canvas `Summarize`, `Claims`, `Compare`, `Matrix`, `Build Brief`, or `Ask`.
+10. Click `Copy source` for selected-source context, or `Context` when you want a full clipboard-ready agent packet for Codex, Claude, Gemini, or another MCP-aware workflow.
+11. Export JSON or Markdown from the canvas toolbar.
+12. Re-import a JSON export later from the same toolbar when you want to rehydrate a canvas snapshot.
+13. Import `examples/demo-canvas.json` when you want a ready-made proof of YouTube/manual transcript, artifacts, chunks, citations, Map + Brief, and Codex handoff.
+14. Build the MCP server with `pnpm mcp:build`.
+15. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
+16. Run `pnpm doctor` to confirm Codex points at this MCP server.
+17. Ask the agent to list canvases and add a source node.
+18. Keep building with the same shared canvas context.
 
 ## Production Local Preview
 
