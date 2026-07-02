@@ -2544,7 +2544,7 @@ function WorkspaceInner() {
             ) : null}
             {canvas?.nodes.length && !shouldShowCanvasIntakeTarget ? (
               <div
-                className="absolute left-3 right-3 top-[300px] z-10 rounded-lg border border-starlight-border bg-starlight-surface/88 p-3 shadow-command backdrop-blur sm:left-auto sm:right-4 sm:top-[188px] sm:max-w-[300px]"
+                className="absolute bottom-20 left-3 right-3 z-10 hidden rounded-lg border border-starlight-border bg-starlight-surface/82 p-2.5 shadow-command backdrop-blur sm:left-auto sm:right-4 sm:block sm:max-w-[260px]"
                 data-testid="canvas-drop-affordance"
               >
                 <div className="flex items-center gap-2 text-xs font-semibold text-starlight-ink">
@@ -2594,7 +2594,7 @@ function WorkspaceInner() {
                 </div>
               </div>
             ) : null}
-            <div className="absolute left-3 right-3 top-3 z-40 max-h-[calc(100%-5.25rem)] overflow-y-auto rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:max-h-[430px] md:w-[min(760px,calc(100%-2rem))] md:overflow-y-auto" data-testid="live-composer">
+            <div className="absolute left-3 right-3 top-3 z-30 max-h-[min(24vh,210px)] overflow-y-auto overscroll-contain rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:max-h-[min(32vh,260px)] md:w-[min(420px,calc(100%-2rem))]" data-testid="live-composer">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex min-w-0 flex-wrap items-center gap-2">
                   <div className="inline-flex items-center gap-1.5 rounded-md border border-starlight-mint/35 bg-starlight-mint/10 px-2.5 py-1 text-xs font-semibold text-starlight-ink" data-testid="live-intake-heading">
@@ -2731,113 +2731,120 @@ function WorkspaceInner() {
                   ))}
                 </div>
               </div>
-              {setupStatus?.firstSuccess.inputContracts.length ? (
-                <div className="mt-2 grid grid-cols-2 gap-1.5 md:grid-cols-4 xl:grid-cols-7" data-testid="input-contract-strip">
-                  {setupStatus.firstSuccess.inputContracts.map((contract) => (
-                    <div
-                      key={contract.id}
-                      data-testid={`input-contract-${contract.id}`}
-                      title={`${contract.input}: ${contract.output}`}
-                      className="min-w-0 rounded-md border border-starlight-border bg-starlight-bg/72 px-2 py-1.5"
-                    >
-                      <span className="flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-starlight-ink">
-                        <span className="shrink-0 text-starlight-accent">{inputContractIcon(contract.id)}</span>
-                        <span className="truncate">{contract.label}</span>
-                      </span>
-                      <span className="mt-0.5 block truncate text-[9px] text-starlight-muted">{contract.outputLabel}</span>
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-              <div className="mt-2 rounded-md border border-starlight-border bg-starlight-bg/72 p-2.5" data-testid="shared-context-contract">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-starlight-ink">
+              <details className="mt-2 rounded-md border border-starlight-border bg-starlight-bg/72 p-2 text-xs" data-testid="shared-context-contract">
+                <summary className="flex cursor-pointer list-none flex-wrap items-center justify-between gap-2 text-starlight-ink marker:hidden">
+                  <span className="inline-flex min-w-0 items-center gap-1.5 font-semibold">
                     <Network className="h-3.5 w-3.5 text-starlight-mint" aria-hidden="true" />
                     <span>Shared context contract</span>
-                  </div>
-                  <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
-                    <span className="min-w-0 truncate rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[10px] text-starlight-muted" data-testid="shared-context-home">
-                      {shortPath(setupStatus?.canvasHome || apiState.home || 'local canvas home', 44)}
-                    </span>
-                    <button
-                      type="button"
-                      data-testid="shared-context-add"
-                      disabled={!canMutate}
-                      onClick={() => requestComposerInput('source')}
-                      className="flex min-h-7 items-center justify-center gap-1 rounded-md border border-starlight-accent/35 bg-starlight-accent/10 px-2 text-[10px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      <UploadCloud className="h-3 w-3" aria-hidden="true" />
-                      Add
-                    </button>
-                    <button
-                      type="button"
-                      data-testid="shared-context-ask"
-                      disabled={!canMutate || !canvas?.nodes.length}
-                      onClick={() => requestComposerInput('ask')}
-                      className="flex min-h-7 items-center justify-center gap-1 rounded-md border border-starlight-border bg-starlight-surface/85 px-2 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      <Sparkles className="h-3 w-3" aria-hidden="true" />
-                      Ask
-                    </button>
-                    <button
-                      type="button"
-                      data-testid="shared-context-codex"
-                      disabled={!canvas || busy}
-                      onClick={copyCodexHandoff}
-                      className="flex min-h-7 items-center justify-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
-                    >
-                      <Bot className="h-3 w-3" aria-hidden="true" />
-                      Codex
-                    </button>
-                  </div>
-                </div>
-                <div className="mt-2 grid grid-cols-2 gap-1.5 md:grid-cols-4" data-testid="shared-context-contract-steps">
-                  {sharedContextContract.map((item) => (
-                    <div key={item.label} className={`min-w-0 rounded-md border px-2 py-1.5 ${item.ok ? 'border-starlight-mint/35 bg-starlight-mint/10' : 'border-starlight-border bg-starlight-surface/78'}`}>
-                      <div className="flex min-w-0 items-center gap-1.5">
-                        {item.ok ? (
-                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-starlight-mint" aria-hidden="true" />
-                        ) : (
-                          <MousePointerClick className="h-3.5 w-3.5 shrink-0 text-starlight-gold" aria-hidden="true" />
-                        )}
-                        <span className="truncate text-[10px] font-semibold text-starlight-ink">{item.label}</span>
-                      </div>
-                      <div className="mt-1 truncate text-[11px] font-semibold text-starlight-ink">{item.value}</div>
-                      <div className="mt-0.5 truncate text-[9px] text-starlight-muted">{item.detail}</div>
+                  </span>
+                  <span className="truncate text-[10px] text-starlight-muted">Open for input types, operator loop, and Codex handoff state</span>
+                </summary>
+                <div className="mt-2 space-y-2">
+                  {setupStatus?.firstSuccess.inputContracts.length ? (
+                    <div className="grid grid-cols-2 gap-1.5 md:grid-cols-4 xl:grid-cols-7" data-testid="input-contract-strip">
+                      {setupStatus.firstSuccess.inputContracts.map((contract) => (
+                        <div
+                          key={contract.id}
+                          data-testid={`input-contract-${contract.id}`}
+                          title={`${contract.input}: ${contract.output}`}
+                          className="min-w-0 rounded-md border border-starlight-border bg-starlight-bg/72 px-2 py-1.5"
+                        >
+                          <span className="flex min-w-0 items-center gap-1.5 text-[10px] font-semibold text-starlight-ink">
+                            <span className="shrink-0 text-starlight-accent">{inputContractIcon(contract.id)}</span>
+                            <span className="truncate">{contract.label}</span>
+                          </span>
+                          <span className="mt-0.5 block truncate text-[9px] text-starlight-muted">{contract.outputLabel}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-1.5 md:grid-cols-5" data-testid="operator-loop">
-                {operatorLoop.map((step) => (
-                  <button
-                    key={step.id}
-                    type="button"
-                    data-testid={`operator-loop-${step.id}`}
-                    disabled={!step.enabled}
-                    onClick={() => void runOperatorLoopStep(step.id)}
-                    aria-label={`${step.label}: ${step.actionLabel}`}
-                    className={`min-h-14 rounded-md border px-2 py-1.5 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
-                      step.ok
-                        ? 'border-starlight-mint/40 bg-starlight-mint/10 hover:border-starlight-mint'
-                        : 'border-starlight-border bg-starlight-bg/75 hover:border-starlight-accent/70'
-                    }`}
-                  >
-                    <span className="flex min-w-0 items-center gap-1.5">
-                      {step.ok ? (
-                        <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-starlight-mint" aria-hidden="true" />
-                      ) : (
-                        <MousePointerClick className="h-3.5 w-3.5 shrink-0 text-starlight-gold" aria-hidden="true" />
-                      )}
-                      <span className="truncate text-[11px] font-semibold text-starlight-ink">{step.label}</span>
-                      <span className="ml-auto shrink-0 rounded border border-starlight-border bg-starlight-surface px-1.5 py-0.5 text-[9px] uppercase text-starlight-muted">
-                        {step.actionLabel}
+                  ) : null}
+                  <div className="rounded-md border border-starlight-border bg-starlight-surface/72 p-2.5">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="min-w-0 truncate rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[10px] text-starlight-muted" data-testid="shared-context-home">
+                        {shortPath(setupStatus?.canvasHome || apiState.home || 'local canvas home', 44)}
                       </span>
-                    </span>
-                    <span className="mt-1 block truncate text-[10px] text-starlight-muted">{step.detail}</span>
-                  </button>
-                ))}
-              </div>
+                      <div className="flex min-w-0 flex-wrap items-center justify-end gap-1.5">
+                        <button
+                          type="button"
+                          data-testid="shared-context-add"
+                          disabled={!canMutate}
+                          onClick={() => requestComposerInput('source')}
+                          className="flex min-h-7 items-center justify-center gap-1 rounded-md border border-starlight-accent/35 bg-starlight-accent/10 px-2 text-[10px] font-semibold text-starlight-accent transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          <UploadCloud className="h-3 w-3" aria-hidden="true" />
+                          Add
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="shared-context-ask"
+                          disabled={!canMutate || !canvas?.nodes.length}
+                          onClick={() => requestComposerInput('ask')}
+                          className="flex min-h-7 items-center justify-center gap-1 rounded-md border border-starlight-border bg-starlight-surface/85 px-2 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          <Sparkles className="h-3 w-3" aria-hidden="true" />
+                          Ask
+                        </button>
+                        <button
+                          type="button"
+                          data-testid="shared-context-codex"
+                          disabled={!canvas || busy}
+                          onClick={copyCodexHandoff}
+                          className="flex min-h-7 items-center justify-center gap-1 rounded-md border border-starlight-gold/45 bg-starlight-gold/10 px-2 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                        >
+                          <Bot className="h-3 w-3" aria-hidden="true" />
+                          Codex
+                        </button>
+                      </div>
+                    </div>
+                    <div className="mt-2 grid grid-cols-2 gap-1.5 md:grid-cols-4" data-testid="shared-context-contract-steps">
+                      {sharedContextContract.map((item) => (
+                        <div key={item.label} className={`min-w-0 rounded-md border px-2 py-1.5 ${item.ok ? 'border-starlight-mint/35 bg-starlight-mint/10' : 'border-starlight-border bg-starlight-bg/78'}`}>
+                          <div className="flex min-w-0 items-center gap-1.5">
+                            {item.ok ? (
+                              <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-starlight-mint" aria-hidden="true" />
+                            ) : (
+                              <MousePointerClick className="h-3.5 w-3.5 shrink-0 text-starlight-gold" aria-hidden="true" />
+                            )}
+                            <span className="truncate text-[10px] font-semibold text-starlight-ink">{item.label}</span>
+                          </div>
+                          <div className="mt-1 truncate text-[11px] font-semibold text-starlight-ink">{item.value}</div>
+                          <div className="mt-0.5 truncate text-[9px] text-starlight-muted">{item.detail}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 md:grid-cols-5" data-testid="operator-loop">
+                    {operatorLoop.map((step) => (
+                      <button
+                        key={step.id}
+                        type="button"
+                        data-testid={`operator-loop-${step.id}`}
+                        disabled={!step.enabled}
+                        onClick={() => void runOperatorLoopStep(step.id)}
+                        aria-label={`${step.label}: ${step.actionLabel}`}
+                        className={`min-h-14 rounded-md border px-2 py-1.5 text-left transition disabled:cursor-not-allowed disabled:opacity-45 ${
+                          step.ok
+                            ? 'border-starlight-mint/40 bg-starlight-mint/10 hover:border-starlight-mint'
+                            : 'border-starlight-border bg-starlight-bg/75 hover:border-starlight-accent/70'
+                        }`}
+                      >
+                        <span className="flex min-w-0 items-center gap-1.5">
+                          {step.ok ? (
+                            <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-starlight-mint" aria-hidden="true" />
+                          ) : (
+                            <MousePointerClick className="h-3.5 w-3.5 shrink-0 text-starlight-gold" aria-hidden="true" />
+                          )}
+                          <span className="truncate text-[11px] font-semibold text-starlight-ink">{step.label}</span>
+                          <span className="ml-auto shrink-0 rounded border border-starlight-border bg-starlight-surface px-1.5 py-0.5 text-[9px] uppercase text-starlight-muted">
+                            {step.actionLabel}
+                          </span>
+                        </span>
+                        <span className="mt-1 block truncate text-[10px] text-starlight-muted">{step.detail}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </details>
               {composerMode === 'source' && intakeMapPreview.length ? (
                 <div
                   className="mt-2 flex flex-wrap items-center gap-1.5 rounded-md border border-starlight-accent/25 bg-starlight-accent/10 px-2.5 py-2 text-[11px]"
@@ -2851,7 +2858,7 @@ function WorkspaceInner() {
                   <span className="ml-auto rounded border border-starlight-border bg-starlight-surface px-1.5 py-0.5 uppercase text-starlight-muted">{intakeActionPreview.label}</span>
                 </div>
               ) : null}
-              <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-start">
+              <div className="mt-2 grid grid-cols-3 gap-1.5">
                 <textarea
                   data-testid="intake-text"
                   ref={composerRef}
@@ -2871,7 +2878,7 @@ function WorkspaceInner() {
                     }
                   }}
                   aria-label="Add source, note, or question to canvas"
-                  className="min-h-16 w-full resize-none rounded-md border border-starlight-border bg-starlight-bg/80 px-3 py-2 text-sm leading-5 text-starlight-ink"
+                  className="col-span-3 min-h-12 w-full resize-none rounded-md border border-starlight-border bg-starlight-bg/80 px-3 py-2 text-sm leading-5 text-starlight-ink"
                   placeholder={composerPlaceholder(composerMode)}
                 />
                 <button
@@ -2879,7 +2886,7 @@ function WorkspaceInner() {
                   type="button"
                   disabled={!canMutate}
                   onClick={() => pasteClipboardToIntake(composerMode)}
-                  className="flex h-10 items-center justify-center gap-2 rounded-md border border-starlight-border px-3 text-sm font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45"
+                  className="flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-starlight-border px-2 text-xs font-semibold text-starlight-ink transition hover:border-starlight-accent disabled:cursor-not-allowed disabled:opacity-45 md:h-10 md:gap-2 md:px-3 md:text-sm"
                 >
                   <ClipboardPaste className="h-4 w-4" aria-hidden="true" />
                   {clipboardButtonLabel(composerMode)}
@@ -2889,7 +2896,7 @@ function WorkspaceInner() {
                   type="button"
                   disabled={composerActionDisabled}
                   onClick={submitActiveComposer}
-                  className="flex h-10 items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
+                  className="flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-md bg-starlight-ink px-2 text-xs font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45 md:h-10 md:gap-2 md:px-3 md:text-sm"
                 >
                   {composerPrimaryIcon(composerMode, intakeAction)}
                   {composerButtonLabel(composerMode, intakeAction)}
@@ -2899,7 +2906,7 @@ function WorkspaceInner() {
                   type="button"
                   disabled={!canMutate}
                   onClick={submitCanvasNote}
-                  className="flex h-10 items-center justify-center gap-2 rounded-md border border-starlight-border px-3 text-sm font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45"
+                  className="flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-md border border-starlight-border px-2 text-xs font-semibold text-starlight-ink transition hover:border-starlight-gold disabled:cursor-not-allowed disabled:opacity-45 md:h-10 md:gap-2 md:px-3 md:text-sm"
                 >
                   <MessageSquarePlus className="h-4 w-4" aria-hidden="true" />
                   Note
@@ -3341,7 +3348,7 @@ function WorkspaceInner() {
                 />
               </label>
             </div>
-            <div className="absolute inset-0 pt-[250px] sm:pt-0">
+            <div className="absolute inset-0">
               {shouldShowCanvasIntakeTarget ? (
                 <div className="absolute left-1/2 top-[54%] z-10 hidden w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-starlight-accent/25 bg-starlight-surface/88 p-5 text-center shadow-command backdrop-blur md:block" data-testid="empty-canvas-actions">
                   <UploadCloud className="mx-auto h-7 w-7 text-starlight-accent" aria-hidden="true" />

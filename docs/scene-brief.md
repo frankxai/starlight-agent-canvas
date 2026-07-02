@@ -15,7 +15,7 @@ An active research graph where every source, action, and agent output becomes in
 ## Layout
 
 - Left rail: always-visible "Add To Canvas" intake with detected-source preview chips, templates, canvases, and direct source controls.
-- Center: React Flow typed graph with first-viewport `Paste / Drop Anything` composer, live `Shared context contract` for human input/canvas normalization/Codex tools/handoff scope, live `Capture -> Map -> Inspect -> Ask -> Handoff` operator loop, fresh blank-canvas action, clipboard paste with manual fallback, detected-source preview chips, explicit map preview for node kind/artifact/readiness/action output, latest intake receipt with scoped context/Codex copy, responsive empty-input primary actions, desktop first-source capture target that remains visible until real source context exists, actionable graph context affordance for paste/note/file, paste-anywhere intake, drop-to-position mapping, toolbar note creation, double-click note creation, drag persistence, direct node connections, context copy, explicit import preview/cancel/confirm, and import/export controls.
+- Center: React Flow typed graph with compact first-viewport `Paste / Drop Anything` command dock, collapsible `Shared context contract` for human input/canvas normalization/Codex tools/handoff scope, collapsible `Capture -> Map -> Inspect -> Ask -> Handoff` operator loop, fresh blank-canvas action, clipboard paste with manual fallback, detected-source preview chips, explicit map preview for node kind/artifact/readiness/action output, latest intake receipt with scoped context/Codex copy, responsive empty-input primary actions, desktop first-source capture target that remains visible until real source context exists, desktop-only graph context affordance for paste/note/file, mobile bottom command tray for repeated actions, paste-anywhere intake, drop-to-position mapping, toolbar note creation, double-click note creation, drag persistence, direct node connections, context copy, explicit import preview/cancel/confirm, and import/export controls. The center of the graph must stay directly interactive after a source is mapped.
 - Right rail: selected-context tray, latest intake trace, `Context gaps` lane for reference-only or needs-context sources, Codex export preview, live Workflow Map, handoff readiness lane, source-grounded ask box, action drawer, editable selected node inspector with context receipt, source-readiness band, source `Attach context` enrichment panel, clickable citation-to-source cards, selected-source commands immediately after the action drawer, setup/MCP status, first-success contract, Agent toolbelt for `get_latest_canvas -> ingest_anything -> enrich_source_node -> run_node_action -> export_canvas`, adoption report commands, local search, run log with clickable citation chips.
 - Top bar: product identity, local data path, export route, MCP status.
 
@@ -32,8 +32,9 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 - The persistent composer exposes the supported-input contract for YouTube, any video, image, web, PDF, text, and note input, backed by `docs/first-success.contract.json`.
 - If browser clipboard access is blocked or empty, `Paste & Map` focuses the right composer, shows the manual paste fallback, and keeps drop-to-canvas available.
 - Empty `Map`/`Ask` clicks focus the correct composer and update status, not silently fail.
-- The live operator loop shows current stage state from real canvas data and exposes direct actions for capture, mapping, inspection, asking, and Codex handoff.
-- The shared context contract shows, from live state, what the human populated, what the canvas normalized into artifacts/readiness, whether Codex should use MCP or prompt handoff, and which nodes the handoff will include.
+- The compact command dock explains that pasted/dropped sources become Codex-readable context without covering the graph's main interaction area.
+- The operator loop remains available on demand and shows current stage state from real canvas data with direct actions for capture, mapping, inspection, asking, and Codex handoff.
+- The shared context contract remains available on demand and shows, from live state, what the human populated, what the canvas normalized into artifacts/readiness, whether Codex should use MCP or prompt handoff, and which nodes the handoff will include.
 - User can see inferred `Video source`, `Image source`, `Web source`, `Source notes`, `Text source`, or file affordances before mapping.
 - When source text is present, user can see the exact future node kind, artifact kind, readiness state, and output-action mode before mapping.
 - After mapping, user can see a latest intake receipt with created node kind(s), artifact kind(s), optional action output, `Codex-ready` state, and exact-context `Context` / `Codex` copy actions.
@@ -41,7 +42,8 @@ Track A only. Hover/focus transitions and stable node selection. Respect `prefer
 - Workflow Map stage buttons refocus matching template nodes.
 - Empty canvas state has direct `Map`, `Note`, and `Upload` actions.
 - Starter canvases that only contain notes or planning prompts still show a first-source capture target until a source node, output, or run exists.
-- Populated canvases expose an actionable graph affordance with `Paste`, `Note`, and `File` controls, not only passive helper text.
+- Populated desktop canvases expose an actionable graph affordance with `Paste`, `Note`, and `File` controls, not only passive helper text; mobile uses the sticky bottom command tray instead of a second floating card.
+- Populated canvases keep the graph center unblocked by composer, context contract, drop affordance, or command tray overlays.
 - User can double-click blank canvas space for a note, select any node, edit title/body, and save.
 - Newly created source/action nodes become visible context immediately.
 - Newly created source/action nodes are selected and opened in the inspector.

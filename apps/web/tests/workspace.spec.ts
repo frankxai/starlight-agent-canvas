@@ -212,6 +212,14 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('shared-context-contract')).toContainText('1 source');
   await expect(page.getByTestId('shared-context-contract')).toContainText('1 artifact');
   await expect(page.getByTestId('shared-context-ask')).toBeEnabled();
+  const canvasCenterBlocker = await page.getByTestId('canvas-surface').evaluate((surface) => {
+    const rect = surface.getBoundingClientRect();
+    const element = document.elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    return element?.closest('[data-testid="live-composer"],[data-testid="canvas-drop-affordance"],[data-testid="canvas-command-tray"]')?.getAttribute('data-testid') ?? null;
+  });
+  expect(canvasCenterBlocker).toBeNull();
+  const liveComposerBox = await page.getByTestId('live-composer').boundingBox();
+  expect(liveComposerBox?.height ?? 999).toBeLessThanOrEqual(testInfo.project.name === 'mobile' ? 215 : 265);
   await expect(page.getByTestId('context-receipt-inspect')).toBeEnabled();
   await expect(page.getByTestId('context-receipt-copy-context')).toBeEnabled();
   await expect(page.getByTestId('context-receipt-copy-codex')).toBeEnabled();
@@ -302,10 +310,14 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('inspector-title')).toHaveValue('My canvas note: collect the product gaps and turn them into a brief.');
   await expect(page.getByTestId('context-receipt-node-count')).toContainText('1 context node');
   await expect(page.getByTestId('context-receipt-codex-ready')).toContainText('Codex-ready');
-  await expect(page.getByTestId('canvas-drop-affordance')).toBeVisible();
-  await expect(page.getByTestId('canvas-drop-affordance')).toContainText('Canvas accepts context');
-  await expect(page.getByTestId('canvas-affordance-paste')).toBeEnabled();
-  await expect(page.getByTestId('canvas-affordance-note')).toBeEnabled();
+  if (testInfo.project.name === 'mobile') {
+    await expect(page.getByTestId('canvas-drop-affordance')).toBeHidden();
+  } else {
+    await expect(page.getByTestId('canvas-drop-affordance')).toBeVisible();
+    await expect(page.getByTestId('canvas-drop-affordance')).toContainText('Canvas accepts context');
+    await expect(page.getByTestId('canvas-affordance-paste')).toBeEnabled();
+    await expect(page.getByTestId('canvas-affordance-note')).toBeEnabled();
+  }
   await expect(page.getByTestId('save-node')).toBeEnabled();
   await page.getByTestId('inspector-title').fill('Edited canvas note');
   await page.getByTestId('inspector-body').fill('Edited note body with product gaps, source needs, and next actions.');
