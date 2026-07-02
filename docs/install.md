@@ -25,18 +25,26 @@ corepack prepare pnpm@11.7.0 --activate
 
 ## Install From GitHub
 
-Fast path:
+Open the app fast:
 
 ```powershell
 git clone https://github.com/frankxai/starlight-agent-canvas.git
 cd starlight-agent-canvas
 corepack enable
 corepack prepare pnpm@11.7.0 --activate
-node scripts/setup.mjs
+pnpm install
 pnpm dev
 ```
 
 The app starts on `http://localhost:3000` unless Next.js chooses another port.
+
+Prove the full local plus MCP/Codex setup:
+
+```powershell
+node scripts/setup.mjs
+pnpm install:proof
+pnpm dev
+```
 
 Already installed dependencies, or reviewing a pull request branch:
 
@@ -52,13 +60,13 @@ Need the full verification path after setup:
 node scripts/setup.mjs --verify
 ```
 
-Need a non-interactive proof that the app can actually start after install:
+Need only the non-interactive proof that the app can actually start after install:
 
 ```powershell
-pnpm first-run:check
+pnpm install:proof
 ```
 
-This builds the production app, starts it on a temporary localhost port with a temporary `AGENT_CANVAS_HOME`, checks `/api/setup/status`, imports the bundled demo canvas, verifies context export, maps a mixed YouTube/video/image/web/text blob through `/api/canvases/:id/ingest/anything`, runs a local action on the mapped nodes, stops the preview, and removes the temporary data home. Use `pnpm first-run:check -- --skip-build` after an existing `pnpm build`.
+This is an alias for `pnpm first-run:check`. It builds the production app, starts it on a temporary localhost port with a temporary `AGENT_CANVAS_HOME`, checks `/api/setup/status`, imports the bundled demo canvas, verifies context export, maps a mixed YouTube/video/image/web/text blob through `/api/canvases/:id/ingest/anything`, runs a local action on the mapped nodes, stops the preview, and removes the temporary data home. Use `pnpm install:proof -- --skip-build` after an existing `pnpm build`.
 
 The setup script:
 
@@ -127,6 +135,7 @@ pnpm canvas:smoke
 
 The CLI, web app, and MCP server operate over the same local store. See `docs/cli.md`.
 The complete human plus agent operating model is documented in `docs/operator-loop.md`.
+The maturity contract for what is real now versus next is documented in `docs/capability-ladder.md`.
 The five-step install-to-Codex activation runway is documented in `docs/activation.md` and exposed in the app through `Setup / MCP`.
 
 ## Install From Frank's Local Estate
@@ -177,7 +186,7 @@ pnpm dev
 23. Build the MCP server with `pnpm mcp:build`.
 24. Add the MCP config to Codex, Claude, Gemini, or another MCP client.
 25. Run `pnpm doctor` to confirm Codex points at this MCP server.
-26. Run `pnpm first-success` and `pnpm adoption:report` to confirm the install, proof canvas, visual evidence, and Codex handoff path are coherent.
+26. Run `pnpm first-success`, `pnpm install:proof`, and `pnpm adoption:report` to confirm the install, proof canvas, visual evidence, and Codex handoff path are coherent.
 27. Ask the agent to list canvases and add a source node.
 28. Keep building with the same shared canvas context.
 

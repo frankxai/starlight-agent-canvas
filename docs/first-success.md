@@ -31,7 +31,7 @@ pnpm first-success -- --out .agent-canvas/first-success.md
 ## The Contract Loop
 
 1. Install: `node scripts/setup.mjs`.
-2. Open: `pnpm dev`.
+2. Open: `pnpm dev`, or prove the local production boot path with `pnpm install:proof`.
 3. Capture: paste/drop/upload/type source context in the first viewport.
 4. Inspect: select the source/output and review receipts, chunks, citations, and body text.
 5. Handoff: copy `Context`, copy `Codex`, or export from CLI.

@@ -115,6 +115,7 @@ try {
   console.log('');
   console.log('[ok] Setup complete.');
   console.log('Proof contract: pnpm first-success');
+  console.log('Install proof: pnpm install:proof');
   console.log('Next: pnpm dev');
   console.log('Then open: http://localhost:3000');
   console.log('Production preview: pnpm preview:prod');

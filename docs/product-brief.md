@@ -18,6 +18,8 @@ The first viewport must communicate: this is a working agent canvas where the ca
 
 Turn mixed source material into reusable agent context, Codex continuation prompts, and implementation artifacts without requiring a hosted account or API key.
 
+The public maturity contract lives in `docs/capability-ladder.md`: v0.1 should be judged by proven local-first intake, source readiness, MCP handoff, and install proof; media transcription adapters, OCR/vision, hosted sync, and collaboration are explicit next-stage work.
+
 ## v0.1 Capability Standard
 
 - Paste or drop URLs, YouTube links, image URLs/screenshots, transcripts, PDFs, text files, Markdown, JSON, CSV, and raw notes.
@@ -48,4 +50,4 @@ Turn mixed source material into reusable agent context, Codex continuation promp
 - Marketplace.
 - Social scraping or posting.
 - Autonomous external mutations.
-- Direct clone positioning against Poppy, Nodeflow, AI Flow Chat, or Superly.
+- Me-too positioning against Poppy, Nodeflow, AI Flow Chat, or Superly.

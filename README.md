@@ -5,9 +5,49 @@
 
 OSS-first, MCP-native research and workflow canvas for Codex, Claude, Gemini, creators, and Starlight systems.
 
-This is not a Poppy or Nodeflow clone. It is a local-first agent context layer: sources, prompts, MCP tools, agent runs, and outputs become typed nodes on a portable canvas.
+Starlight Agent Canvas is a local-first agent context layer: sources, prompts, MCP tools, agent runs, and outputs become typed nodes on a portable canvas that humans and agents can both inspect.
 
 ![Starlight Agent Canvas self-serve video intake](docs/visual-qa/desktop-self-serve-video-mapped.png)
+
+## Install, Open, Prove
+
+Open the app fast:
+
+```powershell
+git clone https://github.com/frankxai/starlight-agent-canvas.git
+cd starlight-agent-canvas
+corepack enable
+corepack prepare pnpm@11.7.0 --activate
+pnpm install
+pnpm dev
+```
+
+Then open `http://localhost:3000`.
+
+Prove the full local plus MCP/Codex path:
+
+```powershell
+node scripts/setup.mjs
+pnpm install:proof
+```
+
+`node scripts/setup.mjs` runs dependency install, MCP build, doctor, MCP smoke, Codex config smoke, seed, and Codex config dry-run. `pnpm install:proof` builds the app, starts a temporary local preview with a temporary data home, imports the bundled demo canvas, verifies context export, maps mixed source material, runs a local action, and shuts everything down.
+
+For the maturity contract behind the product, see `docs/capability-ladder.md`.
+
+## Visual Tour
+
+Human and agent state meet in the first viewport:
+
+![Shared context first viewport](docs/visual-qa/desktop-shared-context-first-viewport.png)
+
+Mapped sources immediately become handoff-ready graph context:
+
+![Shared context populated](docs/visual-qa/desktop-shared-context-populated.png)
+
+Setup, MCP wiring, and the Codex tool path stay visible in the product:
+
+![Setup MCP panel](docs/visual-qa/desktop-setup-mcp-panel.png)
 
 ## Why It Exists
 
@@ -116,6 +156,7 @@ pnpm dev
 `pnpm doctor` now verifies local prerequisites, workspace files, the built MCP server, `.mcp.json`, and whether Codex is wired to this exact MCP CLI path and `AGENT_CANVAS_HOME`. It also warns when `.mcp.json` points at a different data home than the active app/Codex home so local state does not split across two canvases.
 `pnpm mcp:codex:smoke` proves the Codex installer path without mutating your real Codex config: it writes a temporary `config.toml`, runs `doctor --config`, launches the configured MCP server from outside the repo, calls `tools/list` and `list_canvases`, then removes the temp files.
 `pnpm first-success` prints the maintained human plus Codex activation contract; `pnpm first-success:json` emits the same contract for agents, setup helpers, issue triage, and CI.
+`pnpm install:proof` is the memorable alias for `pnpm first-run:check`: it proves production boot, demo import, context export, mixed-source intake, local action output, and clean preview shutdown.
 `pnpm adoption:report` turns doctor, release audit, demo proof, visual evidence, GitHub metadata, and Codex MCP status into one human-readable adoption snapshot; `pnpm adoption:report:json` emits the same contract for agents and CI.
 
 Manual setup remains available:
@@ -242,14 +283,14 @@ pnpm adoption:report
 pnpm adoption:report:json
 pnpm release:audit
 pnpm verify
-pnpm first-run:check
+pnpm install:proof
 pnpm canvas:smoke
 pnpm mcp:smoke
 pnpm mcp:codex:smoke
 pnpm test:e2e
 ```
 
-`pnpm first-success` is the explicit install-to-Codex success contract. `pnpm adoption:report` is the single adoption snapshot for humans and agents. It reads doctor JSON, first-success JSON, release audit JSON, demo canvas proof, visual evidence, Git/GitHub status, and Codex MCP path/home without mutating local data. `pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, first-success shape, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health; `pnpm doctor:json` emits the same health contract for agents, CI, and setup automation. `pnpm first-run:check` builds the production app, uses a temporary data home, starts a local preview, verifies setup status, imports the demo canvas, checks context export, proves mixed YouTube/video/image/web/text intake through `/api/canvases/:id/ingest/anything`, runs a local action, and shuts the preview down. `pnpm canvas:smoke` proves terminal demo import, list, search, context export, and Codex handoff export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context/Codex export against a local throwaway data home. `pnpm mcp:codex:smoke` proves the generated Codex MCP config path with a temporary config and temporary `AGENT_CANVAS_HOME`, then launches that configured server and calls safe MCP tools. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
+`pnpm first-success` is the explicit install-to-Codex success contract. `pnpm adoption:report` is the single adoption snapshot for humans and agents. It reads doctor JSON, first-success JSON, release audit JSON, demo canvas proof, visual evidence, Git/GitHub status, and Codex MCP path/home without mutating local data. `pnpm release:audit` checks GitHub/OSS files, install docs, required scripts, CI gates, first-success shape, demo canvas proof, visual evidence, env hygiene, and runtime-data safety. `pnpm verify` runs typecheck, unit/MCP tests, and production build. `pnpm doctor` verifies install and Codex wiring health; `pnpm doctor:json` emits the same health contract for agents, CI, and setup automation. `pnpm install:proof` builds the production app, uses a temporary data home, starts a local preview, verifies setup status, imports the demo canvas, checks context export, proves mixed YouTube/video/image/web/text intake through `/api/canvases/:id/ingest/anything`, runs a local action, and shuts the preview down. `pnpm canvas:smoke` proves terminal demo import, list, search, context export, and Codex handoff export. `pnpm mcp:smoke` proves stdio source ingest, node update, action, import, and JSON/Markdown/context/Codex export against a local throwaway data home. `pnpm mcp:codex:smoke` proves the generated Codex MCP config path with a temporary config and temporary `AGENT_CANVAS_HOME`, then launches that configured server and calls safe MCP tools. `pnpm test:e2e` runs the desktop/mobile Playwright workflow.
 
 ## Technology
 
@@ -267,7 +308,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 
 ## Current Proof
 
-- Last local verification date: `2026-07-02`.
+- Last local verification date: `2026-07-03`.
 - Latest committed product slice: use `git log --oneline -1`.
 - Visual QA score: `28/30` in `docs/design-loop-evidence.json`.
 - Adoption snapshot: `pnpm adoption:report`.
@@ -287,6 +328,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 - User flows: `docs/user-flows.md`
 - Codex integration: `docs/codex-integration.md`
 - Demo walkthrough: `docs/demo-walkthrough.md`
+- Capability ladder: `docs/capability-ladder.md`
 - Local CLI: `docs/cli.md`
 - Release audit: `docs/release-audit.md`
 - MCP setup: `docs/mcp-setup.md`

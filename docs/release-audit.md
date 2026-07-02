@@ -6,9 +6,9 @@
 
 - OSS surface files: README, license, security policy, contribution guide, code of conduct, support guide, governance, maintainers, agent instructions, env example, MCP config, workspace files.
 - GitHub surface: CI workflow, Dependabot, CODEOWNERS, issue templates, and pull request template.
-- Product docs: install, activation runway, first-success contract, adoption report, CLI, PRD, user flows, Codex integration, operator loop, MCP setup, readiness evidence, production readiness, GitHub readiness, system design, technology stack, product brief, scene brief, demo walkthrough, and design evidence.
+- Product docs: install, activation runway, first-success contract, adoption report, CLI, PRD, user flows, Codex integration, capability ladder, operator loop, MCP setup, readiness evidence, production readiness, GitHub readiness, system design, technology stack, product brief, scene brief, demo walkthrough, and design evidence.
 - Examples: demo canvas and MCP client examples for Codex, Claude Desktop, and Gemini.
-- Package scripts and CI gates for doctor, doctor JSON, first-success JSON, adoption report JSON, first-run check, typecheck, tests, build, CLI smoke, MCP smoke, Codex config smoke, and Playwright.
+- Package scripts and CI gates for doctor, doctor JSON, first-success JSON, adoption report JSON, install proof, first-run check, typecheck, tests, build, CLI smoke, MCP smoke, Codex config smoke, and Playwright.
 - Doctor JSON contract: executes `scripts/doctor.mjs --json` and verifies the required machine-readable shape.
 - First-success JSON contract: executes `scripts/first-success-contract.mjs --json` and verifies phases, input contracts, and Codex tool instructions.
 - Demo canvas proof: nodes, artifacts, runs, chunked sources, citations, and source/output node kinds.

@@ -24,7 +24,7 @@
       "humanAction": "Start the app and land directly in the canvas workspace.",
       "detail": "Start the app directly in the local canvas workspace.",
       "command": "pnpm dev",
-      "proof": ["pnpm first-run:check"]
+      "proof": ["pnpm install:proof"]
     },
     {
       "id": "capture",
@@ -147,8 +147,8 @@
     }
   ],
   "commands": {
-    "firstRun": ["node scripts/setup.mjs", "pnpm dev"],
-    "proof": ["pnpm first-run:check", "pnpm canvas:smoke", "pnpm mcp:smoke", "pnpm mcp:codex:smoke", "pnpm test:e2e"],
+    "firstRun": ["node scripts/setup.mjs", "pnpm install:proof", "pnpm dev"],
+    "proof": ["pnpm install:proof", "pnpm canvas:smoke", "pnpm mcp:smoke", "pnpm mcp:codex:smoke", "pnpm test:e2e"],
     "readiness": ["pnpm doctor:json", "pnpm first-success:json", "pnpm adoption:report:json", "pnpm release:audit"],
     "codex": ["pnpm mcp:build", "pnpm mcp:install:codex -- --write", "pnpm mcp:codex:smoke", "pnpm doctor"]
   },
@@ -163,6 +163,7 @@
     "docs/activation.md",
     "docs/operator-loop.md",
     "docs/codex-integration.md",
+    "docs/capability-ladder.md",
     "docs/readiness-evidence.md"
   ]
 }

@@ -1,6 +1,6 @@
 # Competitor Notes
 
-This product should be positioned as a local-first agent substrate, not as a clone.
+This product should use closed-product benchmarks without adopting me-too positioning.
 
 ## Benchmarks
 

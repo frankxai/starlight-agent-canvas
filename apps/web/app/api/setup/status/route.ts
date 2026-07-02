@@ -188,7 +188,7 @@ export async function GET() {
       contractCommand: 'pnpm first-success',
       jsonCommand: 'pnpm first-success:json',
       docs: ['docs/first-success.md', 'docs/first-success.contract.json', 'docs/operator-loop.md'],
-      proofCommands: firstSuccessContract.commands?.proof ?? ['pnpm first-run:check', 'pnpm canvas:smoke', 'pnpm mcp:smoke', 'pnpm mcp:codex:smoke'],
+      proofCommands: firstSuccessContract.commands?.proof ?? ['pnpm install:proof', 'pnpm canvas:smoke', 'pnpm mcp:smoke', 'pnpm mcp:codex:smoke'],
       phases: firstSuccessContract.phases.map((phase) => ({
         id: phase.id,
         label: phase.label,
@@ -227,7 +227,7 @@ export async function GET() {
       ],
     },
     activation: {
-      firstRunCheckCommand: 'pnpm first-run:check',
+      firstRunCheckCommand: 'pnpm install:proof',
       previewCommand: 'pnpm preview:prod',
       codexPrompt: [
         'Use starlight-agent-canvas as shared local context.',

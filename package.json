@@ -32,6 +32,7 @@
     "first-success:json": "node scripts/first-success-contract.mjs --json",
     "adoption:report": "node scripts/adoption-report.mjs",
     "adoption:report:json": "node scripts/adoption-report.mjs --json",
+    "install:proof": "node scripts/first-run-check.mjs",
     "first-run:check": "node scripts/first-run-check.mjs",
     "release:audit": "node scripts/release-audit.mjs",
     "canvas": "pnpm --filter @starlight-agent-canvas/core build && node scripts/canvas.mjs",

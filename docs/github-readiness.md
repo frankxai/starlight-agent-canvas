@@ -25,7 +25,8 @@ README first-read requirements before public announcement:
 - Links to the first-success contract and documents `pnpm first-success:json` as the parseable install-to-Codex operating contract.
 - Links to the adoption report and documents `pnpm adoption:report` as the combined install, release, proof, visual, GitHub, and Codex status snapshot.
 - Links to `docs/activation.md` and shows the in-app activation runway as the first install-to-Codex success path.
-- Avoids comparing itself as a clone of Poppy, Nodeflow, or another closed product.
+- Links to `docs/capability-ladder.md` so public users can distinguish current v0.1 behavior from v0.2+ media, OCR, hosted, and collaboration plans.
+- Avoids me-too positioning against Poppy, Nodeflow, or another closed product.
 
 ## Branch Protection
 
@@ -76,7 +77,7 @@ Use labels:
 8. Run `pnpm canvas:smoke`.
 9. Run `pnpm mcp:smoke`.
 10. Run `pnpm mcp:codex:smoke` to prove the Codex config installer through a temporary config and temporary canvas home without mutating the real user config.
-11. Run `pnpm first-run:check` to prove a fresh production preview can boot, import the demo canvas, and export context from a temporary data home.
+11. Run `pnpm install:proof` to prove a fresh production preview can boot, import the demo canvas, map mixed source material, run a local action, export context, and clean up from a temporary data home.
 12. Run `pnpm test:e2e`.
 13. Confirm `/api/setup/status` exposes `activation.steps`, `firstSuccess.phases`, proof commands, and the Codex activation prompt.
 14. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
@@ -98,6 +99,7 @@ cd starlight-agent-canvas
 corepack enable
 corepack prepare pnpm@11.7.0 --activate
 node scripts/setup.mjs
+pnpm install:proof
 pnpm dev
 ```
 
@@ -122,4 +124,4 @@ Use this framing:
 
 Avoid this framing:
 
-> A clone of Poppy, Nodeflow, or another closed-source AI canvas.
+> A closed-canvas lookalike with MCP added on top.

@@ -65,11 +65,11 @@ This lets browser tests, local agents, and setup automation verify the same jour
 pnpm doctor:json
 pnpm first-success:json
 pnpm adoption:report:json
-pnpm first-run:check
+pnpm install:proof
 pnpm canvas:smoke
 pnpm mcp:smoke
 pnpm mcp:codex:smoke
 pnpm test:e2e
 ```
 
-`pnpm first-run:check` is the best non-interactive proof for a fresh install: it builds the production app, starts a temporary preview with a temporary data home, checks setup status, imports the demo canvas, verifies context export, and shuts down cleanly.
+`pnpm install:proof` is the best non-interactive proof for a fresh install: it builds the production app, starts a temporary preview with a temporary data home, checks setup status, imports the demo canvas, verifies context export, maps mixed source material, runs a local action, and shuts down cleanly. It is an alias for `pnpm first-run:check`.

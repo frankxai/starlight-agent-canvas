@@ -40,7 +40,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   expect(setupJson.adoption.jsonCommand).toBe('pnpm adoption:report:json');
   expect(setupJson.firstSuccess.contractCommand).toBe('pnpm first-success');
   expect(setupJson.firstSuccess.jsonCommand).toBe('pnpm first-success:json');
-  expect(setupJson.firstSuccess.proofCommands).toContain('pnpm first-run:check');
+  expect(setupJson.firstSuccess.proofCommands).toContain('pnpm install:proof');
   expect(setupJson.firstSuccess.proofCommands).toContain('pnpm mcp:codex:smoke');
   expect(setupJson.firstSuccess.schemaVersion).toBe('starlight.agentCanvas.firstSuccess.v1');
   expect(setupJson.firstSuccess.phases.map((phase) => phase.id)).toEqual(['install', 'open', 'capture', 'inspect', 'handoff', 'codex']);
@@ -50,7 +50,7 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   expect(setupJson.agent.prompt).toContain('get_latest_canvas');
   expect(setupJson.agent.terminalHandoffCommand).toContain('format codex');
   expect(setupJson.agent.tools.map((tool) => tool.name)).toEqual(['get_latest_canvas', 'ingest_anything', 'enrich_source_node', 'run_node_action', 'export_canvas']);
-  expect(setupJson.activation.firstRunCheckCommand).toBe('pnpm first-run:check');
+  expect(setupJson.activation.firstRunCheckCommand).toBe('pnpm install:proof');
   expect(setupJson.activation.codexPrompt).toContain('Use starlight-agent-canvas');
   expect(setupJson.activation.steps.map((step) => step.id)).toEqual(['install', 'proof', 'context', 'handoff', 'codex']);
   await page.getByRole('button', { name: new RegExp(title) }).click();

@@ -1,6 +1,6 @@
 # Readiness Evidence Matrix
 
-Last local verification: 2026-07-02.
+Last local verification: 2026-07-03.
 
 This matrix connects the product promises in `docs/prd.md` and `docs/user-flows.md` to current evidence. It is intentionally practical: if a row cannot point to a command, screenshot, test, or file, it is not considered proven.
 
@@ -44,8 +44,9 @@ Latest local proof commit: use `git log --oneline -1`; this matrix tracks eviden
 | MCP and web support graph positioning | Web drag persistence and MCP optional `position` inputs; MCP handler test asserts position | Proven locally |
 | Web/API can create explicit graph relationships | React Flow `onConnect`, toolbar `Connect`, `/api/canvases/[id]/edges`, `FileCanvasStore.connectNodes`, Playwright edge API assertion | Proven locally for safe non-destructive edge creation and exported graph relationships |
 | New users have a one-command setup path | `scripts/setup.mjs`, `pnpm setup:local`, install docs, dry-run command verification | Proven locally |
-| GitHub users have a non-interactive first-run proof | `scripts/first-run-check.mjs`, `pnpm first-run:check`, install docs, CI `first-run:check -- --skip-build` step | Verifies production preview boot, temporary data home, setup status, demo import, canvas listing, context export, mixed YouTube/video/image/web/text intake through `/api/canvases/:id/ingest/anything`, local action output, and clean server/data cleanup |
+| GitHub users have a non-interactive install proof | `scripts/first-run-check.mjs`, `pnpm install:proof`, install docs, CI `first-run:check -- --skip-build` step | Verifies production preview boot, temporary data home, setup status, demo import, canvas listing, context export, mixed YouTube/video/image/web/text intake through `/api/canvases/:id/ingest/anything`, local action output, and clean server/data cleanup |
 | First success is a maintained human plus Codex contract | `scripts/first-success-contract.mjs`, `pnpm first-success`, `pnpm first-success:json`, `docs/first-success.md`, `/api/setup/status.firstSuccess`, `first-success-contract` UI panel, release-audit JSON shape check, CI `first-success:json` step | Proven locally for install/open/capture/inspect/handoff/Codex phases, supported input contracts, proof commands, and Codex MCP loop |
+| Capability maturity is explicit for GitHub users | `docs/capability-ladder.md`, README top install/proof path, `docs/github-readiness.md`, `docs/product-brief.md` | Proven by tracked docs that separate v0.1 behavior from v0.2+ media transcript, OCR/vision, hosted, and collaboration plans |
 | Supported inputs are visible in product and machine contracts | `docs/first-success.contract.json`, `/api/setup/status`, `input-contract-strip`, `first-success-input-contracts`, and Playwright setup assertions list YouTube, video, image, web, PDF, text, and note mappings | Proven locally by `pnpm first-success:json`, `pnpm typecheck`, `pnpm test`, `pnpm build`, and `pnpm test:e2e` |
 | Terminal users can operate local canvases without browser or MCP restart | `scripts/canvas.mjs`, `scripts/canvas-smoke.mjs`, `pnpm canvas:smoke`, `docs/cli.md`, CI `canvas:smoke` step | Proven locally for demo import, list, search, context export, full Codex handoff export, and selected-node Codex handoff export against a throwaway local home |
 | Local install readiness is machine-readable | `scripts/doctor.mjs`, `pnpm doctor:json`, `docs/operator-loop.md`, `docs/install.md`, CI `doctor:json` step | Proven locally for pass/warn/fail health output with repo root, data home, MCP CLI path, Codex config path, checks, and next steps |
