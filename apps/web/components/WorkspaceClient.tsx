@@ -135,12 +135,19 @@ type IntakePlanItem = {
 };
 
 type IntakeActionMode = 'map' | 'summarize' | 'claims' | 'ask';
+type ComposerMode = 'source' | 'note' | 'ask';
 
 const INTAKE_ACTIONS: Array<{ id: IntakeActionMode; label: string; detail: string }> = [
   { id: 'summarize', label: 'Brief', detail: 'summary output' },
   { id: 'claims', label: 'Claims', detail: 'extract claims' },
   { id: 'ask', label: 'Ask', detail: 'answer with citations' },
   { id: 'map', label: 'Map only', detail: 'source nodes' },
+];
+
+const COMPOSER_MODES: Array<{ id: ComposerMode; label: string; detail: string }> = [
+  { id: 'source', label: 'Source', detail: 'links, transcripts, files' },
+  { id: 'note', label: 'Note', detail: 'human thoughts' },
+  { id: 'ask', label: 'Ask', detail: 'canvas question' },
 ];
 
 const KIND_STYLE: Record<CanvasNodeKind, { label: string; accent: string; bg: string }> = {
@@ -413,6 +420,30 @@ function intakeButtonLabel(mode: IntakeActionMode): string {
   return 'Map';
 }
 
+function composerModeIcon(mode: ComposerMode) {
+  if (mode === 'note') return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (mode === 'ask') return <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />;
+  return <ClipboardPaste className="h-3.5 w-3.5" aria-hidden="true" />;
+}
+
+function composerPlaceholder(mode: ComposerMode): string {
+  if (mode === 'note') return 'Write a note, claim, question, or synthesis fragment';
+  if (mode === 'ask') return 'Ask across selected nodes or the whole canvas';
+  return 'Paste a YouTube link, URL, transcript, PDF notes, or raw idea';
+}
+
+function composerButtonLabel(mode: ComposerMode, actionMode: IntakeActionMode): string {
+  if (mode === 'note') return 'Add Note';
+  if (mode === 'ask') return 'Ask Canvas';
+  return intakeButtonLabel(actionMode);
+}
+
+function composerPrimaryIcon(mode: ComposerMode, actionMode: IntakeActionMode) {
+  if (mode === 'note') return <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (mode === 'ask') return <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />;
+  return intakeActionIcon(actionMode);
+}
+
 function intakeActionInput(mode: IntakeActionMode): { action?: CanvasActionType; prompt?: string } {
   if (mode === 'summarize') return { action: 'summarize' };
   if (mode === 'claims') return { action: 'extract_claims' };
@@ -479,6 +510,7 @@ function WorkspaceInner() {
   const [transcript, setTranscript] = useState('');
   const [intakeText, setIntakeText] = useState('');
   const [intakeAction, setIntakeAction] = useState<IntakeActionMode>('summarize');
+  const [composerMode, setComposerMode] = useState<ComposerMode>('source');
   const [askPrompt, setAskPrompt] = useState('What capabilities, gaps, and next build moves does this canvas show?');
   const [editTitle, setEditTitle] = useState('');
   const [editBody, setEditBody] = useState('');
@@ -504,6 +536,8 @@ function WorkspaceInner() {
   const baseFlow = useMemo(() => (canvas ? toFlow(canvas, compactCanvas) : { nodes: [], edges: [] }), [canvas, compactCanvas]);
   const canMutate = Boolean(canvas) && !busy;
   const intakePlan = useMemo(() => buildIntakePlan(intakeText), [intakeText]);
+  const composerText = composerMode === 'ask' ? askPrompt : intakeText;
+  const composerDisabled = !canMutate || !composerText.trim();
   const setupChecks = useMemo(() => {
     if (!setupStatus) return [];
     return [
@@ -903,12 +937,16 @@ function WorkspaceInner() {
     try {
       const text = (await navigator.clipboard.readText()).trim();
       if (!text) throw new Error('Clipboard is empty.');
-      setIntakeText(text);
-      setStatus('Loaded clipboard into intake.');
+      if (composerMode === 'ask') {
+        setAskPrompt(text);
+      } else {
+        setIntakeText(text);
+      }
+      setStatus(`Loaded clipboard into ${composerMode} composer.`);
     } catch (error) {
       setStatus((error as Error).message);
     }
-  }, []);
+  }, [composerMode]);
 
   const submitCanvasNote = useCallback(async () => {
     await addCanvasNoteAt(undefined, intakeText);
@@ -971,19 +1009,6 @@ function WorkspaceInner() {
     }
   }, []);
 
-  useEffect(() => {
-    const onPaste = (event: ClipboardEvent) => {
-      const target = event.target;
-      if (target instanceof Element && target.closest('input, textarea, [contenteditable="true"]')) return;
-      const text = event.clipboardData?.getData('text/plain')?.trim();
-      if (!text || !canvas || busy) return;
-      event.preventDefault();
-      void intakeAnything(text);
-    };
-    window.addEventListener('paste', onPaste);
-    return () => window.removeEventListener('paste', onPaste);
-  }, [busy, canvas, intakeAnything]);
-
   const runAction = useCallback(async (action: CanvasActionType, prompt = '', inputNodeIds = selectedIds) => {
     if (!canvas) return;
     setBusy(true);
@@ -1012,6 +1037,39 @@ function WorkspaceInner() {
     if (!selectedNode) return;
     await runAction('answer_question', `Using the selected node "${selectedNode.title}", extract the most useful takeaways, gaps, and next actions. Cite source chunks when available.`, [selectedNode.id]);
   }, [runAction, selectedNode]);
+
+  const submitActiveComposer = useCallback(async () => {
+    if (composerMode === 'note') {
+      await submitCanvasNote();
+      return;
+    }
+    if (composerMode === 'ask') {
+      await askCanvas();
+      return;
+    }
+    await submitCanvasIntake();
+  }, [askCanvas, composerMode, submitCanvasIntake, submitCanvasNote]);
+
+  useEffect(() => {
+    const onPaste = (event: ClipboardEvent) => {
+      const target = event.target;
+      if (target instanceof Element && target.closest('input, textarea, [contenteditable="true"]')) return;
+      const text = event.clipboardData?.getData('text/plain')?.trim();
+      if (!text || !canvas || busy) return;
+      event.preventDefault();
+      if (composerMode === 'note') {
+        void addCanvasNoteAt(undefined, text);
+        return;
+      }
+      if (composerMode === 'ask') {
+        void runAction('answer_question', text);
+        return;
+      }
+      void intakeAnything(text);
+    };
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, [addCanvasNoteAt, busy, canvas, composerMode, intakeAnything, runAction]);
 
   const connectSelected = useCallback(async () => {
     if (!canvas || selectedIds.length < 2) return;
@@ -1376,20 +1434,52 @@ function WorkspaceInner() {
                 Drop to map onto this canvas
               </div>
             ) : null}
-            <div className="absolute left-3 right-3 top-3 z-20 rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:w-[min(720px,calc(100%-2rem))]">
-              <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-start">
+            <div className="absolute left-3 right-3 top-3 z-20 rounded-lg border border-starlight-accent/30 bg-starlight-surface/92 p-2 shadow-command backdrop-blur md:left-4 md:right-auto md:w-[min(760px,calc(100%-2rem))]" data-testid="live-composer">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="grid grid-cols-3 gap-1 rounded-md border border-starlight-border bg-starlight-bg/80 p-1" data-testid="composer-mode">
+                  {COMPOSER_MODES.map((mode) => (
+                    <button
+                      key={mode.id}
+                      type="button"
+                      aria-pressed={composerMode === mode.id}
+                      onClick={() => setComposerMode(mode.id)}
+                      className={`flex min-h-8 items-center justify-center gap-1.5 rounded px-2 text-[11px] font-semibold transition ${
+                        composerMode === mode.id
+                          ? 'bg-starlight-ink text-starlight-bg'
+                          : 'text-starlight-muted hover:bg-starlight-surface hover:text-starlight-ink'
+                      }`}
+                      title={mode.detail}
+                    >
+                      {composerModeIcon(mode.id)}
+                      {mode.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-starlight-muted" data-testid="canvas-live-state">
+                  <span className="rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1">{canvas?.nodes.length ?? 0} nodes</span>
+                  <span className="rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1">{canvas?.artifacts.length ?? 0} artifacts</span>
+                  <span className="rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1">{canvas?.runs.length ?? 0} runs</span>
+                </div>
+              </div>
+              <div className="mt-2 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto_auto] md:items-start">
                 <textarea
                   data-testid="intake-text"
-                  value={intakeText}
-                  onChange={(event) => setIntakeText(event.target.value)}
+                  value={composerText}
+                  onChange={(event) => {
+                    if (composerMode === 'ask') {
+                      setAskPrompt(event.target.value);
+                    } else {
+                      setIntakeText(event.target.value);
+                    }
+                  }}
                   onKeyDown={(event) => {
                     if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
                       event.preventDefault();
-                      void submitCanvasIntake();
+                      void submitActiveComposer();
                     }
                   }}
                   className="min-h-16 w-full resize-none rounded-md border border-starlight-border bg-starlight-bg/80 px-3 py-2 text-sm leading-5 text-starlight-ink"
-                  placeholder="Paste a YouTube link, URL, transcript, PDF notes, or raw idea"
+                  placeholder={composerPlaceholder(composerMode)}
                 />
                 <button
                   data-testid="intake-paste"
@@ -1404,12 +1494,12 @@ function WorkspaceInner() {
                 <button
                   data-testid="intake-ingest"
                   type="button"
-                  disabled={!canMutate || !intakeText.trim()}
-                  onClick={submitCanvasIntake}
+                  disabled={composerDisabled}
+                  onClick={submitActiveComposer}
                   className="flex h-10 items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  {intakeActionIcon(intakeAction)}
-                  {intakeButtonLabel(intakeAction)}
+                  {composerPrimaryIcon(composerMode, intakeAction)}
+                  {composerButtonLabel(composerMode, intakeAction)}
                 </button>
                 <button
                   data-testid="quick-note"
@@ -1422,48 +1512,65 @@ function WorkspaceInner() {
                   Note
                 </button>
               </div>
-            <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-starlight-muted" data-testid="intake-preview">
-                {intakePlan.map((item) => (
-                  <span
-                    key={`${item.id}-${item.label}`}
-                    className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 ${
-                      item.active ? 'border-starlight-accent/45 bg-starlight-accent/10 text-starlight-ink' : 'border-starlight-border bg-starlight-bg/80 text-starlight-muted'
-                    }`}
-                  >
-                    {intakePlanIcon(item.id)}
-                    <span className="truncate font-medium">{item.label}</span>
-                    <span className="hidden text-starlight-muted sm:inline">{item.detail}</span>
-                  </span>
-                ))}
-                {INTAKE_ACTIONS.map((action) => (
-                  <button
-                    key={action.id}
-                    type="button"
-                    aria-pressed={intakeAction === action.id}
-                    onClick={() => setIntakeAction(action.id)}
-                    className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-semibold transition ${
-                      intakeAction === action.id
-                        ? 'border-starlight-accent bg-starlight-accent/15 text-starlight-ink'
-                        : 'border-starlight-border bg-starlight-bg/80 text-starlight-muted hover:border-starlight-accent/60 hover:text-starlight-ink'
-                    }`}
-                    title={action.detail}
-                  >
-                    {intakeActionIcon(action.id)}
-                    <span>{action.label}</span>
-                  </button>
-                ))}
-                <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink">
-                  <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
-                  File
-                  <input
-                    type="file"
-                    multiple
-                    accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
-                    disabled={!canMutate}
-                    onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
-                    className="sr-only"
-                  />
-                </label>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[11px] text-starlight-muted" data-testid="intake-preview">
+                {composerMode === 'source' ? (
+                  <>
+                    {intakePlan.map((item) => (
+                      <span
+                        key={`${item.id}-${item.label}`}
+                        className={`inline-flex max-w-full items-center gap-1 rounded-md border px-2 py-1 ${
+                          item.active ? 'border-starlight-accent/45 bg-starlight-accent/10 text-starlight-ink' : 'border-starlight-border bg-starlight-bg/80 text-starlight-muted'
+                        }`}
+                      >
+                        {intakePlanIcon(item.id)}
+                        <span className="truncate font-medium">{item.label}</span>
+                        <span className="hidden text-starlight-muted sm:inline">{item.detail}</span>
+                      </span>
+                    ))}
+                    {INTAKE_ACTIONS.map((action) => (
+                      <button
+                        key={action.id}
+                        type="button"
+                        aria-pressed={intakeAction === action.id}
+                        onClick={() => setIntakeAction(action.id)}
+                        className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-semibold transition ${
+                          intakeAction === action.id
+                            ? 'border-starlight-accent bg-starlight-accent/15 text-starlight-ink'
+                            : 'border-starlight-border bg-starlight-bg/80 text-starlight-muted hover:border-starlight-accent/60 hover:text-starlight-ink'
+                        }`}
+                        title={action.detail}
+                      >
+                        {intakeActionIcon(action.id)}
+                        <span>{action.label}</span>
+                      </button>
+                    ))}
+                    <label className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-starlight-border px-2 py-1 text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink">
+                      <FileUp className="h-3.5 w-3.5" aria-hidden="true" />
+                      File
+                      <input
+                        type="file"
+                        multiple
+                        accept="application/pdf,text/*,.txt,.md,.markdown,.json,.csv,.log"
+                        disabled={!canMutate}
+                        onChange={(event) => ingestFiles(Array.from(event.currentTarget.files ?? []))}
+                        className="sr-only"
+                      />
+                    </label>
+                  </>
+                ) : (
+                  <>
+                    <span className="inline-flex items-center gap-1 rounded-md border border-starlight-border bg-starlight-bg/80 px-2 py-1 text-starlight-muted">
+                      {composerModeIcon(composerMode)}
+                      {composerMode === 'note' ? `${intakeText.trim().length || 0} note chars` : `${selectedNodes.length || canvas?.nodes.length || 0} context nodes`}
+                    </span>
+                    {composerMode === 'ask' ? (
+                      <span className="inline-flex items-center gap-1 rounded-md border border-starlight-accent/35 bg-starlight-accent/10 px-2 py-1 text-starlight-accent">
+                        <Search className="h-3.5 w-3.5" aria-hidden="true" />
+                        {selectedNodes.length ? 'selected scope' : 'whole canvas'}
+                      </span>
+                    ) : null}
+                  </>
+                )}
               </div>
             </div>
             <div className="absolute bottom-3 left-3 top-auto z-10 flex max-w-[calc(100%-1.5rem)] flex-wrap items-center gap-2 rounded-lg border border-starlight-border bg-starlight-surface/88 p-1.5 shadow-command backdrop-blur sm:bottom-4 sm:left-4 sm:max-w-[calc(100%-2rem)] sm:p-2">
@@ -1517,7 +1624,7 @@ function WorkspaceInner() {
                 />
               </label>
             </div>
-            <div className="absolute inset-0 pt-[188px] sm:pt-0">
+            <div className="absolute inset-0 pt-[250px] sm:pt-0">
               {!canvas?.nodes.length ? (
                 <div className="absolute left-1/2 top-[54%] z-10 w-[min(560px,calc(100%-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border border-starlight-accent/25 bg-starlight-surface/88 p-5 text-center shadow-command backdrop-blur" data-testid="empty-canvas-actions">
                   <UploadCloud className="mx-auto h-7 w-7 text-starlight-accent" aria-hidden="true" />
@@ -1528,12 +1635,12 @@ function WorkspaceInner() {
                   <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
                     <button
                       type="button"
-                      disabled={!canMutate || !intakeText.trim()}
-                      onClick={submitCanvasIntake}
+                      disabled={composerDisabled}
+                      onClick={submitActiveComposer}
                       className="flex items-center justify-center gap-2 rounded-md bg-starlight-ink px-3 py-2 text-sm font-semibold text-starlight-bg transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-45"
                     >
-                      {intakeActionIcon(intakeAction)}
-                      {intakeButtonLabel(intakeAction)}
+                      {composerPrimaryIcon(composerMode, intakeAction)}
+                      {composerButtonLabel(composerMode, intakeAction)}
                     </button>
                     <button
                       type="button"

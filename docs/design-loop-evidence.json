@@ -3,7 +3,7 @@
   "task": "Starlight Agent Canvas v0.1 workspace",
   "surface": "local-first web app",
   "audience": "Codex, Claude, Gemini, Starlight operators, and creator/builders",
-  "firstRead": "A working MCP-native research canvas with source nodes, actions, run logs, and local state.",
+  "firstRead": "A working MCP-native research canvas where the first viewport is a live Source / Note / Ask composer over an inspectable agent graph.",
   "standards": [
     "DESIGN_TASTE.md",
     "WEB_EXPERIENCE_STANDARD.md",
@@ -49,7 +49,7 @@
     "decorative motion"
   ],
   "direction": {
-    "keep": "Dense local-first command workspace with visible source intake, typed graph state, inspector, action drawer, and MCP-safe context controls.",
+    "keep": "Dense local-first command workspace with visible source intake, human note capture, ask mode, typed graph state, inspector, action drawer, and MCP-safe context controls.",
     "avoid": "Generic SaaS landing shell, fake metrics, decorative 3D, hidden primary actions, or destructive agent controls.",
     "signature": "Nocturnal Starlight command graph where human source mapping and agent actions share the same inspectable canvas.",
     "system": "Premium Web OS, React Flow, local file store, safe MCP tools, deterministic source-grounded actions."
@@ -127,6 +127,36 @@
       "path_or_url": "docs/visual-qa/mobile-source-receipt-actions.png",
       "kind": "mobile selected source receipt and actions screenshot",
       "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-live-composer-modes.png",
+      "kind": "desktop Source / Note / Ask composer screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-live-youtube-map-brief.png",
+      "kind": "desktop YouTube manual transcript mapped with brief screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-live-note-mode.png",
+      "kind": "desktop human note mode screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-live-ask-mode.png",
+      "kind": "desktop ask mode screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/mobile-live-composer-modes.png",
+      "kind": "mobile Source / Note / Ask composer screenshot",
+      "inspected": true
+    },
+    {
+      "path_or_url": "docs/visual-qa/desktop-live-composer-reduced-motion.png",
+      "kind": "desktop reduced-motion live composer screenshot",
+      "inspected": true
     }
   ],
   "checks": [
@@ -163,7 +193,7 @@
     {
       "name": "human-intake-affordance",
       "status": "pass",
-      "notes": "The first viewport now exposes clipboard paste, Map, Note, file upload, detected source chips, and created-node inspector selection."
+      "notes": "The first viewport now exposes Source, Note, and Ask modes with clipboard paste, Map + Brief, note capture, file upload, detected source chips, and created-node inspector selection."
     },
     {
       "name": "source-receipt-loop",
@@ -172,18 +202,18 @@
     }
   ],
   "score": {
-    "total": 27,
+    "total": 28,
     "max": 30
   },
   "decision": "ship",
   "visualQaScore": {
     "firstReadHierarchy": 5,
     "brandFitDistinctiveness": 4,
-    "craftTypographySpacing": 4,
+    "craftTypographySpacing": 5,
     "accessibilityResponsiveReducedMotion": 4,
     "accuracyProvenanceArtifacts": 5,
     "usefulness": 5,
-    "total": 27
+    "total": 28
   },
   "verification": {
     "desktopInspected": true,
@@ -214,6 +244,12 @@
       "docs/visual-qa/desktop-source-receipt-actions.png",
       "docs/visual-qa/desktop-selected-source-answer.png",
       "docs/visual-qa/mobile-source-receipt-actions.png",
+      "docs/visual-qa/desktop-live-composer-modes.png",
+      "docs/visual-qa/desktop-live-youtube-map-brief.png",
+      "docs/visual-qa/desktop-live-note-mode.png",
+      "docs/visual-qa/desktop-live-ask-mode.png",
+      "docs/visual-qa/mobile-live-composer-modes.png",
+      "docs/visual-qa/desktop-live-composer-reduced-motion.png",
       "docs/visual-qa/desktop-first-viewport.png",
       "docs/visual-qa/mobile-first-viewport.png",
       "docs/visual-qa/mobile-graph-viewport.png",
@@ -245,6 +281,7 @@
     },
     "intakeQa": {
       "universalIntake": true,
+      "sourceNoteAskComposer": true,
       "firstViewportComposer": true,
       "pasteAnywhere": true,
       "dropToCanvasPosition": true,
@@ -284,6 +321,6 @@
         "edges": 3
       }
     },
-    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport composer controls, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, JSON/Markdown export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
+    "notes": "Production screenshots inspected. Seeded Starlight Agent Canvas OS is connected, universal intake and source-grounded ask were visually verified, the canvas itself now exposes first-viewport Source / Note / Ask composer controls, clipboard paste, smart detected-source chips, paste-anywhere, text drop-to-canvas, double-click notes, toolbar note creation, interactive empty-state actions, selected-context scoping, selected-source context receipts, selected-source actions, selected source copy, edge-kind selection, clickable local search evidence, editable inspector immediately after actions, source/action auto-selection, context copy, JSON/Markdown export, JSON import, in-app Setup/MCP status for local home, MCP build, and Codex wiring, mobile loads the graph below the composer before rails with a compact bottom toolbar, minimap is dark on desktop and hidden on mobile, reduced-motion media path is present."
   }
 }

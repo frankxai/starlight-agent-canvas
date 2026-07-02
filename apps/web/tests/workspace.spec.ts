@@ -22,6 +22,15 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
   await expect(page.getByTestId('intake-ingest')).toContainText('Map + Brief');
+  await expect(page.getByTestId('composer-mode')).toContainText('Source');
+  await expect(page.getByTestId('composer-mode')).toContainText('Note');
+  await expect(page.getByTestId('composer-mode')).toContainText('Ask');
+  await page.getByTestId('composer-mode').getByRole('button', { name: 'Note' }).click();
+  await expect(page.getByTestId('intake-ingest')).toContainText('Add Note');
+  await page.getByTestId('composer-mode').getByRole('button', { name: 'Ask' }).click();
+  await expect(page.getByTestId('intake-ingest')).toContainText('Ask Canvas');
+  await page.getByTestId('composer-mode').getByRole('button', { name: 'Source' }).click();
+  await expect(page.getByTestId('intake-ingest')).toContainText('Map + Brief');
 
   await page.getByTestId('intake-text').fill('My canvas note: collect the product gaps and turn them into a brief.');
   await expect(page.getByTestId('quick-note')).toBeEnabled();
