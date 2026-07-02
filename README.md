@@ -32,20 +32,30 @@ From a GitHub clone:
 # Use the clone URL from the GitHub Code button.
 git clone https://github.com/<owner>/starlight-agent-canvas.git
 cd starlight-agent-canvas
-pnpm install
-pnpm doctor
+corepack enable
+corepack prepare pnpm@11.7.0 --activate
+node scripts/setup.mjs
 pnpm dev
 ```
 
-`pnpm seed:starlight` is optional sample data. It creates or refreshes the local `Starlight Agent Canvas OS` canvas under `AGENT_CANVAS_HOME`.
+`node scripts/setup.mjs` runs dependency install, doctor, MCP build, MCP smoke, Starlight OS canvas seed, and a dry-run Codex MCP config print. Use `node scripts/setup.mjs --codex-write` when you want it to update `~/.codex/config.toml` with a timestamped backup.
+
+Manual setup remains available:
+
+```powershell
+pnpm install
+pnpm doctor
+pnpm mcp:build
+pnpm mcp:smoke
+pnpm seed:starlight
+pnpm dev
+```
 
 From Frank's local estate:
 
 ```powershell
 cd C:\Users\frank\starlight\repos\starlight-agent-canvas
-pnpm install
-pnpm doctor
-pnpm seed:starlight
+pnpm setup:local -- --skip-install --codex-write
 pnpm dev
 ```
 
@@ -78,6 +88,8 @@ The production preview uses `http://127.0.0.1:3101`.
 pnpm mcp:build
 pnpm mcp:config -- --client codex
 pnpm mcp:config -- --client json
+pnpm mcp:install:codex
+pnpm mcp:install:codex -- --write
 pnpm mcp:smoke
 pnpm mcp:start
 ```

@@ -9,6 +9,7 @@ cd path\to\starlight-agent-canvas
 pnpm mcp:build
 pnpm mcp:config -- --client codex
 pnpm mcp:config -- --client json
+pnpm mcp:install:codex
 pnpm mcp:smoke
 ```
 
@@ -21,6 +22,15 @@ Generate a Codex config block for your machine:
 ```powershell
 pnpm mcp:config -- --client codex
 ```
+
+Or use the safe Codex installer:
+
+```powershell
+pnpm mcp:install:codex
+pnpm mcp:install:codex -- --write
+```
+
+The first command is a dry-run. The second command updates `~/.codex/config.toml`, removes any previous `starlight-agent-canvas` MCP block, preserves unrelated settings, and writes a timestamped backup first.
 
 The output shape is:
 

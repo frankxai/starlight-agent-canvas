@@ -29,14 +29,34 @@ corepack prepare pnpm@11.7.0 --activate
 # Use the clone URL from the GitHub Code button.
 git clone https://github.com/<owner>/starlight-agent-canvas.git
 cd starlight-agent-canvas
-pnpm install
-pnpm doctor
+corepack enable
+corepack prepare pnpm@11.7.0 --activate
+node scripts/setup.mjs
 pnpm dev
 ```
 
 The app starts on `http://localhost:3000` unless Next.js chooses another port.
 
-Optional sample data:
+The setup script:
+
+1. Runs `pnpm install`.
+2. Runs `pnpm doctor`.
+3. Builds the MCP server.
+4. Runs the MCP smoke test against a throwaway local data home.
+5. Seeds the `Starlight Agent Canvas OS` local canvas.
+6. Prints the Codex MCP config block as a dry-run.
+
+Optional flags:
+
+```powershell
+node scripts/setup.mjs --skip-install
+node scripts/setup.mjs --verify
+node scripts/setup.mjs --codex-write
+```
+
+`--codex-write` updates `~/.codex/config.toml` and creates a timestamped backup first.
+
+Manual sample data:
 
 ```powershell
 pnpm seed:starlight
@@ -48,9 +68,7 @@ This creates or refreshes `canvas-starlight-agent-canvas-os` in your configured 
 
 ```powershell
 cd C:\Users\frank\starlight\repos\starlight-agent-canvas
-pnpm install
-pnpm doctor
-pnpm seed:starlight
+pnpm setup:local -- --skip-install --codex-write
 pnpm dev
 ```
 
@@ -96,10 +114,14 @@ This builds the monorepo and starts the production Next.js server on `http://127
 pnpm mcp:build
 pnpm mcp:config -- --client codex
 pnpm mcp:config -- --client json
+pnpm mcp:install:codex
+pnpm mcp:install:codex -- --write
 pnpm mcp:smoke
 ```
 
-Then copy the relevant config from:
+`pnpm mcp:install:codex` is a dry-run. It prints the target config path and the exact TOML block. Add `-- --write` to install or replace only the `starlight-agent-canvas` MCP sections in Codex config, preserving unrelated settings and creating a backup first.
+
+You can still copy the relevant config from:
 
 - `.mcp.json`
 - `examples/mcp/codex.toml`

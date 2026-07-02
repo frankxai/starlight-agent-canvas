@@ -17,11 +17,13 @@
     "verify": "pnpm typecheck && pnpm test && pnpm build",
     "start": "pnpm build && pnpm --filter @starlight-agent-canvas/web start",
     "preview:prod": "pnpm build && pnpm --filter @starlight-agent-canvas/web start -p 3101",
+    "setup:local": "node scripts/setup.mjs",
     "doctor": "node scripts/doctor.mjs",
     "test:e2e": "pnpm --filter @starlight-agent-canvas/web test:e2e",
     "seed:starlight": "pnpm --filter @starlight-agent-canvas/core build && node scripts/seed-starlight-canvas.mjs",
     "mcp:build": "pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/mcp build",
     "mcp:config": "node scripts/print-mcp-config.mjs",
+    "mcp:install:codex": "node scripts/install-codex-mcp.mjs",
     "mcp:smoke": "pnpm mcp:build && node packages/mcp/scripts/smoke.mjs",
     "mcp:start": "pnpm --filter @starlight-agent-canvas/mcp start"
   },

@@ -4,20 +4,25 @@ Starlight Agent Canvas gives Codex a shared local context surface. The human can
 
 ## Setup
 
-Build the MCP server:
+Fast path:
+
+```powershell
+node scripts/setup.mjs --codex-write
+```
+
+This installs dependencies, runs doctor, builds and smoke-tests the MCP server, seeds the Starlight OS canvas, then updates Codex config with a timestamped backup.
+
+Manual path:
 
 ```powershell
 pnpm mcp:build
 pnpm mcp:smoke
-```
-
-Add this to Codex MCP config, adjusting paths if your clone lives elsewhere:
-
-```powershell
 pnpm mcp:config -- --client codex
+pnpm mcp:install:codex
+pnpm mcp:install:codex -- --write
 ```
 
-The output shape is:
+`pnpm mcp:install:codex` is a dry-run by default. Add `-- --write` only when you want it to update `~/.codex/config.toml`. The installed block shape is:
 
 ```toml
 [mcp_servers.starlight-agent-canvas]

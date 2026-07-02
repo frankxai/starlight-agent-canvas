@@ -18,6 +18,8 @@ This matrix connects the product promises in `docs/prd.md` and `docs/user-flows.
 | MCP can read/write canvas state safely | `packages/mcp/src/index.ts`, `packages/mcp/src/tool-handlers.ts`, `pnpm mcp:smoke` passed with 14 tools | Proven locally |
 | MCP can ingest text, URL, YouTube, and PDF sources | MCP tool schemas and smoke test include text/PDF; URL/YouTube handlers share core adapters | Proven for text/PDF smoke; URL/YouTube live network remains best-effort |
 | MCP and web support graph positioning | Web drag persistence and MCP optional `position` inputs; MCP handler test asserts position | Proven locally |
+| New users have a one-command setup path | `scripts/setup.mjs`, `pnpm setup:local`, install docs, dry-run command verification | Proven locally |
+| Codex MCP can be installed safely | `scripts/install-codex-mcp.mjs`, `pnpm mcp:install:codex`, timestamped backup before `--write`, dry-run verification | Proven locally |
 | Local data remains outside Git | `.gitignore`, `AGENT_CANVAS_HOME`, `packages/core/src/home.ts`, `pnpm doctor` | Proven by repo structure and doctor |
 | Security scan is clean | `Invoke-RepoSecurityScan.ps1 -Path ...` passed on 2026-07-02 after generated cache cleanup | Proven locally |
 | Visual QA passes 26/30+ | `docs/design-loop-evidence.json` validates and scores 27/30 | Proven locally |
@@ -27,4 +29,5 @@ This matrix connects the product promises in `docs/prd.md` and `docs/user-flows.
 - Citation chunks and answer metadata are visible in the inspector; deeper citation-to-node/chunk navigation remains future work.
 - Browser tests still need broader coverage for PDF upload, drag/drop positioning, edge creation, and import conflict UX.
 - Import preview/diff and selected-subgraph export are not yet implemented.
+- Mac/Linux install screenshots are not yet captured.
 - Hosted deployment, auth, collaboration, billing, marketplace, and provider-backed AI actions remain v0.2+ decisions.

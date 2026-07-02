@@ -48,12 +48,14 @@ Use labels:
 2. Run `pnpm verify`.
 3. Run `pnpm mcp:smoke`.
 4. Run `pnpm test:e2e`.
-5. Run the Starlight staged/full security scan.
-6. Confirm visual QA screenshots are current.
-7. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
-8. Confirm `.env` and private canvas exports are not staged.
-9. Update README links and docs index.
-10. Tag release only after GitHub CI passes.
+5. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
+6. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server.
+7. Run the Starlight staged/full security scan.
+8. Confirm visual QA screenshots are current.
+9. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
+10. Confirm `.env` and private canvas exports are not staged.
+11. Update README links and docs index.
+12. Tag release only after GitHub CI passes.
 
 Use `docs/readiness-evidence.md` as the current proof matrix before tagging or announcing a release.
 
@@ -62,7 +64,7 @@ Use `docs/readiness-evidence.md` as the current proof matrix before tagging or a
 - Add richer empty/error states to the canvas.
 - Add a CLI command for importing/exporting canvas files.
 - Add a local SQLite store adapter behind the existing store contract.
-- Add chunk-level citations for long source artifacts.
+- Add citation-to-node navigation from the inspector.
 - Add more MCP smoke fixtures for YouTube/manual transcript workflows.
 - Add docs screenshots for Mac/Linux install.
 
