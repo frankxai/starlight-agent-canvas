@@ -133,5 +133,46 @@ export async function GET() {
         'docs/codex-integration.md',
       ],
     },
+    activation: {
+      firstRunCheckCommand: 'pnpm first-run:check',
+      previewCommand: 'pnpm preview:prod',
+      codexPrompt: [
+        'Use starlight-agent-canvas as shared local context.',
+        'Find the most recently updated canvas, read it before writing, identify the source nodes and artifacts that matter, run one useful action, then export format "codex".',
+        'Return the node ids, artifact ids, chunk ids, and every node/action you changed.',
+      ].join(' '),
+      steps: [
+        {
+          id: 'install',
+          label: 'Install and health',
+          detail: 'Run setup, build MCP, smoke the server, seed a canvas, and verify local health.',
+          command: 'node scripts/setup.mjs',
+        },
+        {
+          id: 'proof',
+          label: 'Load proof canvas',
+          detail: 'Use Demo or a workflow template so the first viewport contains real nodes, chunks, and handoff context.',
+          action: 'load_demo',
+        },
+        {
+          id: 'context',
+          label: 'Map your own source',
+          detail: 'Paste a YouTube/video link, transcript, URL, PDF, file, or note and turn it into typed context.',
+          action: 'focus_intake',
+        },
+        {
+          id: 'handoff',
+          label: 'Export context',
+          detail: 'Copy Context for any agent, or Codex for a ready continuation prompt scoped to selected nodes.',
+          action: 'copy_context',
+        },
+        {
+          id: 'codex',
+          label: 'Wire Codex MCP',
+          detail: 'Install the MCP config, restart Codex, and keep future work on the same local canvas.',
+          command: 'pnpm mcp:install:codex -- --write',
+        },
+      ],
+    },
   });
 }

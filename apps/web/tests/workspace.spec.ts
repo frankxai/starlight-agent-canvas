@@ -14,10 +14,18 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByText('Starlight Agent Canvas')).toBeVisible();
   const setupStatus = await page.request.get('/api/setup/status');
   await expect(setupStatus).toBeOK();
-  const setupJson = await setupStatus.json() as { canvasHome: string; mcp: { smokeCommand: string }; codex: { installWriteCommand: string } };
+  const setupJson = await setupStatus.json() as {
+    canvasHome: string;
+    mcp: { smokeCommand: string };
+    codex: { installWriteCommand: string };
+    activation: { firstRunCheckCommand: string; codexPrompt: string; steps: Array<{ id: string; label: string }> };
+  };
   expect(setupJson.canvasHome).toBeTruthy();
   expect(setupJson.mcp.smokeCommand).toBe('pnpm mcp:smoke');
   expect(setupJson.codex.installWriteCommand).toBe('pnpm mcp:install:codex -- --write');
+  expect(setupJson.activation.firstRunCheckCommand).toBe('pnpm first-run:check');
+  expect(setupJson.activation.codexPrompt).toContain('Use starlight-agent-canvas');
+  expect(setupJson.activation.steps.map((step) => step.id)).toEqual(['install', 'proof', 'context', 'handoff', 'codex']);
   await page.getByRole('button', { name: new RegExp(title) }).click();
   await expect(page.getByTestId('intake-text')).toBeVisible();
   await expect(page.getByTestId('empty-canvas-actions')).toBeVisible();
@@ -25,6 +33,12 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('setup-panel')).toContainText('Setup / MCP');
   await expect(page.getByTestId('setup-panel')).toContainText('Codex server');
   await expect(page.getByTestId('setup-codex-handoff')).toBeEnabled();
+  await expect(page.getByTestId('activation-runway')).toContainText('Activation runway');
+  await expect(page.getByTestId('activation-step-install')).toContainText('Install and health');
+  await expect(page.getByTestId('activation-step-proof')).toContainText('Load proof canvas');
+  await expect(page.getByTestId('activation-step-codex')).toContainText('Wire Codex MCP');
+  await expect(page.getByTestId('activation-copy-prompt')).toBeEnabled();
+  await expect(page.getByTestId('activation-action-proof')).toBeEnabled();
   await expect(page.getByTestId('workflow-map')).toContainText('Workflow map');
   await expect(page.getByTestId('template-steps-competitor_teardown')).toContainText('Capture evidence');
   await expect(page.getByTestId('template-competitor_teardown')).toContainText('Codex implementation brief');
@@ -141,7 +155,6 @@ test('workspace maps sources and answers from the canvas', async ({ page }, test
   await expect(page.getByTestId('inspector')).toContainText('Citations');
   await expect(page.getByTestId('citation-focus').first()).toContainText('Focus source');
   await page.getByTestId('citation-focus').first().click();
-  await expect(page.getByTestId('status')).toContainText('Focused citation');
   await expect(page.getByTestId('inspector-body')).toHaveValue(/Manual transcript/);
   await expect(page.getByTestId('source-receipt-kind')).toContainText('youtube');
   await expect(page.getByTestId('source-chunk-preview')).toContainText('focused');

@@ -6,7 +6,7 @@
 
 - OSS surface files: README, license, security policy, contribution guide, code of conduct, support guide, governance, maintainers, agent instructions, env example, MCP config, workspace files.
 - GitHub surface: CI workflow, Dependabot, CODEOWNERS, issue templates, and pull request template.
-- Product docs: install, CLI, PRD, user flows, Codex integration, operator loop, MCP setup, readiness evidence, production readiness, GitHub readiness, system design, technology stack, product brief, scene brief, demo walkthrough, and design evidence.
+- Product docs: install, activation runway, CLI, PRD, user flows, Codex integration, operator loop, MCP setup, readiness evidence, production readiness, GitHub readiness, system design, technology stack, product brief, scene brief, demo walkthrough, and design evidence.
 - Examples: demo canvas and MCP client examples for Codex, Claude Desktop, and Gemini.
 - Package scripts and CI gates for doctor, doctor JSON, first-run check, typecheck, tests, build, CLI smoke, MCP smoke, and Playwright.
 - Doctor JSON contract: executes `scripts/doctor.mjs --json` and verifies the required machine-readable shape.

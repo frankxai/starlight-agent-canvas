@@ -20,6 +20,7 @@ README first-read requirements before public announcement:
 - Shows a one-click `Demo` path that imports the real bundled example canvas from the app.
 - Links to install, PRD, user flows, Codex integration, MCP setup, and readiness evidence.
 - Links to the human/agent operator loop and documents `pnpm doctor:json` as the parseable local health contract.
+- Links to `docs/activation.md` and shows the in-app activation runway as the first install-to-Codex success path.
 - Avoids comparing itself as a clone of Poppy, Nodeflow, or another closed product.
 
 ## Branch Protection
@@ -69,16 +70,17 @@ Use labels:
 6. Run `pnpm mcp:smoke`.
 7. Run `pnpm first-run:check` to prove a fresh production preview can boot, import the demo canvas, and export context from a temporary data home.
 8. Run `pnpm test:e2e`.
-9. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
-10. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
-11. Run the Starlight staged/full security scan.
-12. Confirm visual QA screenshots are current.
-13. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
-14. Confirm `.env` and private canvas exports are not staged.
-15. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
-16. Update README links and docs index.
-17. Replace CODEOWNERS placeholder comments with real GitHub usernames or teams before enforcing owner review.
-18. Tag release only after GitHub CI passes.
+9. Confirm `/api/setup/status` exposes `activation.steps`, proof commands, and the Codex activation prompt.
+10. Run `pnpm setup:local -- --skip-install --skip-seed` as the install path smoke.
+11. Run `pnpm mcp:install:codex` and verify the dry-run block points at the built MCP server; after `--write`, rerun `pnpm doctor`.
+12. Run the Starlight staged/full security scan.
+13. Confirm visual QA screenshots are current.
+14. Confirm `AGENT_CANVAS_HOME` runtime data is not staged.
+15. Confirm `.env` and private canvas exports are not staged.
+16. Confirm `pnpm release:audit` reports required public files are tracked or staged, not merely present in the local working tree.
+17. Update README links and docs index.
+18. Replace CODEOWNERS placeholder comments with real GitHub usernames or teams before enforcing owner review.
+19. Tag release only after GitHub CI passes.
 
 Public install proof to keep current:
 

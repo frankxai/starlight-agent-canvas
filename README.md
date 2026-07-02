@@ -45,6 +45,7 @@ The web app and MCP server operate over the same local data home. A source added
 7. Click `Context` for a general agent packet, click `Codex` for a ready-to-paste Codex continuation prompt, or use MCP `export_canvas` with `format: "codex"` when Codex should resume through MCP. When nodes are selected, these exports stay scoped to the selected evidence.
 
 For the full human plus agent operating loop, see `docs/operator-loop.md`.
+For the install-to-Codex first success path, see `docs/activation.md`.
 
 ## What v0.1 Does
 
@@ -233,6 +234,7 @@ Client examples and workflow prompts live in `examples/mcp`.
 ## Docs
 
 - Install and first run: `docs/install.md`
+- Activation runway: `docs/activation.md`
 - Human/agent operator loop: `docs/operator-loop.md`
 - PRD: `docs/prd.md`
 - User flows: `docs/user-flows.md`

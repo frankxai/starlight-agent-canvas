@@ -130,6 +130,20 @@ type SetupStatus = {
     verifyCommand: string;
     docs: string[];
   };
+  activation: {
+    firstRunCheckCommand: string;
+    previewCommand: string;
+    codexPrompt: string;
+    steps: ActivationStep[];
+  };
+};
+
+type ActivationStep = {
+  id: 'install' | 'proof' | 'context' | 'handoff' | 'codex';
+  label: string;
+  detail: string;
+  command?: string;
+  action?: 'load_demo' | 'focus_intake' | 'copy_context';
 };
 
 type IntakePlanItem = {
@@ -658,6 +672,31 @@ function WorkspaceInner() {
     { label: 'Codex', command: setupStatus.codex.installWriteCommand },
     { label: 'Smoke', command: setupStatus.mcp.smokeCommand },
   ] : [], [setupStatus]);
+  const activationRunway = useMemo(() => {
+    if (!setupStatus) return [];
+    const sourceCount = canvas?.nodes.filter((node) => node.kind.startsWith('source_')).length ?? 0;
+    return setupStatus.activation.steps.map((step, index) => {
+      const ok = step.id === 'install'
+        ? setupStatus.mcp.built
+        : step.id === 'proof'
+          ? Boolean(canvas?.nodes.length)
+          : step.id === 'context'
+            ? sourceCount > 0
+            : step.id === 'handoff'
+              ? Boolean(canvas?.nodes.length)
+              : setupStatus.codex.serverConfigured;
+      const detail = step.id === 'proof' && canvas?.nodes.length
+        ? `${canvas.nodes.length} nodes live`
+        : step.id === 'context' && sourceCount
+          ? `${sourceCount} source${sourceCount === 1 ? '' : 's'} mapped`
+          : step.id === 'handoff' && canvas?.nodes.length
+            ? selectedIds.length ? `${selectedIds.length} selected for export` : 'whole canvas ready'
+            : step.id === 'codex' && setupStatus.codex.serverConfigured
+              ? 'Codex points at this MCP server'
+              : step.detail;
+      return { ...step, order: index + 1, ok, detail };
+    });
+  }, [canvas?.nodes, selectedIds.length, setupStatus]);
   const handoffReadiness = useMemo(() => {
     const sourceCount = canvas?.nodes.filter((node) => node.kind.startsWith('source_')).length ?? 0;
     const outputCount = canvas?.nodes.filter((node) => node.kind === 'output').length ?? 0;
@@ -1244,6 +1283,24 @@ function WorkspaceInner() {
       setStatus((error as Error).message);
     }
   }, []);
+
+  const runActivationStep = useCallback(async (step: ActivationStep) => {
+    if (step.command) {
+      await copyCommand(step.command, `${step.label} command`);
+      return;
+    }
+    if (step.action === 'load_demo') {
+      await loadDemoCanvas();
+      return;
+    }
+    if (step.action === 'focus_intake') {
+      requestComposerInput('source');
+      return;
+    }
+    if (step.action === 'copy_context') {
+      await copyCanvasContext();
+    }
+  }, [copyCanvasContext, copyCommand, loadDemoCanvas, requestComposerInput]);
 
   const runAction = useCallback(async (action: CanvasActionType, prompt = '', inputNodeIds = selectedIds) => {
     if (!canvas) return;
@@ -2496,6 +2553,59 @@ function WorkspaceInner() {
                     <div className="truncate">Home: {shortPath(setupStatus.canvasHome)}</div>
                     <div className="truncate">MCP: {shortPath(setupStatus.mcp.cliPath)}</div>
                     <div className="truncate">Codex: {shortPath(setupStatus.codex.configPath)}</div>
+                  </div>
+                  <div className="mt-3 rounded-md border border-starlight-border bg-starlight-surface/70 p-3" data-testid="activation-runway">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-semibold text-starlight-ink">Activation runway</span>
+                      <button
+                        type="button"
+                        data-testid="activation-copy-prompt"
+                        onClick={() => copyCommand(setupStatus.activation.codexPrompt, 'Codex activation prompt')}
+                        className="inline-flex shrink-0 items-center gap-1 rounded-md border border-starlight-violet/35 bg-starlight-violet/10 px-2 py-1 text-[10px] font-semibold text-starlight-ink transition hover:border-starlight-violet"
+                      >
+                        <Bot className="h-3 w-3" aria-hidden="true" />
+                        Prompt
+                      </button>
+                    </div>
+                    <div className="mt-3 space-y-1.5">
+                      {activationRunway.map((step) => (
+                        <div
+                          key={step.id}
+                          data-testid={`activation-step-${step.id}`}
+                          className={`grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border p-2 ${
+                            step.ok ? 'border-starlight-mint/30 bg-starlight-mint/10' : 'border-starlight-border bg-starlight-bg'
+                          }`}
+                        >
+                          <span className={`flex h-5 w-5 items-center justify-center rounded border text-[10px] font-semibold ${
+                            step.ok ? 'border-starlight-mint/45 text-starlight-mint' : 'border-starlight-accent/35 text-starlight-accent'
+                          }`}>
+                            {step.ok ? <CheckCircle2 className="h-3 w-3" aria-hidden="true" /> : step.order}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block truncate text-[11px] font-semibold text-starlight-ink">{step.label}</span>
+                            <span className="mt-0.5 block truncate text-[10px] text-starlight-muted">{step.detail}</span>
+                          </span>
+                          <button
+                            type="button"
+                            data-testid={`activation-action-${step.id}`}
+                            disabled={busy || (step.id === 'handoff' && !canvas)}
+                            onClick={() => runActivationStep(step)}
+                            className="inline-flex shrink-0 items-center gap-1 rounded-md border border-starlight-border bg-starlight-surface px-2 py-1 text-[10px] font-semibold text-starlight-muted transition hover:border-starlight-accent hover:text-starlight-ink disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {step.command ? <Copy className="h-3 w-3" aria-hidden="true" /> : step.id === 'proof' ? <LayoutTemplate className="h-3 w-3" aria-hidden="true" /> : <Play className="h-3 w-3" aria-hidden="true" />}
+                            {step.command ? 'Copy' : step.id === 'proof' ? 'Demo' : step.id === 'context' ? 'Map' : step.id === 'handoff' ? 'Copy' : 'Run'}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1.5 text-[10px] text-starlight-muted">
+                      <button type="button" onClick={() => copyCommand(setupStatus.activation.firstRunCheckCommand, 'first-run check command')} className="rounded-md border border-starlight-border bg-starlight-bg px-2 py-1 transition hover:border-starlight-accent hover:text-starlight-ink">
+                        first-run check
+                      </button>
+                      <button type="button" onClick={() => copyCommand(setupStatus.activation.previewCommand, 'production preview command')} className="rounded-md border border-starlight-border bg-starlight-bg px-2 py-1 transition hover:border-starlight-accent hover:text-starlight-ink">
+                        prod preview
+                      </button>
+                    </div>
                   </div>
                   <div className="mt-3 grid grid-cols-3 gap-2">
                     {setupCommands.map((item) => (

@@ -132,12 +132,14 @@ Expected result: templates are not decorative examples; they are reusable operat
 1. Open the app.
 2. Inspect the `Setup / MCP` panel.
 3. Confirm data home, MCP build, Codex config, and Codex server status.
-4. Copy `Setup`, `Codex`, or `Smoke` commands when a status needs action.
-5. Restart Codex after installing MCP config.
-6. Run `pnpm doctor:json` when an agent, CI job, or setup helper needs parseable readiness.
-7. Ask Codex to list canvases through MCP.
+4. Follow the `Activation runway`: install health, proof canvas, source mapping, context export, and Codex MCP wiring.
+5. Copy `Setup`, `Codex`, `Smoke`, `first-run check`, or `prod preview` commands when a status needs action.
+6. Copy the Codex activation prompt when Codex should continue from the current local canvas.
+7. Restart Codex after installing MCP config.
+8. Run `pnpm doctor:json` when an agent, CI job, or setup helper needs parseable readiness.
+9. Ask Codex to list canvases through MCP.
 
-Expected result: install and agent wiring status are visible inside the product surface, while the write path remains explicit and backed by local scripts.
+Expected result: install and agent wiring status are visible inside the product surface, the next human action is obvious, and the write path remains explicit and backed by local scripts.
 
 ## Flow 7: Mobile Review
 

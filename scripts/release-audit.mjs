@@ -321,6 +321,7 @@ checkFiles('github templates', [
 
 checkFiles('docs surface', [
   'docs/install.md',
+  'docs/activation.md',
   'docs/cli.md',
   'docs/prd.md',
   'docs/user-flows.md',
@@ -372,6 +373,7 @@ checkTrackedFiles('required tracked files', [
   '.github/ISSUE_TEMPLATE/integration_request.yml',
   '.github/ISSUE_TEMPLATE/setup_help.yml',
   'docs/install.md',
+  'docs/activation.md',
   'docs/cli.md',
   'docs/prd.md',
   'docs/user-flows.md',

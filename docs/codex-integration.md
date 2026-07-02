@@ -36,6 +36,7 @@ AGENT_CANVAS_HOME = "/absolute/path/to/.starlight/agent-canvas"
 
 Run `pnpm doctor` any time the local setup feels uncertain.
 It verifies that Codex has the `starlight-agent-canvas` server/env blocks and that they point at this repo's current built MCP CLI plus the active `AGENT_CANVAS_HOME`.
+The in-app `Setup / MCP` panel also exposes the activation runway and a copyable Codex activation prompt backed by `/api/setup/status`.
 
 When Codex or another agent needs parseable setup state, run:
 
