@@ -47,7 +47,6 @@ import {
   Terminal,
   UploadCloud,
   TriangleAlert,
-  Youtube,
 } from 'lucide-react';
 import { describeCanvasExportScope } from '@starlight-agent-canvas/core/exporters';
 import { detectIntakeText } from '@starlight-agent-canvas/core/intake';
@@ -751,7 +750,7 @@ function actionPreviewFor(mode: IntakeActionMode): { label: string; detail: stri
 }
 
 function intakePlanIcon(id: IntakePlanItem['id']) {
-  if (id === 'youtube') return <Youtube className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'youtube') return <Play className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'video') return <Film className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'image') return <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'url') return <Link className="h-3.5 w-3.5" aria-hidden="true" />;
@@ -768,7 +767,7 @@ function quickStarterIcon(id: QuickStarterId) {
 }
 
 function inputContractIcon(id: string) {
-  if (id === 'youtube') return <Youtube className="h-3.5 w-3.5" aria-hidden="true" />;
+  if (id === 'youtube') return <Play className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'video') return <Film className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'image') return <ImageIcon className="h-3.5 w-3.5" aria-hidden="true" />;
   if (id === 'web') return <Link className="h-3.5 w-3.5" aria-hidden="true" />;
@@ -2487,7 +2486,7 @@ function WorkspaceInner() {
 
             <section className="mt-6 space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold">
-                <Youtube className="h-4 w-4 text-starlight-danger" aria-hidden="true" />
+                <Play className="h-4 w-4 text-starlight-danger" aria-hidden="true" />
                 YouTube Transcript
               </div>
               <input
@@ -2503,7 +2502,7 @@ function WorkspaceInner() {
                 placeholder="Paste transcript or notes"
               />
               <button type="button" onClick={addYoutube} disabled={!canMutate} className="flex w-full items-center justify-center gap-2 rounded-md border border-starlight-danger/40 bg-starlight-danger/10 px-3 py-2 text-sm font-semibold text-starlight-danger transition hover:border-starlight-danger disabled:cursor-not-allowed disabled:opacity-45">
-                <Youtube className="h-4 w-4" aria-hidden="true" />
+                <Play className="h-4 w-4" aria-hidden="true" />
                 Add Video Source
               </button>
             </section>
