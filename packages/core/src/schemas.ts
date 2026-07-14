@@ -54,7 +54,7 @@ export const canvasNodeSchema = z.object({
   title: z.string().min(1),
   body: z.string().default(''),
   position: positionSchema,
-  metadata: z.record(z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
 });
@@ -82,7 +82,7 @@ export const canvasArtifactSchema = z.object({
   body: z.string().default(''),
   source: z.string().optional(),
   createdAt: z.string().datetime(),
-  metadata: z.record(z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
   chunks: z.array(sourceChunkSchema).default([]),
 });
 
@@ -106,7 +106,7 @@ export const actionRunSchema = z.object({
   summary: z.string().default(''),
   status: z.enum(['completed', 'failed']).default('completed'),
   createdAt: z.string().datetime(),
-  metadata: z.record(z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const canvasIntakeTraceItemSchema = z.object({
@@ -136,7 +136,7 @@ export const canvasIntakeTraceSchema = z.object({
   outputNodeId: z.string().optional(),
   items: z.array(canvasIntakeTraceItemSchema).default([]),
   createdAt: z.string().datetime(),
-  metadata: z.record(z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const canvasRecordSchema = z.object({
@@ -170,7 +170,7 @@ export const addNodeInputSchema = z.object({
   title: z.string().min(1),
   body: z.string().default(''),
   position: positionSchema.optional(),
-  metadata: z.record(z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const ingestSourceInputSchema = z.object({
@@ -179,7 +179,7 @@ export const ingestSourceInputSchema = z.object({
   body: z.string().default(''),
   source: z.string().optional(),
   position: positionSchema.optional(),
-  metadata: z.record(z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
   artifactKind: z.enum(['url', 'pdf', 'youtube', 'video', 'image', 'markdown', 'json', 'manual']).optional(),
 });
 
@@ -187,7 +187,7 @@ export const updateNodeInputSchema = z.object({
   title: z.string().min(1).optional(),
   body: z.string().optional(),
   position: positionSchema.optional(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 export const sourceEnrichmentKindSchema = z.enum([
@@ -205,7 +205,7 @@ export const enrichSourceInputSchema = z.object({
   append: z.boolean().default(true),
   title: z.string().min(1).optional(),
   sourceLabel: z.string().min(1).optional(),
-  metadata: z.record(z.unknown()).default({}),
+  metadata: z.record(z.string(), z.unknown()).default({}),
 });
 
 export const connectNodesInputSchema = z.object({

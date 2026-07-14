@@ -16,6 +16,9 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",
     "@starlight-agent-canvas/core": "workspace:*",
-    "zod": "^3.25.76"
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1"
   }
 }

@@ -427,14 +427,20 @@ export async function ingestPdf(buffer: Buffer | ArrayBuffer | Uint8Array, filen
     throw new Error(`PDF is larger than ${maxBytes} bytes.`);
   }
   try {
-    const pdfParse = (await import('pdf-parse')).default;
-    const parsed = await pdfParse(bytes);
-    return {
-      title: parsed.info?.Title || filename,
-      body: limitText(parsed.text.trim() || `No selectable text extracted from ${filename}.`, maxTextChars),
-      source: filename,
-      metadata: { filename, pages: parsed.numpages, ingest: 'pdf_parse', truncatedAt: maxTextChars },
-    };
+    const { PDFParse } = await import('pdf-parse');
+    const parser = new PDFParse({ data: bytes });
+    try {
+      const info = await parser.getInfo();
+      const parsed = await parser.getText();
+      return {
+        title: info?.info?.Title || filename,
+        body: limitText(parsed?.text?.trim() || `No selectable text extracted from ${filename}.`, maxTextChars),
+        source: filename,
+        metadata: { filename, pages: parsed?.total, ingest: 'pdf_parse', truncatedAt: maxTextChars },
+      };
+    } finally {
+      await parser.destroy();
+    }
   } catch (error) {
     const text = bytes.toString('utf8').replace(/[^\x09\x0A\x0D\x20-\x7E]+/g, ' ').replace(/\s+/g, ' ').trim();
     return {
