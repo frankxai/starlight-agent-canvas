@@ -433,10 +433,10 @@ export async function ingestPdf(buffer: Buffer | ArrayBuffer | Uint8Array, filen
       const info = await parser.getInfo();
       const parsed = await parser.getText();
       return {
-        title: info.info?.Title || filename,
-        body: limitText(parsed.text.trim() || `No selectable text extracted from ${filename}.`, maxTextChars),
+        title: info?.info?.Title || filename,
+        body: limitText(parsed?.text?.trim() || `No selectable text extracted from ${filename}.`, maxTextChars),
         source: filename,
-        metadata: { filename, pages: parsed.total, ingest: 'pdf_parse', truncatedAt: maxTextChars },
+        metadata: { filename, pages: parsed?.total, ingest: 'pdf_parse', truncatedAt: maxTextChars },
       };
     } finally {
       await parser.destroy();
