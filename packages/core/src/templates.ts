@@ -1,3 +1,4 @@
+import { compactQTownTemplateNodes } from './q-town.js';
 import { CANVAS_SCHEMA_VERSION, type CanvasEdgeKind, type CanvasNode, type CanvasRecord, type CreateCanvasInput } from './schemas.js';
 import { makeId, nowIso } from './ids.js';
 
@@ -251,6 +252,21 @@ const TEMPLATE_SEEDS: Record<NonNullable<CreateCanvasInput['template']>, Templat
       { source: 2, target: 3, kind: 'runs' },
       { source: 3, target: 4, kind: 'exports' },
     ],
+  },
+  q_town_second_brain: {
+    title: 'Q-Town second brain',
+    description: 'Private Starlight world: second-brain districts, air-gapped vault, and registered domain stewards.',
+    bestFor: 'Mapping the second brain and registering one steward per domain/repo without launching a live swarm',
+    outcome: 'An inspectable Q-Town graph with sealed private vault, registered stewards, and a changelog-ready export.',
+    steps: [
+      'Map the private world',
+      'Register second-brain stewards',
+      'Keep the private vault sealed',
+      'Register domain stewards',
+      'Witness, do not bless mid-flight',
+      'Export local context',
+    ],
+    ...compactQTownTemplateNodes(),
   },
 };
 
