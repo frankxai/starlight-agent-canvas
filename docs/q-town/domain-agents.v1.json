@@ -1,0 +1,1366 @@
+{
+  "schema": "starlight.qTownDomainAgents.v1",
+  "generatedFrom": "starlight-agent-config/core/estate/repo-estate.control.json",
+  "manifestUpdatedAt": "2026-07-10",
+  "privacy": {
+    "containsPrivateVaultNotes": false,
+    "containsSecrets": false,
+    "deployment": "registry-only",
+    "liveProcessSpawn": false
+  },
+  "priorityControlRepos": [
+    "starlight-agent-config",
+    "Starlight-Intelligence-System",
+    "jarvisops-desktop",
+    "hermes-cockpit",
+    "agentic-ops-hub",
+    "frankx.ai-vercel-website",
+    "FrankX",
+    "arcanea-ai-app",
+    "gencreator.ai",
+    "starlight-design-intelligence"
+  ],
+  "secondBrainDistricts": [
+    {
+      "id": "plaza",
+      "title": "Q-Town Plaza",
+      "kind": "plaza",
+      "airGapped": false,
+      "purpose": "Private Starlight world hub. Inspectable graph of second-brain districts and domain stewards."
+    },
+    {
+      "id": "brain",
+      "title": "Brain Vault",
+      "kind": "vault",
+      "airGapped": false,
+      "purpose": "MCP-wired operational vault. Publishable summaries and indexes only."
+    },
+    {
+      "id": "private",
+      "title": "Private Vault",
+      "kind": "vault",
+      "airGapped": true,
+      "purpose": "Air-gapped second-brain vault. No MCP path. No live agent mount."
+    },
+    {
+      "id": "people",
+      "title": "People Map",
+      "kind": "agent",
+      "airGapped": false,
+      "purpose": "people-map steward. One file per person mentioned. No third-party PII in this registry."
+    },
+    {
+      "id": "patterns",
+      "title": "Pattern Detector",
+      "kind": "agent",
+      "airGapped": false,
+      "purpose": "Weekly pattern steward over inbox summaries."
+    },
+    {
+      "id": "chronicle",
+      "title": "Chronicle / Bless",
+      "kind": "practice",
+      "airGapped": false,
+      "purpose": "Witness ledger. Bless one whole artifact. Never bless mid-flight work."
+    }
+  ],
+  "lanes": [
+    {
+      "id": "starlight-core",
+      "title": "Starlight Core",
+      "purpose": "Core SIS, memory, orchestration, swarm, communities, device, and command substrate repos.",
+      "repos": [
+        {
+          "id": "starlight-intelligence-system",
+          "repo": "Starlight-Intelligence-System",
+          "role": "Canonical SIS substrate, protocol, memory, public starlightintelligence.org site, verticals, Queen/swarms, packs.",
+          "priority": "now",
+          "tags": [
+            "sis",
+            "protocol",
+            "site",
+            "vercel",
+            "memory",
+            "swarm"
+          ]
+        },
+        {
+          "id": "starlight-command-center",
+          "repo": "starlight-command-center",
+          "role": "Command center surface and local Starlight cockpit experiments.",
+          "priority": "next",
+          "tags": [
+            "cockpit",
+            "command-center"
+          ]
+        },
+        {
+          "id": "starlight-communities",
+          "repo": "starlight-communities",
+          "role": "Community operating system module and pilot run-sheet surface.",
+          "priority": "now",
+          "tags": [
+            "community",
+            "pilot",
+            "module"
+          ]
+        },
+        {
+          "id": "starlight-swarm",
+          "repo": "starlight-swarm",
+          "role": "Cross-model swarm architecture and Queen-guided coordination.",
+          "priority": "now",
+          "tags": [
+            "swarm",
+            "multi-agent",
+            "queen"
+          ]
+        },
+        {
+          "id": "starlight-agent-army-architecture",
+          "repo": "starlight-agent-army-architecture",
+          "role": "Agent army architecture and estate/topology planning.",
+          "priority": "next",
+          "tags": [
+            "architecture",
+            "agents"
+          ]
+        },
+        {
+          "id": "starlight-agentic-influencer-swarm",
+          "repo": "starlight-agentic-influencer-swarm",
+          "role": "Influencer swarm companion for growth/creator distribution.",
+          "priority": "next",
+          "tags": [
+            "growth",
+            "swarm",
+            "influencer"
+          ]
+        },
+        {
+          "id": "starlight-cosmos-engine",
+          "repo": "starlight-cosmos-engine",
+          "role": "Cosmos/knowledge-card engine and related public curation surfaces.",
+          "priority": "later",
+          "tags": [
+            "cosmos",
+            "knowledge"
+          ]
+        },
+        {
+          "id": "starlight-devices",
+          "repo": "starlight-devices",
+          "role": "Device/control surfaces for the Starlight estate.",
+          "priority": "later",
+          "tags": [
+            "devices",
+            "local-control"
+          ]
+        },
+        {
+          "id": "starlight-knowledge-tree",
+          "repo": "starlight-knowledge-tree",
+          "role": "Knowledge tree and navigation substrate.",
+          "priority": "later",
+          "tags": [
+            "knowledge",
+            "navigation"
+          ]
+        },
+        {
+          "id": "starlight-social",
+          "repo": "starlight-social",
+          "role": "Owned social/distribution operating layer.",
+          "priority": "next",
+          "tags": [
+            "social",
+            "distribution"
+          ]
+        },
+        {
+          "id": "health-intelligence-system",
+          "repo": "health-intelligence-system",
+          "role": "Health Intelligence System, private-instance pattern, safety/evidence model.",
+          "priority": "next",
+          "tags": [
+            "health",
+            "private-ops",
+            "evidence"
+          ]
+        },
+        {
+          "id": "magic-intelligence-system",
+          "repo": "magic-intelligence-system",
+          "role": "Magic Intelligence vertical/system experiment.",
+          "priority": "later",
+          "tags": [
+            "vertical",
+            "intelligence-system"
+          ]
+        },
+        {
+          "id": "ana",
+          "repo": "Ana",
+          "role": "Ana personal intelligence and agent experience surface.",
+          "priority": "next",
+          "tags": [
+            "ana",
+            "assistant",
+            "intelligence"
+          ]
+        },
+        {
+          "id": "ana-companion",
+          "repo": "ana-companion",
+          "role": "Ana companion application and private operator experience.",
+          "priority": "next",
+          "tags": [
+            "ana",
+            "companion",
+            "private"
+          ]
+        },
+        {
+          "id": "starlight-agent-canvas",
+          "repo": "starlight-agent-canvas",
+          "role": "Agent canvas and local Starlight coordination surface.",
+          "priority": "next",
+          "tags": [
+            "agents",
+            "canvas",
+            "coordination"
+          ]
+        },
+        {
+          "id": "starlight-memory",
+          "repo": "starlight-memory",
+          "role": "Starlight memory substrate and portable memory contracts.",
+          "priority": "next",
+          "tags": [
+            "memory",
+            "sis",
+            "substrate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "site",
+      "title": "Site",
+      "purpose": "Public web surfaces, Vercel apps, download pages, and product websites.",
+      "repos": [
+        {
+          "id": "frankx.ai-vercel-website",
+          "repo": "frankx.ai-vercel-website",
+          "role": "FrankX flagship public website and route/product surfaces.",
+          "priority": "now",
+          "tags": [
+            "frankx",
+            "vercel",
+            "site",
+            "nextjs"
+          ]
+        },
+        {
+          "id": "gencreator.ai",
+          "repo": "gencreator.ai",
+          "role": "GenCreator product/site surface and intelligence OS app.",
+          "priority": "now",
+          "tags": [
+            "gencreator",
+            "site",
+            "nextjs"
+          ]
+        },
+        {
+          "id": "arcanea-ai-app",
+          "repo": "arcanea-ai-app",
+          "role": "Arcanea app/site and world-engine product surface.",
+          "priority": "now",
+          "tags": [
+            "arcanea",
+            "site",
+            "nextjs",
+            "world-engine"
+          ]
+        },
+        {
+          "id": "arcanea-academy",
+          "repo": "arcanea-academy",
+          "role": "Arcanea learning and academy production surface.",
+          "priority": "now",
+          "tags": [
+            "arcanea",
+            "academy",
+            "vercel"
+          ]
+        },
+        {
+          "id": "gencreator-community",
+          "repo": "gencreator-community",
+          "role": "GenCreator community format and paid operating-wrapper surface.",
+          "priority": "now",
+          "tags": [
+            "gencreator",
+            "community",
+            "vercel"
+          ]
+        },
+        {
+          "id": "ocean-intelligence",
+          "repo": "ocean-intelligence",
+          "role": "Evidence-led Ocean Intelligence venture surface.",
+          "priority": "now",
+          "tags": [
+            "ocean",
+            "venture",
+            "vercel"
+          ]
+        },
+        {
+          "id": "starlight-intelligence-academy",
+          "repo": "starlight-intelligence-academy",
+          "role": "AI architecture cohort pilot and enterprise CoE funnel.",
+          "priority": "now",
+          "tags": [
+            "starlight",
+            "academy",
+            "enterprise",
+            "vercel"
+          ]
+        },
+        {
+          "id": "frankx-mind-page",
+          "repo": "frankx-mind-page",
+          "role": "FrankX mind-intelligence public page and lead surface.",
+          "priority": "next",
+          "tags": [
+            "frankx",
+            "mind",
+            "site"
+          ]
+        },
+        {
+          "id": "frankxai",
+          "repo": "frankxai",
+          "role": "Older FrankX public-site surface; verify canonical relationship before active delivery.",
+          "priority": "watch",
+          "tags": [
+            "frankx",
+            "site",
+            "duplicate-review"
+          ]
+        },
+        {
+          "id": "rova-resort",
+          "repo": "rova-resort",
+          "role": "Hospitality/resort product and Vercel experience.",
+          "priority": "next",
+          "tags": [
+            "hospitality",
+            "site",
+            "vercel"
+          ]
+        },
+        {
+          "id": "vibeclubs",
+          "repo": "vibeclubs",
+          "role": "Open community format with a paid operating wrapper.",
+          "priority": "next",
+          "tags": [
+            "community",
+            "open-source",
+            "vercel"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "agent-config",
+      "title": "Agent Config",
+      "purpose": "Agent runtime config, skills, hooks, MCP/tooling, and cross-agent operating doctrine.",
+      "repos": [
+        {
+          "id": "starlight-agent-config",
+          "repo": "starlight-agent-config",
+          "role": "Canonical Git-backed control repo for shared skills, policies, tools, prompts, machine examples, and this estate manifest.",
+          "priority": "now",
+          "tags": [
+            "control-plane",
+            "skills",
+            "policies",
+            "tools"
+          ]
+        },
+        {
+          "id": "jarvisops-desktop",
+          "repo": "jarvisops-desktop",
+          "role": "Local desktop control plane, repo scanner, manifest/support packet generator, approved action execution.",
+          "priority": "now",
+          "tags": [
+            "desktop",
+            "scanner",
+            "control-plane"
+          ]
+        },
+        {
+          "id": "agentic-ops-hub",
+          "repo": "agentic-ops-hub",
+          "role": "Agent operating hub, cross-agent loop OS, business pack factory foundation.",
+          "priority": "now",
+          "tags": [
+            "ops",
+            "agents",
+            "packs"
+          ]
+        },
+        {
+          "id": "hermes-cockpit",
+          "repo": "hermes-cockpit",
+          "role": "Progress reports, Railway/strategy evidence, Hermes cockpit artifacts.",
+          "priority": "now",
+          "tags": [
+            "progress",
+            "hermes",
+            "reports"
+          ]
+        },
+        {
+          "id": "mcp-doctor",
+          "repo": "mcp-doctor",
+          "role": "MCP and agent tooling health checks.",
+          "priority": "now",
+          "tags": [
+            "mcp",
+            "doctor"
+          ]
+        },
+        {
+          "id": "workflow-tier-plugin",
+          "repo": "workflow-tier-plugin",
+          "role": "Workflow-tier plugin and agent workflow packaging.",
+          "priority": "next",
+          "tags": [
+            "plugin",
+            "workflow"
+          ]
+        },
+        {
+          "id": "claude-code-config",
+          "repo": "claude-code-config",
+          "role": "Claude compatibility layer during migration to starlight-agent-config.",
+          "priority": "next",
+          "tags": [
+            "claude",
+            "compatibility"
+          ]
+        },
+        {
+          "id": "claude-code-hooks",
+          "repo": "claude-code-hooks",
+          "role": "Claude hook experiments and reusable hook logic.",
+          "priority": "later",
+          "tags": [
+            "claude",
+            "hooks"
+          ]
+        },
+        {
+          "id": "claude-skills-library",
+          "repo": "claude-skills-library",
+          "role": "Claude skill library and compatibility source.",
+          "priority": "later",
+          "tags": [
+            "claude",
+            "skills"
+          ]
+        },
+        {
+          "id": "starlight-agent-skills",
+          "repo": "starlight-agent-skills",
+          "role": "Starlight shared agent skills.",
+          "priority": "next",
+          "tags": [
+            "skills",
+            "agents"
+          ]
+        },
+        {
+          "id": "awesome-product-development-agent-skills",
+          "repo": "awesome-product-development-agent-skills",
+          "role": "Product strategy and discovery-to-delivery Codex skills/plugin, including portfolio scoring, ICP/value architecture, verified product execution, and slash-prompt compatibility.",
+          "priority": "now",
+          "tags": [
+            "product",
+            "product-development",
+            "skills",
+            "plugin"
+          ]
+        },
+        {
+          "id": "starlight-automation-agent-skills",
+          "repo": "starlight-automation-agent-skills",
+          "role": "Automation skill pack: n8n, Make, governance, queue operations.",
+          "priority": "next",
+          "tags": [
+            "automation",
+            "skills"
+          ]
+        },
+        {
+          "id": "litellm-agent-platform",
+          "repo": "litellm-agent-platform",
+          "role": "External LiteLLM agent platform fork/reference.",
+          "priority": "later",
+          "tags": [
+            "vendor-fork",
+            "litellm",
+            "platform"
+          ]
+        },
+        {
+          "id": "awesome-hermes-agent-skills",
+          "repo": "awesome-hermes-agent-skills",
+          "role": "Hermes agent-skill curation and reusable operator packs.",
+          "priority": "next",
+          "tags": [
+            "hermes",
+            "skills",
+            "curation"
+          ]
+        },
+        {
+          "id": "creator-skills",
+          "repo": "creator-skills",
+          "role": "Creator-oriented skill source and compatibility surface.",
+          "priority": "next",
+          "tags": [
+            "creator",
+            "skills"
+          ]
+        },
+        {
+          "id": "hermes",
+          "repo": "hermes",
+          "role": "Local Hermes agent runtime and integration source.",
+          "priority": "next",
+          "tags": [
+            "hermes",
+            "runtime",
+            "agents"
+          ]
+        },
+        {
+          "id": "skills",
+          "repo": "skills",
+          "role": "Generic skill aggregation repo; retain as a compatibility source pending provenance review.",
+          "priority": "watch",
+          "tags": [
+            "skills",
+            "compatibility",
+            "provenance-review"
+          ]
+        },
+        {
+          "id": "starlight-evals",
+          "repo": "starlight-evals",
+          "role": "Cross-estate prompt, skill, agent, and system evaluation harness.",
+          "priority": "now",
+          "tags": [
+            "evals",
+            "promptfoo",
+            "quality"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "design",
+      "title": "Design",
+      "purpose": "Design standards, visual intelligence, motion, generated-asset QA, and brand systems.",
+      "repos": [
+        {
+          "id": "starlight-design-intelligence",
+          "repo": "starlight-design-intelligence",
+          "role": "Owned brand intelligence, brand packs, visual QA gates, and design operating system.",
+          "priority": "now",
+          "tags": [
+            "brand",
+            "design",
+            "qa"
+          ]
+        },
+        {
+          "id": "visual-intelligence",
+          "repo": "visual-intelligence",
+          "role": "Visual asset intelligence and image management.",
+          "priority": "next",
+          "tags": [
+            "visual-assets",
+            "qa"
+          ]
+        },
+        {
+          "id": "awesome-design-agent-skills",
+          "repo": "awesome-design-agent-skills",
+          "role": "Public curation for design-agent skills.",
+          "priority": "later",
+          "tags": [
+            "awesome-list",
+            "curation"
+          ]
+        },
+        {
+          "id": "awesome-motion-design-agent-skills",
+          "repo": "awesome-motion-design-agent-skills",
+          "role": "Motion design curation and strategy.",
+          "priority": "next",
+          "tags": [
+            "motion",
+            "curation"
+          ]
+        },
+        {
+          "id": "awesome-animation-agent-skills",
+          "repo": "awesome-animation-agent-skills",
+          "role": "Animation-agent skills, patterns, and curation.",
+          "priority": "next",
+          "tags": [
+            "animation",
+            "skills",
+            "curation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "frankx",
+      "title": "Frankx",
+      "purpose": "FrankX, income, creator-revenue, partnerships, and commercial/productization surfaces.",
+      "repos": [
+        {
+          "id": "frankx",
+          "repo": "FrankX",
+          "role": "FrankX core business/brand/product repo.",
+          "priority": "now",
+          "tags": [
+            "business",
+            "brand",
+            "content"
+          ]
+        },
+        {
+          "id": "frankx-domain-command",
+          "repo": "frankx-domain-command",
+          "role": "Domain command/control for FrankX surfaces.",
+          "priority": "next",
+          "tags": [
+            "domains",
+            "ops"
+          ]
+        },
+        {
+          "id": "frankx-starlight-command",
+          "repo": "frankx-starlight-command",
+          "role": "FrankX/Starlight command bridge and weekly blessing workflow.",
+          "priority": "next",
+          "tags": [
+            "bridge",
+            "command"
+          ]
+        },
+        {
+          "id": "agentic-influencer-os",
+          "repo": "agentic-influencer-os",
+          "role": "Creator distribution, affiliate, social algorithm, and influencer intelligence OS.",
+          "priority": "now",
+          "tags": [
+            "growth",
+            "creator",
+            "affiliate"
+          ]
+        },
+        {
+          "id": "influencer-agent-skills",
+          "repo": "influencer-agent-skills",
+          "role": "Influencer operating skills companion.",
+          "priority": "next",
+          "tags": [
+            "growth",
+            "skills"
+          ]
+        },
+        {
+          "id": "affiliate-agent-skills",
+          "repo": "affiliate-agent-skills",
+          "role": "Affiliate agent skills and partnership/revenue workflows.",
+          "priority": "next",
+          "tags": [
+            "affiliate",
+            "skills"
+          ]
+        },
+        {
+          "id": "agentic-income-skills",
+          "repo": "agentic-income-skills",
+          "role": "Agentic income skill pack.",
+          "priority": "next",
+          "tags": [
+            "income",
+            "skills"
+          ]
+        },
+        {
+          "id": "agentic-income-template",
+          "repo": "agentic-income-template",
+          "role": "Agentic income template/productization surface.",
+          "priority": "later",
+          "tags": [
+            "income",
+            "template"
+          ]
+        },
+        {
+          "id": "agenticincome",
+          "repo": "agenticincome",
+          "role": "Agentic income product/site/business surface.",
+          "priority": "next",
+          "tags": [
+            "income",
+            "site"
+          ]
+        },
+        {
+          "id": "dpi",
+          "repo": "dpi",
+          "role": "DPI/open substrate for creator wealth.",
+          "priority": "next",
+          "tags": [
+            "dpi",
+            "wealth",
+            "product"
+          ]
+        },
+        {
+          "id": "creator-intelligence-system",
+          "repo": "creator-intelligence-system",
+          "role": "Creator intelligence system and product-research substrate.",
+          "priority": "next",
+          "tags": [
+            "creator",
+            "intelligence",
+            "product"
+          ]
+        },
+        {
+          "id": "go-agenticincome",
+          "repo": "go-agenticincome",
+          "role": "Agentic Income service/runtime and canonical Go delivery surface.",
+          "priority": "next",
+          "tags": [
+            "income",
+            "go",
+            "service"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "arcanea",
+      "title": "Arcanea",
+      "purpose": "Arcanea creative intelligence, world engines, AnimeLegends, on-chain, media, and studio surfaces.",
+      "repos": [
+        {
+          "id": "arcanea-agent-skills",
+          "repo": "arcanea-agent-skills",
+          "role": "Arcanea agent skill distribution.",
+          "priority": "next",
+          "tags": [
+            "arcanea",
+            "skills"
+          ]
+        },
+        {
+          "id": "arcanea-claw",
+          "repo": "arcanea-claw",
+          "role": "Creative media engine / OpenClaw integration.",
+          "priority": "next",
+          "tags": [
+            "media",
+            "claw"
+          ]
+        },
+        {
+          "id": "arcanea-ecosystem",
+          "repo": "arcanea-ecosystem",
+          "role": "Arcanea ecosystem meta-repo and integration pointers.",
+          "priority": "next",
+          "tags": [
+            "ecosystem",
+            "meta"
+          ]
+        },
+        {
+          "id": "arcanea-orchestrator",
+          "repo": "arcanea-orchestrator",
+          "role": "Arcanea orchestration fork/reference.",
+          "priority": "later",
+          "tags": [
+            "orchestration",
+            "agents"
+          ]
+        },
+        {
+          "id": "arcanea-studio",
+          "repo": "arcanea-studio",
+          "role": "Arcanea studio/generative media surface.",
+          "priority": "next",
+          "tags": [
+            "studio",
+            "media"
+          ]
+        },
+        {
+          "id": "animelegends",
+          "repo": "AnimeLegends",
+          "role": "AnimeLegends creative studio/product surface.",
+          "priority": "next",
+          "tags": [
+            "anime",
+            "studio",
+            "arcanea"
+          ]
+        },
+        {
+          "id": "awesome-anime-agent-skills",
+          "repo": "awesome-anime-agent-skills",
+          "role": "AnimeLegends AI agent skills, prompts, and playbooks.",
+          "priority": "now",
+          "tags": [
+            "anime",
+            "skills",
+            "arcanea"
+          ]
+        },
+        {
+          "id": "agentic-creator-os",
+          "repo": "agentic-creator-os",
+          "role": "Agentic Creator OS, creator operating system and adapter surface.",
+          "priority": "now",
+          "tags": [
+            "creator",
+            "acos",
+            "agents"
+          ]
+        },
+        {
+          "id": "agentic-creator-skills",
+          "repo": "agentic-creator-skills",
+          "role": "Creator skill pack.",
+          "priority": "next",
+          "tags": [
+            "creator",
+            "skills"
+          ]
+        },
+        {
+          "id": "author-os",
+          "repo": "author-os",
+          "role": "Author operating system.",
+          "priority": "later",
+          "tags": [
+            "author",
+            "creator"
+          ]
+        },
+        {
+          "id": "suno-mcp-server",
+          "repo": "suno-mcp-server",
+          "role": "Suno MCP server and music-ops integration.",
+          "priority": "now",
+          "tags": [
+            "music",
+            "mcp",
+            "suno"
+          ]
+        },
+        {
+          "id": "awesome-music-agent-skills",
+          "repo": "awesome-music-agent-skills",
+          "role": "Music-agent skill curation and reusable production workflows.",
+          "priority": "next",
+          "tags": [
+            "music",
+            "skills",
+            "curation"
+          ]
+        },
+        {
+          "id": "awesome-suno-agent-skills",
+          "repo": "awesome-suno-agent-skills",
+          "role": "Suno-specific skill curation and release workflows.",
+          "priority": "next",
+          "tags": [
+            "suno",
+            "music",
+            "skills"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "experimental",
+      "title": "Experimental",
+      "purpose": "Active exploration, templates, awesome lists, research/OS experiments, and incubating systems.",
+      "repos": [
+        {
+          "id": "agent-intelligence-system",
+          "repo": "Agent-Intelligence-System",
+          "role": "Agentic intelligence system sibling/reference.",
+          "priority": "watch",
+          "tags": [
+            "intelligence-system",
+            "experiment"
+          ]
+        },
+        {
+          "id": "agentic-architecture-field-guide",
+          "repo": "agentic-architecture-field-guide",
+          "role": "Architecture field guide and reference material.",
+          "priority": "later",
+          "tags": [
+            "docs",
+            "field-guide"
+          ]
+        },
+        {
+          "id": "agentic-investor-os",
+          "repo": "agentic-investor-os",
+          "role": "Investor OS experiment.",
+          "priority": "next",
+          "tags": [
+            "investor",
+            "os"
+          ]
+        },
+        {
+          "id": "agentic-life-os",
+          "repo": "agentic-life-os",
+          "role": "Private/life OS planning and health architecture branch.",
+          "priority": "next",
+          "tags": [
+            "life",
+            "private",
+            "os"
+          ]
+        },
+        {
+          "id": "agentic-operating-system-standard",
+          "repo": "agentic-operating-system-standard",
+          "role": "Operating system standard/reference.",
+          "priority": "now",
+          "tags": [
+            "standard",
+            "os"
+          ]
+        },
+        {
+          "id": "agentic-wealth-os",
+          "repo": "agentic-wealth-os",
+          "role": "Wealth OS experiment.",
+          "priority": "next",
+          "tags": [
+            "wealth",
+            "os"
+          ]
+        },
+        {
+          "id": "agentic-world-os",
+          "repo": "agentic-world-os",
+          "role": "World OS experiment.",
+          "priority": "next",
+          "tags": [
+            "world",
+            "os"
+          ]
+        },
+        {
+          "id": "ai-capability-registry",
+          "repo": "ai-capability-registry",
+          "role": "Capability registry for agents/plugins/activation routing.",
+          "priority": "now",
+          "tags": [
+            "registry",
+            "capabilities"
+          ]
+        },
+        {
+          "id": "ai-coe",
+          "repo": "ai-coe",
+          "role": "AI Center of Excellence reference.",
+          "priority": "later",
+          "tags": [
+            "coe",
+            "enterprise"
+          ]
+        },
+        {
+          "id": "awesome-agent-operating-systems",
+          "repo": "awesome-agent-operating-systems",
+          "role": "Public curation list.",
+          "priority": "later",
+          "tags": [
+            "awesome-list"
+          ]
+        },
+        {
+          "id": "awesome-agentic-income",
+          "repo": "awesome-agentic-income",
+          "role": "Public curation list.",
+          "priority": "later",
+          "tags": [
+            "awesome-list",
+            "income"
+          ]
+        },
+        {
+          "id": "awesome-ai-coe",
+          "repo": "awesome-ai-coe",
+          "role": "Public curation list.",
+          "priority": "later",
+          "tags": [
+            "awesome-list",
+            "coe"
+          ]
+        },
+        {
+          "id": "awesome-automation-agent-skills",
+          "repo": "awesome-automation-agent-skills",
+          "role": "Public automation skill curation.",
+          "priority": "later",
+          "tags": [
+            "awesome-list",
+            "automation"
+          ]
+        },
+        {
+          "id": "awesome-cosmos-ai-agents",
+          "repo": "awesome-cosmos-ai-agents",
+          "role": "Public cosmos/AI agent curation.",
+          "priority": "later",
+          "tags": [
+            "awesome-list",
+            "cosmos"
+          ]
+        },
+        {
+          "id": "awesome-gamification-agent-skills",
+          "repo": "awesome-gamification-agent-skills",
+          "role": "Public gamification skill curation.",
+          "priority": "later",
+          "tags": [
+            "awesome-list",
+            "gamification"
+          ]
+        },
+        {
+          "id": "awesome-hermes-agents",
+          "repo": "awesome-hermes-agents",
+          "role": "Hermes agent curation and architecture notes.",
+          "priority": "next",
+          "tags": [
+            "awesome-list",
+            "hermes"
+          ]
+        },
+        {
+          "id": "awesome-investor-agent-skills",
+          "repo": "awesome-investor-agent-skills",
+          "role": "Investor skill curation.",
+          "priority": "later",
+          "tags": [
+            "awesome-list",
+            "investor"
+          ]
+        },
+        {
+          "id": "awesome-sustainability-agent-skills",
+          "repo": "awesome-sustainability-agent-skills",
+          "role": "Sustainability skill curation.",
+          "priority": "later",
+          "tags": [
+            "awesome-list",
+            "sustainability"
+          ]
+        },
+        {
+          "id": "awesome-wealth-agent-skills",
+          "repo": "awesome-wealth-agent-skills",
+          "role": "Wealth skill curation.",
+          "priority": "later",
+          "tags": [
+            "awesome-list",
+            "wealth"
+          ]
+        },
+        {
+          "id": "epic-ways-agent-os",
+          "repo": "epic-ways-agent-os",
+          "role": "EpicWays agent OS experiment/template.",
+          "priority": "later",
+          "tags": [
+            "os",
+            "template"
+          ]
+        },
+        {
+          "id": "kura",
+          "repo": "kura",
+          "role": "Chat export/capture bridge.",
+          "priority": "later",
+          "tags": [
+            "capture",
+            "browser-extension"
+          ]
+        },
+        {
+          "id": "peak-performance",
+          "repo": "peak-performance",
+          "role": "Machine/system health auditor.",
+          "priority": "next",
+          "tags": [
+            "machine",
+            "health",
+            "audit"
+          ]
+        },
+        {
+          "id": "prompt-engine",
+          "repo": "prompt-engine",
+          "role": "Prompt engineering agent team.",
+          "priority": "later",
+          "tags": [
+            "prompts",
+            "evals"
+          ]
+        },
+        {
+          "id": "prompt-library",
+          "repo": "prompt-library",
+          "role": "Prompt library and curation.",
+          "priority": "later",
+          "tags": [
+            "prompts",
+            "library"
+          ]
+        },
+        {
+          "id": "realityarchitect",
+          "repo": "realityarchitect",
+          "role": "Reality Architect system/product experiment.",
+          "priority": "later",
+          "tags": [
+            "reality",
+            "os"
+          ]
+        },
+        {
+          "id": "realityarchitect-vault",
+          "repo": "realityarchitect-vault",
+          "role": "Reality Architect vault/data repo.",
+          "priority": "later",
+          "tags": [
+            "vault",
+            "reality"
+          ]
+        },
+        {
+          "id": "second-brain-os",
+          "repo": "second-brain-os",
+          "role": "Second Brain OS substrate/reference.",
+          "priority": "next",
+          "tags": [
+            "memory",
+            "second-brain"
+          ]
+        },
+        {
+          "id": "sentinel-swarm-cockpit",
+          "repo": "sentinel-swarm-cockpit",
+          "role": "Sentinel swarm cockpit/agent skills surface.",
+          "priority": "later",
+          "tags": [
+            "sentinel",
+            "swarm"
+          ]
+        },
+        {
+          "id": "starlight-sustainability-agent-skills",
+          "repo": "starlight-sustainability-agent-skills",
+          "role": "Sustainability skill pack.",
+          "priority": "later",
+          "tags": [
+            "skills",
+            "sustainability"
+          ]
+        },
+        {
+          "id": "awesome-manifestation-skills",
+          "repo": "awesome-manifestation-skills",
+          "role": "Manifestation and personal-development skill experiment.",
+          "priority": "later",
+          "tags": [
+            "skills",
+            "personal-development",
+            "experiment"
+          ]
+        },
+        {
+          "id": "blue-life-commons",
+          "repo": "blue-life-commons",
+          "role": "Blue Life community and commons product experiment.",
+          "priority": "next",
+          "tags": [
+            "community",
+            "commons",
+            "experiment"
+          ]
+        },
+        {
+          "id": "brother-property-os",
+          "repo": "brother-property-os",
+          "role": "Private property operating-system experiment.",
+          "priority": "later",
+          "tags": [
+            "property",
+            "private",
+            "os"
+          ]
+        },
+        {
+          "id": "hospitality-intelligence-system",
+          "repo": "hospitality-intelligence-system",
+          "role": "Hospitality intelligence vertical and operating patterns.",
+          "priority": "next",
+          "tags": [
+            "hospitality",
+            "intelligence-system"
+          ]
+        },
+        {
+          "id": "jojo-hospitality-house-os",
+          "repo": "jojo-hospitality-house-os",
+          "role": "Private hospitality-house operating-system surface.",
+          "priority": "later",
+          "tags": [
+            "hospitality",
+            "private",
+            "os"
+          ]
+        },
+        {
+          "id": "property-intelligence-system",
+          "repo": "property-intelligence-system",
+          "role": "Property intelligence vertical and reusable operating patterns.",
+          "priority": "next",
+          "tags": [
+            "property",
+            "intelligence-system"
+          ]
+        },
+        {
+          "id": "property-os-template",
+          "repo": "property-os-template",
+          "role": "Reusable property operating-system template.",
+          "priority": "later",
+          "tags": [
+            "property",
+            "template"
+          ]
+        },
+        {
+          "id": "property-portal-template",
+          "repo": "property-portal-template",
+          "role": "Reusable property portal template.",
+          "priority": "later",
+          "tags": [
+            "property",
+            "template",
+            "portal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "archive-candidate",
+      "title": "Archive Candidate",
+      "purpose": "Detached worktrees, duplicate historical surfaces, stale mirrors, and repos requiring explicit human review before archive/delete.",
+      "repos": [
+        {
+          "id": "frankx-blog-vos-worktree",
+          "repo": "frankx-blog-vos-worktree",
+          "role": "Detached FrankX website worktree; review before cleanup.",
+          "priority": "watch",
+          "tags": [
+            "worktree",
+            "detached-head",
+            "frankx"
+          ]
+        },
+        {
+          "id": "frankx-visual-expansion-worktree",
+          "repo": "frankx-visual-expansion-worktree",
+          "role": "FrankX visual expansion worktree; preserve until changes are reviewed/merged or intentionally dropped.",
+          "priority": "watch",
+          "tags": [
+            "worktree",
+            "visual",
+            "frankx"
+          ]
+        },
+        {
+          "id": "ai-architect-academy",
+          "repo": "ai-architect-academy",
+          "role": "Potentially superseded learning surface; review before archive.",
+          "priority": "watch",
+          "tags": [
+            "site",
+            "education",
+            "review-before-archive"
+          ]
+        },
+        {
+          "id": "agenticpassiveincome",
+          "repo": "agenticpassiveincome",
+          "role": "Potential duplicate/passive-income mirror; review relationship to dpi and agenticincome before archive.",
+          "priority": "watch",
+          "tags": [
+            "duplicate-candidate",
+            "income"
+          ]
+        },
+        {
+          "id": "disruptivepassiveincome",
+          "repo": "disruptivepassiveincome",
+          "role": "Potential duplicate/passive-income mirror; review relationship to dpi and agenticincome before archive.",
+          "priority": "watch",
+          "tags": [
+            "duplicate-candidate",
+            "income"
+          ]
+        },
+        {
+          "id": "arcanea-ai-app-production-worktree",
+          "repo": "arcanea-ai-app-production-worktree",
+          "role": "Arcanea production worktree; preserve until its branch and deployment relationship are reconciled.",
+          "priority": "watch",
+          "tags": [
+            "worktree",
+            "arcanea",
+            "production-review"
+          ]
+        }
+      ]
+    }
+  ]
+}
