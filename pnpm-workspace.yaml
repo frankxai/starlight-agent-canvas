@@ -1,8 +1,20 @@
 packages:
   - "apps/*"
   - "packages/*"
+# Security floors (2026-09-27). Several Dependabot security updates failed with
+# latest-resolvable < first-patched because these are transitive-only, and the
+# previous exact `postcss: 8.5.10` pin actively held postcss below its fix.
+# Every value is a caret floor bounded to the package's current major, so
+# Dependabot can keep raising them. Drop an entry once upstream ranges catch up.
 overrides:
-  postcss: 8.5.10
+  postcss: '^8.5.26'
+  sharp: '^0.35.4'
+  fast-uri: '^3.1.6'
+  qs: '^6.16.0'
+  baseline-browser-mapping: '^2.11.0'
+  hono: '^4.13.5'
+  '@hono/node-server@1': '^1.19.15'
+  ip-address: '^10.4.0'
 allowBuilds:
   esbuild: true
   sharp: true
