@@ -39,6 +39,7 @@
     "canvas:smoke": "pnpm --filter @starlight-agent-canvas/core build && node scripts/canvas-smoke.mjs",
     "test:e2e": "pnpm --filter @starlight-agent-canvas/web test:e2e",
     "seed:starlight": "pnpm --filter @starlight-agent-canvas/core build && node scripts/seed-starlight-canvas.mjs",
+    "seed:q-town": "pnpm --filter @starlight-agent-canvas/core build && node scripts/seed-q-town-canvas.mjs",
     "mcp:build": "pnpm --filter @starlight-agent-canvas/core build && pnpm --filter @starlight-agent-canvas/mcp build",
     "mcp:config": "node scripts/print-mcp-config.mjs",
     "mcp:install:codex": "node scripts/install-codex-mcp.mjs",

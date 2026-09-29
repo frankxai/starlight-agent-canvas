@@ -162,6 +162,7 @@ export const createCanvasInputSchema = z.object({
     'repo_product_planning',
     'agent_workflow_design',
     'content_synthesis',
+    'q_town_second_brain',
   ]).default('blank'),
 });
 

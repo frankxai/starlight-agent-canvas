@@ -1,0 +1,4260 @@
+{
+  "id": "canvas-q-town-second-brain",
+  "title": "Q-Town — private Starlight second-brain world",
+  "description": "Inspectable graph of second-brain districts and registered domain/repo stewards. Registry-only. Private vault unmounted.",
+  "createdAt": "2026-08-23T13:23:16.206Z",
+  "census": {
+    "nodes": 134,
+    "edges": 134,
+    "domainStewards": 8,
+    "repoAgents": 118,
+    "airGapped": 1
+  },
+  "nodes": [
+    {
+      "id": "node-plaza",
+      "kind": "note",
+      "title": "Q-Town Plaza",
+      "position": {
+        "x": 1180,
+        "y": 920
+      },
+      "metadata": {
+        "district": "plaza",
+        "role": "plaza",
+        "world": "q-town",
+        "workflowStep": "Map the private world",
+        "workflowOrder": 1,
+        "deployment": "registry-only"
+      }
+    },
+    {
+      "id": "node-brain",
+      "kind": "note",
+      "title": "Brain Vault",
+      "position": {
+        "x": 1180,
+        "y": 640
+      },
+      "metadata": {
+        "district": "brain",
+        "airGapped": false,
+        "role": "vault",
+        "world": "q-town",
+        "workflowStep": "Register second-brain stewards",
+        "workflowOrder": 3,
+        "mount": "brain-only",
+        "status": "registered"
+      }
+    },
+    {
+      "id": "node-private",
+      "kind": "note",
+      "title": "Private Vault",
+      "position": {
+        "x": 1446,
+        "y": 833
+      },
+      "metadata": {
+        "district": "private",
+        "airGapped": true,
+        "role": "vault",
+        "world": "q-town",
+        "workflowStep": "Keep the private vault sealed",
+        "workflowOrder": 2,
+        "mount": "none",
+        "status": "registered"
+      }
+    },
+    {
+      "id": "node-people",
+      "kind": "agent_run",
+      "title": "People Map",
+      "position": {
+        "x": 1345,
+        "y": 1147
+      },
+      "metadata": {
+        "district": "people",
+        "airGapped": false,
+        "role": "agent",
+        "world": "q-town",
+        "workflowStep": "Register second-brain stewards",
+        "workflowOrder": 3,
+        "mount": "brain-only",
+        "status": "registered"
+      }
+    },
+    {
+      "id": "node-patterns",
+      "kind": "agent_run",
+      "title": "Pattern Detector",
+      "position": {
+        "x": 1015,
+        "y": 1147
+      },
+      "metadata": {
+        "district": "patterns",
+        "airGapped": false,
+        "role": "agent",
+        "world": "q-town",
+        "workflowStep": "Register second-brain stewards",
+        "workflowOrder": 3,
+        "mount": "brain-only",
+        "status": "registered"
+      }
+    },
+    {
+      "id": "node-chronicle",
+      "kind": "note",
+      "title": "Chronicle / Bless",
+      "position": {
+        "x": 914,
+        "y": 833
+      },
+      "metadata": {
+        "district": "chronicle",
+        "airGapped": false,
+        "role": "practice",
+        "world": "q-town",
+        "workflowStep": "Register second-brain stewards",
+        "workflowOrder": 3,
+        "mount": "brain-only",
+        "status": "registered"
+      }
+    },
+    {
+      "id": "node-lane-starlight-core",
+      "kind": "agent_run",
+      "title": "Starlight Core steward",
+      "position": {
+        "x": 1180,
+        "y": 280
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "domain-steward",
+        "world": "q-town",
+        "status": "registered",
+        "deployment": "registry-only",
+        "repoCount": 16,
+        "workflowStep": "Register domain stewards",
+        "workflowOrder": 4
+      }
+    },
+    {
+      "id": "node-agent-starlight-intelligence-system",
+      "kind": "agent_run",
+      "title": "Starlight-Intelligence-System agent",
+      "position": {
+        "x": 1330,
+        "y": 280
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "Starlight-Intelligence-System",
+        "priority": "now",
+        "tags": [
+          "sis",
+          "protocol",
+          "site",
+          "vercel",
+          "memory",
+          "swarm"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-command-center",
+      "kind": "agent_run",
+      "title": "starlight-command-center agent",
+      "position": {
+        "x": 1319,
+        "y": 337
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-command-center",
+        "priority": "next",
+        "tags": [
+          "cockpit",
+          "command-center"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-communities",
+      "kind": "agent_run",
+      "title": "starlight-communities agent",
+      "position": {
+        "x": 1286,
+        "y": 386
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-communities",
+        "priority": "now",
+        "tags": [
+          "community",
+          "pilot",
+          "module"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-swarm",
+      "kind": "agent_run",
+      "title": "starlight-swarm agent",
+      "position": {
+        "x": 1237,
+        "y": 419
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-swarm",
+        "priority": "now",
+        "tags": [
+          "swarm",
+          "multi-agent",
+          "queen"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-agent-army-architecture",
+      "kind": "agent_run",
+      "title": "starlight-agent-army-architecture agent",
+      "position": {
+        "x": 1180,
+        "y": 430
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-agent-army-architecture",
+        "priority": "next",
+        "tags": [
+          "architecture",
+          "agents"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-agentic-influencer-swarm",
+      "kind": "agent_run",
+      "title": "starlight-agentic-influencer-swarm agent",
+      "position": {
+        "x": 1123,
+        "y": 419
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-agentic-influencer-swarm",
+        "priority": "next",
+        "tags": [
+          "growth",
+          "swarm",
+          "influencer"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-cosmos-engine",
+      "kind": "agent_run",
+      "title": "starlight-cosmos-engine agent",
+      "position": {
+        "x": 1074,
+        "y": 386
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-cosmos-engine",
+        "priority": "later",
+        "tags": [
+          "cosmos",
+          "knowledge"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-devices",
+      "kind": "agent_run",
+      "title": "starlight-devices agent",
+      "position": {
+        "x": 1041,
+        "y": 337
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-devices",
+        "priority": "later",
+        "tags": [
+          "devices",
+          "local-control"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-knowledge-tree",
+      "kind": "agent_run",
+      "title": "starlight-knowledge-tree agent",
+      "position": {
+        "x": 1030,
+        "y": 280
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-knowledge-tree",
+        "priority": "later",
+        "tags": [
+          "knowledge",
+          "navigation"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-social",
+      "kind": "agent_run",
+      "title": "starlight-social agent",
+      "position": {
+        "x": 1041,
+        "y": 223
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-social",
+        "priority": "next",
+        "tags": [
+          "social",
+          "distribution"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-health-intelligence-system",
+      "kind": "agent_run",
+      "title": "health-intelligence-system agent",
+      "position": {
+        "x": 1024,
+        "y": 124
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "health-intelligence-system",
+        "priority": "next",
+        "tags": [
+          "health",
+          "private-ops",
+          "evidence"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-magic-intelligence-system",
+      "kind": "agent_run",
+      "title": "magic-intelligence-system agent",
+      "position": {
+        "x": 1096,
+        "y": 77
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "magic-intelligence-system",
+        "priority": "later",
+        "tags": [
+          "vertical",
+          "intelligence-system"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-ana",
+      "kind": "agent_run",
+      "title": "Ana agent",
+      "position": {
+        "x": 1180,
+        "y": 60
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "Ana",
+        "priority": "next",
+        "tags": [
+          "ana",
+          "assistant",
+          "intelligence"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-ana-companion",
+      "kind": "agent_run",
+      "title": "ana-companion agent",
+      "position": {
+        "x": 1264,
+        "y": 77
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "ana-companion",
+        "priority": "next",
+        "tags": [
+          "ana",
+          "companion",
+          "private"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-agent-canvas",
+      "kind": "agent_run",
+      "title": "starlight-agent-canvas agent",
+      "position": {
+        "x": 1336,
+        "y": 124
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-agent-canvas",
+        "priority": "next",
+        "tags": [
+          "agents",
+          "canvas",
+          "coordination"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-memory",
+      "kind": "agent_run",
+      "title": "starlight-memory agent",
+      "position": {
+        "x": 1383,
+        "y": 196
+      },
+      "metadata": {
+        "district": "starlight-core",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-memory",
+        "priority": "next",
+        "tags": [
+          "memory",
+          "sis",
+          "substrate"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-lane-site",
+      "kind": "agent_run",
+      "title": "Site steward",
+      "position": {
+        "x": 1633,
+        "y": 467
+      },
+      "metadata": {
+        "district": "site",
+        "role": "domain-steward",
+        "world": "q-town",
+        "status": "registered",
+        "deployment": "registry-only",
+        "repoCount": 11,
+        "workflowStep": "Register domain stewards",
+        "workflowOrder": 4
+      }
+    },
+    {
+      "id": "node-agent-frankx-ai-vercel-website",
+      "kind": "agent_run",
+      "title": "frankx.ai-vercel-website agent",
+      "position": {
+        "x": 1771,
+        "y": 525
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "frankx.ai-vercel-website",
+        "priority": "now",
+        "tags": [
+          "frankx",
+          "vercel",
+          "site",
+          "nextjs"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-gencreator-ai",
+      "kind": "agent_run",
+      "title": "gencreator.ai agent",
+      "position": {
+        "x": 1718,
+        "y": 591
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "gencreator.ai",
+        "priority": "now",
+        "tags": [
+          "gencreator",
+          "site",
+          "nextjs"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-arcanea-ai-app",
+      "kind": "agent_run",
+      "title": "arcanea-ai-app agent",
+      "position": {
+        "x": 1637,
+        "y": 617
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "arcanea-ai-app",
+        "priority": "now",
+        "tags": [
+          "arcanea",
+          "site",
+          "nextjs",
+          "world-engine"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-arcanea-academy",
+      "kind": "agent_run",
+      "title": "arcanea-academy agent",
+      "position": {
+        "x": 1556,
+        "y": 595
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "arcanea-academy",
+        "priority": "now",
+        "tags": [
+          "arcanea",
+          "academy",
+          "vercel"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-gencreator-community",
+      "kind": "agent_run",
+      "title": "gencreator-community agent",
+      "position": {
+        "x": 1498,
+        "y": 533
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "gencreator-community",
+        "priority": "now",
+        "tags": [
+          "gencreator",
+          "community",
+          "vercel"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-ocean-intelligence",
+      "kind": "agent_run",
+      "title": "ocean-intelligence agent",
+      "position": {
+        "x": 1484,
+        "y": 450
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "ocean-intelligence",
+        "priority": "now",
+        "tags": [
+          "ocean",
+          "venture",
+          "vercel"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-intelligence-academy",
+      "kind": "agent_run",
+      "title": "starlight-intelligence-academy agent",
+      "position": {
+        "x": 1517,
+        "y": 372
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-intelligence-academy",
+        "priority": "now",
+        "tags": [
+          "starlight",
+          "academy",
+          "enterprise",
+          "vercel"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-frankx-mind-page",
+      "kind": "agent_run",
+      "title": "frankx-mind-page agent",
+      "position": {
+        "x": 1587,
+        "y": 324
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "frankx-mind-page",
+        "priority": "next",
+        "tags": [
+          "frankx",
+          "mind",
+          "site"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-frankxai",
+      "kind": "agent_run",
+      "title": "frankxai agent",
+      "position": {
+        "x": 1671,
+        "y": 322
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "frankxai",
+        "priority": "watch",
+        "tags": [
+          "frankx",
+          "site",
+          "duplicate-review"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-rova-resort",
+      "kind": "agent_run",
+      "title": "rova-resort agent",
+      "position": {
+        "x": 1744,
+        "y": 366
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "rova-resort",
+        "priority": "next",
+        "tags": [
+          "hospitality",
+          "site",
+          "vercel"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-vibeclubs",
+      "kind": "agent_run",
+      "title": "vibeclubs agent",
+      "position": {
+        "x": 1850,
+        "y": 430
+      },
+      "metadata": {
+        "district": "site",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "vibeclubs",
+        "priority": "next",
+        "tags": [
+          "community",
+          "open-source",
+          "vercel"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-lane-agent-config",
+      "kind": "agent_run",
+      "title": "Agent Config steward",
+      "position": {
+        "x": 1820,
+        "y": 920
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "domain-steward",
+        "world": "q-town",
+        "status": "registered",
+        "deployment": "registry-only",
+        "repoCount": 18,
+        "workflowStep": "Register domain stewards",
+        "workflowOrder": 4
+      }
+    },
+    {
+      "id": "node-agent-starlight-agent-config",
+      "kind": "agent_run",
+      "title": "starlight-agent-config agent",
+      "position": {
+        "x": 1925,
+        "y": 1028
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-agent-config",
+        "priority": "now",
+        "tags": [
+          "control-plane",
+          "skills",
+          "policies",
+          "tools"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-jarvisops-desktop",
+      "kind": "agent_run",
+      "title": "jarvisops-desktop agent",
+      "position": {
+        "x": 1881,
+        "y": 1057
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "jarvisops-desktop",
+        "priority": "now",
+        "tags": [
+          "desktop",
+          "scanner",
+          "control-plane"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-ops-hub",
+      "kind": "agent_run",
+      "title": "agentic-ops-hub agent",
+      "position": {
+        "x": 1831,
+        "y": 1070
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-ops-hub",
+        "priority": "now",
+        "tags": [
+          "ops",
+          "agents",
+          "packs"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-hermes-cockpit",
+      "kind": "agent_run",
+      "title": "hermes-cockpit agent",
+      "position": {
+        "x": 1779,
+        "y": 1064
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "hermes-cockpit",
+        "priority": "now",
+        "tags": [
+          "progress",
+          "hermes",
+          "reports"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-mcp-doctor",
+      "kind": "agent_run",
+      "title": "mcp-doctor agent",
+      "position": {
+        "x": 1732,
+        "y": 1042
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "mcp-doctor",
+        "priority": "now",
+        "tags": [
+          "mcp",
+          "doctor"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-workflow-tier-plugin",
+      "kind": "agent_run",
+      "title": "workflow-tier-plugin agent",
+      "position": {
+        "x": 1696,
+        "y": 1004
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "workflow-tier-plugin",
+        "priority": "next",
+        "tags": [
+          "plugin",
+          "workflow"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-claude-code-config",
+      "kind": "agent_run",
+      "title": "claude-code-config agent",
+      "position": {
+        "x": 1675,
+        "y": 957
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "claude-code-config",
+        "priority": "next",
+        "tags": [
+          "claude",
+          "compatibility"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-claude-code-hooks",
+      "kind": "agent_run",
+      "title": "claude-code-hooks agent",
+      "position": {
+        "x": 1671,
+        "y": 905
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "claude-code-hooks",
+        "priority": "later",
+        "tags": [
+          "claude",
+          "hooks"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-claude-skills-library",
+      "kind": "agent_run",
+      "title": "claude-skills-library agent",
+      "position": {
+        "x": 1685,
+        "y": 855
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "claude-skills-library",
+        "priority": "later",
+        "tags": [
+          "claude",
+          "skills"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-agent-skills",
+      "kind": "agent_run",
+      "title": "starlight-agent-skills agent",
+      "position": {
+        "x": 1715,
+        "y": 812
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-agent-skills",
+        "priority": "next",
+        "tags": [
+          "skills",
+          "agents"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-product-development-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-product-development-agent-skills agent",
+      "position": {
+        "x": 1730,
+        "y": 719
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-product-development-agent-skills",
+        "priority": "now",
+        "tags": [
+          "product",
+          "product-development",
+          "skills",
+          "plugin"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-automation-agent-skills",
+      "kind": "agent_run",
+      "title": "starlight-automation-agent-skills agent",
+      "position": {
+        "x": 1804,
+        "y": 701
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-automation-agent-skills",
+        "priority": "next",
+        "tags": [
+          "automation",
+          "skills"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-litellm-agent-platform",
+      "kind": "agent_run",
+      "title": "litellm-agent-platform agent",
+      "position": {
+        "x": 1880,
+        "y": 708
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "litellm-agent-platform",
+        "priority": "later",
+        "tags": [
+          "vendor-fork",
+          "litellm",
+          "platform"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-hermes-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-hermes-agent-skills agent",
+      "position": {
+        "x": 1949,
+        "y": 742
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-hermes-agent-skills",
+        "priority": "next",
+        "tags": [
+          "hermes",
+          "skills",
+          "curation"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-creator-skills",
+      "kind": "agent_run",
+      "title": "creator-skills agent",
+      "position": {
+        "x": 2002,
+        "y": 796
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "creator-skills",
+        "priority": "next",
+        "tags": [
+          "creator",
+          "skills"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-hermes",
+      "kind": "agent_run",
+      "title": "hermes agent",
+      "position": {
+        "x": 2033,
+        "y": 866
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "hermes",
+        "priority": "next",
+        "tags": [
+          "hermes",
+          "runtime",
+          "agents"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-skills",
+      "kind": "agent_run",
+      "title": "skills agent",
+      "position": {
+        "x": 2039,
+        "y": 942
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "skills",
+        "priority": "watch",
+        "tags": [
+          "skills",
+          "compatibility",
+          "provenance-review"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-evals",
+      "kind": "agent_run",
+      "title": "starlight-evals agent",
+      "position": {
+        "x": 2018,
+        "y": 1016
+      },
+      "metadata": {
+        "district": "agent-config",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-evals",
+        "priority": "now",
+        "tags": [
+          "evals",
+          "promptfoo",
+          "quality"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-lane-design",
+      "kind": "agent_run",
+      "title": "Design steward",
+      "position": {
+        "x": 1633,
+        "y": 1373
+      },
+      "metadata": {
+        "district": "design",
+        "role": "domain-steward",
+        "world": "q-town",
+        "status": "registered",
+        "deployment": "registry-only",
+        "repoCount": 5,
+        "workflowStep": "Register domain stewards",
+        "workflowOrder": 4
+      }
+    },
+    {
+      "id": "node-agent-starlight-design-intelligence",
+      "kind": "agent_run",
+      "title": "starlight-design-intelligence agent",
+      "position": {
+        "x": 1687,
+        "y": 1513
+      },
+      "metadata": {
+        "district": "design",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-design-intelligence",
+        "priority": "now",
+        "tags": [
+          "brand",
+          "design",
+          "qa"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-visual-intelligence",
+      "kind": "agent_run",
+      "title": "visual-intelligence agent",
+      "position": {
+        "x": 1539,
+        "y": 1490
+      },
+      "metadata": {
+        "district": "design",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "visual-intelligence",
+        "priority": "next",
+        "tags": [
+          "visual-assets",
+          "qa"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-design-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-design-agent-skills agent",
+      "position": {
+        "x": 1485,
+        "y": 1350
+      },
+      "metadata": {
+        "district": "design",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-design-agent-skills",
+        "priority": "later",
+        "tags": [
+          "awesome-list",
+          "curation"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-motion-design-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-motion-design-agent-skills agent",
+      "position": {
+        "x": 1579,
+        "y": 1233
+      },
+      "metadata": {
+        "district": "design",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-motion-design-agent-skills",
+        "priority": "next",
+        "tags": [
+          "motion",
+          "curation"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-animation-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-animation-agent-skills agent",
+      "position": {
+        "x": 1727,
+        "y": 1256
+      },
+      "metadata": {
+        "district": "design",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-animation-agent-skills",
+        "priority": "next",
+        "tags": [
+          "animation",
+          "skills",
+          "curation"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-lane-frankx",
+      "kind": "agent_run",
+      "title": "Frankx steward",
+      "position": {
+        "x": 1180,
+        "y": 1560
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "domain-steward",
+        "world": "q-town",
+        "status": "registered",
+        "deployment": "registry-only",
+        "repoCount": 12,
+        "workflowStep": "Register domain stewards",
+        "workflowOrder": 4
+      }
+    },
+    {
+      "id": "node-agent-frankx",
+      "kind": "agent_run",
+      "title": "FrankX agent",
+      "position": {
+        "x": 1176,
+        "y": 1710
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "FrankX",
+        "priority": "now",
+        "tags": [
+          "business",
+          "brand",
+          "content"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": true,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-frankx-domain-command",
+      "kind": "agent_run",
+      "title": "frankx-domain-command agent",
+      "position": {
+        "x": 1101,
+        "y": 1688
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "frankx-domain-command",
+        "priority": "next",
+        "tags": [
+          "domains",
+          "ops"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-frankx-starlight-command",
+      "kind": "agent_run",
+      "title": "frankx-starlight-command agent",
+      "position": {
+        "x": 1048,
+        "y": 1631
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "frankx-starlight-command",
+        "priority": "next",
+        "tags": [
+          "bridge",
+          "command"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-influencer-os",
+      "kind": "agent_run",
+      "title": "agentic-influencer-os agent",
+      "position": {
+        "x": 1030,
+        "y": 1556
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-influencer-os",
+        "priority": "now",
+        "tags": [
+          "growth",
+          "creator",
+          "affiliate"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-influencer-agent-skills",
+      "kind": "agent_run",
+      "title": "influencer-agent-skills agent",
+      "position": {
+        "x": 1052,
+        "y": 1481
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "influencer-agent-skills",
+        "priority": "next",
+        "tags": [
+          "growth",
+          "skills"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-affiliate-agent-skills",
+      "kind": "agent_run",
+      "title": "affiliate-agent-skills agent",
+      "position": {
+        "x": 1109,
+        "y": 1428
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "affiliate-agent-skills",
+        "priority": "next",
+        "tags": [
+          "affiliate",
+          "skills"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-income-skills",
+      "kind": "agent_run",
+      "title": "agentic-income-skills agent",
+      "position": {
+        "x": 1184,
+        "y": 1410
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-income-skills",
+        "priority": "next",
+        "tags": [
+          "income",
+          "skills"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-income-template",
+      "kind": "agent_run",
+      "title": "agentic-income-template agent",
+      "position": {
+        "x": 1259,
+        "y": 1432
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-income-template",
+        "priority": "later",
+        "tags": [
+          "income",
+          "template"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agenticincome",
+      "kind": "agent_run",
+      "title": "agenticincome agent",
+      "position": {
+        "x": 1312,
+        "y": 1489
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agenticincome",
+        "priority": "next",
+        "tags": [
+          "income",
+          "site"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-dpi",
+      "kind": "agent_run",
+      "title": "dpi agent",
+      "position": {
+        "x": 1330,
+        "y": 1564
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "dpi",
+        "priority": "next",
+        "tags": [
+          "dpi",
+          "wealth",
+          "product"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-creator-intelligence-system",
+      "kind": "agent_run",
+      "title": "creator-intelligence-system agent",
+      "position": {
+        "x": 1367,
+        "y": 1676
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "creator-intelligence-system",
+        "priority": "next",
+        "tags": [
+          "creator",
+          "intelligence",
+          "product"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-go-agenticincome",
+      "kind": "agent_run",
+      "title": "go-agenticincome agent",
+      "position": {
+        "x": 1284,
+        "y": 1754
+      },
+      "metadata": {
+        "district": "frankx",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "go-agenticincome",
+        "priority": "next",
+        "tags": [
+          "income",
+          "go",
+          "service"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-lane-arcanea",
+      "kind": "agent_run",
+      "title": "Arcanea steward",
+      "position": {
+        "x": 727,
+        "y": 1373
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "domain-steward",
+        "world": "q-town",
+        "status": "registered",
+        "deployment": "registry-only",
+        "repoCount": 13,
+        "workflowStep": "Register domain stewards",
+        "workflowOrder": 4
+      }
+    },
+    {
+      "id": "node-agent-arcanea-agent-skills",
+      "kind": "agent_run",
+      "title": "arcanea-agent-skills agent",
+      "position": {
+        "x": 665,
+        "y": 1509
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "arcanea-agent-skills",
+        "priority": "next",
+        "tags": [
+          "arcanea",
+          "skills"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-arcanea-claw",
+      "kind": "agent_run",
+      "title": "arcanea-claw agent",
+      "position": {
+        "x": 608,
+        "y": 1465
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "arcanea-claw",
+        "priority": "next",
+        "tags": [
+          "media",
+          "claw"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-arcanea-ecosystem",
+      "kind": "agent_run",
+      "title": "arcanea-ecosystem agent",
+      "position": {
+        "x": 579,
+        "y": 1399
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "arcanea-ecosystem",
+        "priority": "next",
+        "tags": [
+          "ecosystem",
+          "meta"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-arcanea-orchestrator",
+      "kind": "agent_run",
+      "title": "arcanea-orchestrator agent",
+      "position": {
+        "x": 584,
+        "y": 1327
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "arcanea-orchestrator",
+        "priority": "later",
+        "tags": [
+          "orchestration",
+          "agents"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-arcanea-studio",
+      "kind": "agent_run",
+      "title": "arcanea-studio agent",
+      "position": {
+        "x": 622,
+        "y": 1266
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "arcanea-studio",
+        "priority": "next",
+        "tags": [
+          "studio",
+          "media"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-animelegends",
+      "kind": "agent_run",
+      "title": "AnimeLegends agent",
+      "position": {
+        "x": 683,
+        "y": 1230
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "AnimeLegends",
+        "priority": "next",
+        "tags": [
+          "anime",
+          "studio",
+          "arcanea"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-anime-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-anime-agent-skills agent",
+      "position": {
+        "x": 755,
+        "y": 1226
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-anime-agent-skills",
+        "priority": "now",
+        "tags": [
+          "anime",
+          "skills",
+          "arcanea"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-creator-os",
+      "kind": "agent_run",
+      "title": "agentic-creator-os agent",
+      "position": {
+        "x": 820,
+        "y": 1256
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-creator-os",
+        "priority": "now",
+        "tags": [
+          "creator",
+          "acos",
+          "agents"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-creator-skills",
+      "kind": "agent_run",
+      "title": "agentic-creator-skills agent",
+      "position": {
+        "x": 864,
+        "y": 1312
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-creator-skills",
+        "priority": "next",
+        "tags": [
+          "creator",
+          "skills"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-author-os",
+      "kind": "agent_run",
+      "title": "author-os agent",
+      "position": {
+        "x": 877,
+        "y": 1383
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "author-os",
+        "priority": "later",
+        "tags": [
+          "author",
+          "creator"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-suno-mcp-server",
+      "kind": "agent_run",
+      "title": "suno-mcp-server agent",
+      "position": {
+        "x": 915,
+        "y": 1488
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "suno-mcp-server",
+        "priority": "now",
+        "tags": [
+          "music",
+          "mcp",
+          "suno"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-music-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-music-agent-skills agent",
+      "position": {
+        "x": 840,
+        "y": 1562
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-music-agent-skills",
+        "priority": "next",
+        "tags": [
+          "music",
+          "skills",
+          "curation"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-suno-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-suno-agent-skills agent",
+      "position": {
+        "x": 739,
+        "y": 1593
+      },
+      "metadata": {
+        "district": "arcanea",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-suno-agent-skills",
+        "priority": "next",
+        "tags": [
+          "suno",
+          "music",
+          "skills"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-lane-experimental",
+      "kind": "agent_run",
+      "title": "Experimental steward",
+      "position": {
+        "x": 540,
+        "y": 920
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "domain-steward",
+        "world": "q-town",
+        "status": "registered",
+        "deployment": "registry-only",
+        "repoCount": 37,
+        "workflowStep": "Register domain stewards",
+        "workflowOrder": 4
+      }
+    },
+    {
+      "id": "node-agent-agent-intelligence-system",
+      "kind": "agent_run",
+      "title": "Agent-Intelligence-System agent",
+      "position": {
+        "x": 429,
+        "y": 1021
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "Agent-Intelligence-System",
+        "priority": "watch",
+        "tags": [
+          "intelligence-system",
+          "experiment"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-architecture-field-guide",
+      "kind": "agent_run",
+      "title": "agentic-architecture-field-guide agent",
+      "position": {
+        "x": 414,
+        "y": 1001
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-architecture-field-guide",
+        "priority": "later",
+        "tags": [
+          "docs",
+          "field-guide"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-investor-os",
+      "kind": "agent_run",
+      "title": "agentic-investor-os agent",
+      "position": {
+        "x": 402,
+        "y": 979
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-investor-os",
+        "priority": "next",
+        "tags": [
+          "investor",
+          "os"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-life-os",
+      "kind": "agent_run",
+      "title": "agentic-life-os agent",
+      "position": {
+        "x": 394,
+        "y": 955
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-life-os",
+        "priority": "next",
+        "tags": [
+          "life",
+          "private",
+          "os"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-operating-system-standard",
+      "kind": "agent_run",
+      "title": "agentic-operating-system-standard agent",
+      "position": {
+        "x": 390,
+        "y": 929
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-operating-system-standard",
+        "priority": "now",
+        "tags": [
+          "standard",
+          "os"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-wealth-os",
+      "kind": "agent_run",
+      "title": "agentic-wealth-os agent",
+      "position": {
+        "x": 391,
+        "y": 904
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-wealth-os",
+        "priority": "next",
+        "tags": [
+          "wealth",
+          "os"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agentic-world-os",
+      "kind": "agent_run",
+      "title": "agentic-world-os agent",
+      "position": {
+        "x": 396,
+        "y": 879
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agentic-world-os",
+        "priority": "next",
+        "tags": [
+          "world",
+          "os"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-ai-capability-registry",
+      "kind": "agent_run",
+      "title": "ai-capability-registry agent",
+      "position": {
+        "x": 405,
+        "y": 855
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "ai-capability-registry",
+        "priority": "now",
+        "tags": [
+          "registry",
+          "capabilities"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-ai-coe",
+      "kind": "agent_run",
+      "title": "ai-coe agent",
+      "position": {
+        "x": 418,
+        "y": 833
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "ai-coe",
+        "priority": "later",
+        "tags": [
+          "coe",
+          "enterprise"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-agent-operating-systems",
+      "kind": "agent_run",
+      "title": "awesome-agent-operating-systems agent",
+      "position": {
+        "x": 434,
+        "y": 814
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-agent-operating-systems",
+        "priority": "later",
+        "tags": [
+          "awesome-list"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-agentic-income",
+      "kind": "agent_run",
+      "title": "awesome-agentic-income agent",
+      "position": {
+        "x": 413,
+        "y": 740
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-agentic-income",
+        "priority": "later",
+        "tags": [
+          "awesome-list",
+          "income"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-ai-coe",
+      "kind": "agent_run",
+      "title": "awesome-ai-coe agent",
+      "position": {
+        "x": 445,
+        "y": 721
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-ai-coe",
+        "priority": "later",
+        "tags": [
+          "awesome-list",
+          "coe"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-automation-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-automation-agent-skills agent",
+      "position": {
+        "x": 480,
+        "y": 708
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-automation-agent-skills",
+        "priority": "later",
+        "tags": [
+          "awesome-list",
+          "automation"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-cosmos-ai-agents",
+      "kind": "agent_run",
+      "title": "awesome-cosmos-ai-agents agent",
+      "position": {
+        "x": 517,
+        "y": 701
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-cosmos-ai-agents",
+        "priority": "later",
+        "tags": [
+          "awesome-list",
+          "cosmos"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-gamification-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-gamification-agent-skills agent",
+      "position": {
+        "x": 554,
+        "y": 700
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-gamification-agent-skills",
+        "priority": "later",
+        "tags": [
+          "awesome-list",
+          "gamification"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-hermes-agents",
+      "kind": "agent_run",
+      "title": "awesome-hermes-agents agent",
+      "position": {
+        "x": 591,
+        "y": 706
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-hermes-agents",
+        "priority": "next",
+        "tags": [
+          "awesome-list",
+          "hermes"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-investor-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-investor-agent-skills agent",
+      "position": {
+        "x": 627,
+        "y": 718
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-investor-agent-skills",
+        "priority": "later",
+        "tags": [
+          "awesome-list",
+          "investor"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-sustainability-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-sustainability-agent-skills agent",
+      "position": {
+        "x": 660,
+        "y": 735
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-sustainability-agent-skills",
+        "priority": "later",
+        "tags": [
+          "awesome-list",
+          "sustainability"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-wealth-agent-skills",
+      "kind": "agent_run",
+      "title": "awesome-wealth-agent-skills agent",
+      "position": {
+        "x": 689,
+        "y": 758
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-wealth-agent-skills",
+        "priority": "later",
+        "tags": [
+          "awesome-list",
+          "wealth"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-epic-ways-agent-os",
+      "kind": "agent_run",
+      "title": "epic-ways-agent-os agent",
+      "position": {
+        "x": 714,
+        "y": 786
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "epic-ways-agent-os",
+        "priority": "later",
+        "tags": [
+          "os",
+          "template"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-kura",
+      "kind": "agent_run",
+      "title": "kura agent",
+      "position": {
+        "x": 796,
+        "y": 784
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "kura",
+        "priority": "later",
+        "tags": [
+          "capture",
+          "browser-extension"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-peak-performance",
+      "kind": "agent_run",
+      "title": "peak-performance agent",
+      "position": {
+        "x": 816,
+        "y": 830
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "peak-performance",
+        "priority": "next",
+        "tags": [
+          "machine",
+          "health",
+          "audit"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-prompt-engine",
+      "kind": "agent_run",
+      "title": "prompt-engine agent",
+      "position": {
+        "x": 827,
+        "y": 877
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "prompt-engine",
+        "priority": "later",
+        "tags": [
+          "prompts",
+          "evals"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-prompt-library",
+      "kind": "agent_run",
+      "title": "prompt-library agent",
+      "position": {
+        "x": 830,
+        "y": 927
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "prompt-library",
+        "priority": "later",
+        "tags": [
+          "prompts",
+          "library"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-realityarchitect",
+      "kind": "agent_run",
+      "title": "realityarchitect agent",
+      "position": {
+        "x": 825,
+        "y": 975
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "realityarchitect",
+        "priority": "later",
+        "tags": [
+          "reality",
+          "os"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-realityarchitect-vault",
+      "kind": "agent_run",
+      "title": "realityarchitect-vault agent",
+      "position": {
+        "x": 811,
+        "y": 1023
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "realityarchitect-vault",
+        "priority": "later",
+        "tags": [
+          "vault",
+          "reality"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-second-brain-os",
+      "kind": "agent_run",
+      "title": "second-brain-os agent",
+      "position": {
+        "x": 790,
+        "y": 1067
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "second-brain-os",
+        "priority": "next",
+        "tags": [
+          "memory",
+          "second-brain"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-sentinel-swarm-cockpit",
+      "kind": "agent_run",
+      "title": "sentinel-swarm-cockpit agent",
+      "position": {
+        "x": 761,
+        "y": 1107
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "sentinel-swarm-cockpit",
+        "priority": "later",
+        "tags": [
+          "sentinel",
+          "swarm"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-starlight-sustainability-agent-skills",
+      "kind": "agent_run",
+      "title": "starlight-sustainability-agent-skills agent",
+      "position": {
+        "x": 727,
+        "y": 1142
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "starlight-sustainability-agent-skills",
+        "priority": "later",
+        "tags": [
+          "skills",
+          "sustainability"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-awesome-manifestation-skills",
+      "kind": "agent_run",
+      "title": "awesome-manifestation-skills agent",
+      "position": {
+        "x": 686,
+        "y": 1170
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "awesome-manifestation-skills",
+        "priority": "later",
+        "tags": [
+          "skills",
+          "personal-development",
+          "experiment"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-blue-life-commons",
+      "kind": "agent_run",
+      "title": "blue-life-commons agent",
+      "position": {
+        "x": 667,
+        "y": 1257
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "blue-life-commons",
+        "priority": "next",
+        "tags": [
+          "community",
+          "commons",
+          "experiment"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-brother-property-os",
+      "kind": "agent_run",
+      "title": "brother-property-os agent",
+      "position": {
+        "x": 608,
+        "y": 1274
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "brother-property-os",
+        "priority": "later",
+        "tags": [
+          "property",
+          "private",
+          "os"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-hospitality-intelligence-system",
+      "kind": "agent_run",
+      "title": "hospitality-intelligence-system agent",
+      "position": {
+        "x": 547,
+        "y": 1280
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "hospitality-intelligence-system",
+        "priority": "next",
+        "tags": [
+          "hospitality",
+          "intelligence-system"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-jojo-hospitality-house-os",
+      "kind": "agent_run",
+      "title": "jojo-hospitality-house-os agent",
+      "position": {
+        "x": 486,
+        "y": 1276
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "jojo-hospitality-house-os",
+        "priority": "later",
+        "tags": [
+          "hospitality",
+          "private",
+          "os"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-property-intelligence-system",
+      "kind": "agent_run",
+      "title": "property-intelligence-system agent",
+      "position": {
+        "x": 427,
+        "y": 1262
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "property-intelligence-system",
+        "priority": "next",
+        "tags": [
+          "property",
+          "intelligence-system"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-property-os-template",
+      "kind": "agent_run",
+      "title": "property-os-template agent",
+      "position": {
+        "x": 371,
+        "y": 1238
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "property-os-template",
+        "priority": "later",
+        "tags": [
+          "property",
+          "template"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-property-portal-template",
+      "kind": "agent_run",
+      "title": "property-portal-template agent",
+      "position": {
+        "x": 319,
+        "y": 1205
+      },
+      "metadata": {
+        "district": "experimental",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "property-portal-template",
+        "priority": "later",
+        "tags": [
+          "property",
+          "template",
+          "portal"
+        ],
+        "status": "registered",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-lane-archive-candidate",
+      "kind": "agent_run",
+      "title": "Archive Candidate steward",
+      "position": {
+        "x": 727,
+        "y": 467
+      },
+      "metadata": {
+        "district": "archive-candidate",
+        "role": "domain-steward",
+        "world": "q-town",
+        "status": "hold",
+        "deployment": "registry-only",
+        "repoCount": 6,
+        "workflowStep": "Register domain stewards",
+        "workflowOrder": 4
+      }
+    },
+    {
+      "id": "node-agent-frankx-blog-vos-worktree",
+      "kind": "agent_run",
+      "title": "frankx-blog-vos-worktree agent",
+      "position": {
+        "x": 586,
+        "y": 517
+      },
+      "metadata": {
+        "district": "archive-candidate",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "frankx-blog-vos-worktree",
+        "priority": "watch",
+        "tags": [
+          "worktree",
+          "detached-head",
+          "frankx"
+        ],
+        "status": "hold",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-frankx-visual-expansion-worktree",
+      "kind": "agent_run",
+      "title": "frankx-visual-expansion-worktree agent",
+      "position": {
+        "x": 613,
+        "y": 370
+      },
+      "metadata": {
+        "district": "archive-candidate",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "frankx-visual-expansion-worktree",
+        "priority": "watch",
+        "tags": [
+          "worktree",
+          "visual",
+          "frankx"
+        ],
+        "status": "hold",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-ai-architect-academy",
+      "kind": "agent_run",
+      "title": "ai-architect-academy agent",
+      "position": {
+        "x": 754,
+        "y": 319
+      },
+      "metadata": {
+        "district": "archive-candidate",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "ai-architect-academy",
+        "priority": "watch",
+        "tags": [
+          "site",
+          "education",
+          "review-before-archive"
+        ],
+        "status": "hold",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-agenticpassiveincome",
+      "kind": "agent_run",
+      "title": "agenticpassiveincome agent",
+      "position": {
+        "x": 868,
+        "y": 417
+      },
+      "metadata": {
+        "district": "archive-candidate",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "agenticpassiveincome",
+        "priority": "watch",
+        "tags": [
+          "duplicate-candidate",
+          "income"
+        ],
+        "status": "hold",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-disruptivepassiveincome",
+      "kind": "agent_run",
+      "title": "disruptivepassiveincome agent",
+      "position": {
+        "x": 841,
+        "y": 564
+      },
+      "metadata": {
+        "district": "archive-candidate",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "disruptivepassiveincome",
+        "priority": "watch",
+        "tags": [
+          "duplicate-candidate",
+          "income"
+        ],
+        "status": "hold",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-agent-arcanea-ai-app-production-worktree",
+      "kind": "agent_run",
+      "title": "arcanea-ai-app-production-worktree agent",
+      "position": {
+        "x": 700,
+        "y": 615
+      },
+      "metadata": {
+        "district": "archive-candidate",
+        "role": "repo-agent",
+        "world": "q-town",
+        "repo": "arcanea-ai-app-production-worktree",
+        "priority": "watch",
+        "tags": [
+          "worktree",
+          "arcanea",
+          "production-review"
+        ],
+        "status": "hold",
+        "deployment": "registry-only",
+        "priorityControl": false,
+        "workflowStep": "Register repo agents",
+        "workflowOrder": 5
+      }
+    },
+    {
+      "id": "node-q-town-mcp-boundary",
+      "kind": "mcp_tool",
+      "title": "Q-Town MCP boundary",
+      "position": {
+        "x": 2000,
+        "y": 500
+      },
+      "metadata": {
+        "tool": "export_canvas",
+        "world": "q-town",
+        "workflowStep": "Lock the air-gap",
+        "workflowOrder": 6
+      }
+    },
+    {
+      "id": "node-q-town-changelog",
+      "kind": "output",
+      "title": "Q-Town changelog evidence",
+      "position": {
+        "x": 2000,
+        "y": 1000
+      },
+      "metadata": {
+        "expectedOutput": true,
+        "world": "q-town",
+        "workflowStep": "Record the changelog",
+        "workflowOrder": 7
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-plaza-brain",
+      "source": "node-plaza",
+      "target": "node-brain",
+      "kind": "derives_from",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-private",
+      "source": "node-plaza",
+      "target": "node-private",
+      "kind": "references",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-people",
+      "source": "node-plaza",
+      "target": "node-people",
+      "kind": "derives_from",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-patterns",
+      "source": "node-plaza",
+      "target": "node-patterns",
+      "kind": "derives_from",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-chronicle",
+      "source": "node-plaza",
+      "target": "node-chronicle",
+      "kind": "derives_from",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-private-chronicle",
+      "source": "node-private",
+      "target": "node-chronicle",
+      "kind": "references",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-starlight-core",
+      "source": "node-plaza",
+      "target": "node-lane-starlight-core",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-intelligence-system",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-intelligence-system",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-command-center",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-command-center",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-communities",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-communities",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-swarm",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-swarm",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-agent-army-architecture",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-agent-army-architecture",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-agentic-influencer-swarm",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-agentic-influencer-swarm",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-cosmos-engine",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-cosmos-engine",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-devices",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-devices",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-knowledge-tree",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-knowledge-tree",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-social",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-social",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-health-intelligence-system",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-health-intelligence-system",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-magic-intelligence-system",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-magic-intelligence-system",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-ana",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-ana",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-ana-companion",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-ana-companion",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-agent-canvas",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-agent-canvas",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-starlight-core-starlight-memory",
+      "source": "node-lane-starlight-core",
+      "target": "node-agent-starlight-memory",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-site",
+      "source": "node-plaza",
+      "target": "node-lane-site",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-frankx-ai-vercel-website",
+      "source": "node-lane-site",
+      "target": "node-agent-frankx-ai-vercel-website",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-gencreator-ai",
+      "source": "node-lane-site",
+      "target": "node-agent-gencreator-ai",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-arcanea-ai-app",
+      "source": "node-lane-site",
+      "target": "node-agent-arcanea-ai-app",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-arcanea-academy",
+      "source": "node-lane-site",
+      "target": "node-agent-arcanea-academy",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-gencreator-community",
+      "source": "node-lane-site",
+      "target": "node-agent-gencreator-community",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-ocean-intelligence",
+      "source": "node-lane-site",
+      "target": "node-agent-ocean-intelligence",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-starlight-intelligence-academy",
+      "source": "node-lane-site",
+      "target": "node-agent-starlight-intelligence-academy",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-frankx-mind-page",
+      "source": "node-lane-site",
+      "target": "node-agent-frankx-mind-page",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-frankxai",
+      "source": "node-lane-site",
+      "target": "node-agent-frankxai",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-rova-resort",
+      "source": "node-lane-site",
+      "target": "node-agent-rova-resort",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-site-vibeclubs",
+      "source": "node-lane-site",
+      "target": "node-agent-vibeclubs",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-agent-config",
+      "source": "node-plaza",
+      "target": "node-lane-agent-config",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-starlight-agent-config",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-starlight-agent-config",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-jarvisops-desktop",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-jarvisops-desktop",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-agentic-ops-hub",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-agentic-ops-hub",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-hermes-cockpit",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-hermes-cockpit",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-mcp-doctor",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-mcp-doctor",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-workflow-tier-plugin",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-workflow-tier-plugin",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-claude-code-config",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-claude-code-config",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-claude-code-hooks",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-claude-code-hooks",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-claude-skills-library",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-claude-skills-library",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-starlight-agent-skills",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-starlight-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-awesome-product-development-agent-skills",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-awesome-product-development-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-starlight-automation-agent-skills",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-starlight-automation-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-litellm-agent-platform",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-litellm-agent-platform",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-awesome-hermes-agent-skills",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-awesome-hermes-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-creator-skills",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-creator-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-hermes",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-hermes",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-skills",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-agent-config-starlight-evals",
+      "source": "node-lane-agent-config",
+      "target": "node-agent-starlight-evals",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-design",
+      "source": "node-plaza",
+      "target": "node-lane-design",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-design-starlight-design-intelligence",
+      "source": "node-lane-design",
+      "target": "node-agent-starlight-design-intelligence",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-design-visual-intelligence",
+      "source": "node-lane-design",
+      "target": "node-agent-visual-intelligence",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-design-awesome-design-agent-skills",
+      "source": "node-lane-design",
+      "target": "node-agent-awesome-design-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-design-awesome-motion-design-agent-skills",
+      "source": "node-lane-design",
+      "target": "node-agent-awesome-motion-design-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-design-awesome-animation-agent-skills",
+      "source": "node-lane-design",
+      "target": "node-agent-awesome-animation-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-frankx",
+      "source": "node-plaza",
+      "target": "node-lane-frankx",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-frankx",
+      "source": "node-lane-frankx",
+      "target": "node-agent-frankx",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-frankx-domain-command",
+      "source": "node-lane-frankx",
+      "target": "node-agent-frankx-domain-command",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-frankx-starlight-command",
+      "source": "node-lane-frankx",
+      "target": "node-agent-frankx-starlight-command",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-agentic-influencer-os",
+      "source": "node-lane-frankx",
+      "target": "node-agent-agentic-influencer-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-influencer-agent-skills",
+      "source": "node-lane-frankx",
+      "target": "node-agent-influencer-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-affiliate-agent-skills",
+      "source": "node-lane-frankx",
+      "target": "node-agent-affiliate-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-agentic-income-skills",
+      "source": "node-lane-frankx",
+      "target": "node-agent-agentic-income-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-agentic-income-template",
+      "source": "node-lane-frankx",
+      "target": "node-agent-agentic-income-template",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-agenticincome",
+      "source": "node-lane-frankx",
+      "target": "node-agent-agenticincome",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-dpi",
+      "source": "node-lane-frankx",
+      "target": "node-agent-dpi",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-creator-intelligence-system",
+      "source": "node-lane-frankx",
+      "target": "node-agent-creator-intelligence-system",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-frankx-go-agenticincome",
+      "source": "node-lane-frankx",
+      "target": "node-agent-go-agenticincome",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-arcanea",
+      "source": "node-plaza",
+      "target": "node-lane-arcanea",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-arcanea-agent-skills",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-arcanea-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-arcanea-claw",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-arcanea-claw",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-arcanea-ecosystem",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-arcanea-ecosystem",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-arcanea-orchestrator",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-arcanea-orchestrator",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-arcanea-studio",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-arcanea-studio",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-animelegends",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-animelegends",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-awesome-anime-agent-skills",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-awesome-anime-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-agentic-creator-os",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-agentic-creator-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-agentic-creator-skills",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-agentic-creator-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-author-os",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-author-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-suno-mcp-server",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-suno-mcp-server",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-awesome-music-agent-skills",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-awesome-music-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-arcanea-awesome-suno-agent-skills",
+      "source": "node-lane-arcanea",
+      "target": "node-agent-awesome-suno-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-experimental",
+      "source": "node-plaza",
+      "target": "node-lane-experimental",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-agent-intelligence-system",
+      "source": "node-lane-experimental",
+      "target": "node-agent-agent-intelligence-system",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-agentic-architecture-field-guide",
+      "source": "node-lane-experimental",
+      "target": "node-agent-agentic-architecture-field-guide",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-agentic-investor-os",
+      "source": "node-lane-experimental",
+      "target": "node-agent-agentic-investor-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-agentic-life-os",
+      "source": "node-lane-experimental",
+      "target": "node-agent-agentic-life-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-agentic-operating-system-standard",
+      "source": "node-lane-experimental",
+      "target": "node-agent-agentic-operating-system-standard",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-agentic-wealth-os",
+      "source": "node-lane-experimental",
+      "target": "node-agent-agentic-wealth-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-agentic-world-os",
+      "source": "node-lane-experimental",
+      "target": "node-agent-agentic-world-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-ai-capability-registry",
+      "source": "node-lane-experimental",
+      "target": "node-agent-ai-capability-registry",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-ai-coe",
+      "source": "node-lane-experimental",
+      "target": "node-agent-ai-coe",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-agent-operating-systems",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-agent-operating-systems",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-agentic-income",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-agentic-income",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-ai-coe",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-ai-coe",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-automation-agent-skills",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-automation-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-cosmos-ai-agents",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-cosmos-ai-agents",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-gamification-agent-skills",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-gamification-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-hermes-agents",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-hermes-agents",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-investor-agent-skills",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-investor-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-sustainability-agent-skills",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-sustainability-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-wealth-agent-skills",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-wealth-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-epic-ways-agent-os",
+      "source": "node-lane-experimental",
+      "target": "node-agent-epic-ways-agent-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-kura",
+      "source": "node-lane-experimental",
+      "target": "node-agent-kura",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-peak-performance",
+      "source": "node-lane-experimental",
+      "target": "node-agent-peak-performance",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-prompt-engine",
+      "source": "node-lane-experimental",
+      "target": "node-agent-prompt-engine",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-prompt-library",
+      "source": "node-lane-experimental",
+      "target": "node-agent-prompt-library",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-realityarchitect",
+      "source": "node-lane-experimental",
+      "target": "node-agent-realityarchitect",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-realityarchitect-vault",
+      "source": "node-lane-experimental",
+      "target": "node-agent-realityarchitect-vault",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-second-brain-os",
+      "source": "node-lane-experimental",
+      "target": "node-agent-second-brain-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-sentinel-swarm-cockpit",
+      "source": "node-lane-experimental",
+      "target": "node-agent-sentinel-swarm-cockpit",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-starlight-sustainability-agent-skills",
+      "source": "node-lane-experimental",
+      "target": "node-agent-starlight-sustainability-agent-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-awesome-manifestation-skills",
+      "source": "node-lane-experimental",
+      "target": "node-agent-awesome-manifestation-skills",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-blue-life-commons",
+      "source": "node-lane-experimental",
+      "target": "node-agent-blue-life-commons",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-brother-property-os",
+      "source": "node-lane-experimental",
+      "target": "node-agent-brother-property-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-hospitality-intelligence-system",
+      "source": "node-lane-experimental",
+      "target": "node-agent-hospitality-intelligence-system",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-jojo-hospitality-house-os",
+      "source": "node-lane-experimental",
+      "target": "node-agent-jojo-hospitality-house-os",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-property-intelligence-system",
+      "source": "node-lane-experimental",
+      "target": "node-agent-property-intelligence-system",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-property-os-template",
+      "source": "node-lane-experimental",
+      "target": "node-agent-property-os-template",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-experimental-property-portal-template",
+      "source": "node-lane-experimental",
+      "target": "node-agent-property-portal-template",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-archive-candidate",
+      "source": "node-plaza",
+      "target": "node-lane-archive-candidate",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-archive-candidate-frankx-blog-vos-worktree",
+      "source": "node-lane-archive-candidate",
+      "target": "node-agent-frankx-blog-vos-worktree",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-archive-candidate-frankx-visual-expansion-worktree",
+      "source": "node-lane-archive-candidate",
+      "target": "node-agent-frankx-visual-expansion-worktree",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-archive-candidate-ai-architect-academy",
+      "source": "node-lane-archive-candidate",
+      "target": "node-agent-ai-architect-academy",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-archive-candidate-agenticpassiveincome",
+      "source": "node-lane-archive-candidate",
+      "target": "node-agent-agenticpassiveincome",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-archive-candidate-disruptivepassiveincome",
+      "source": "node-lane-archive-candidate",
+      "target": "node-agent-disruptivepassiveincome",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-archive-candidate-arcanea-ai-app-production-worktree",
+      "source": "node-lane-archive-candidate",
+      "target": "node-agent-arcanea-ai-app-production-worktree",
+      "kind": "runs",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-plaza-boundary",
+      "source": "node-plaza",
+      "target": "node-q-town-mcp-boundary",
+      "kind": "references",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    },
+    {
+      "id": "edge-boundary-changelog",
+      "source": "node-q-town-mcp-boundary",
+      "target": "node-q-town-changelog",
+      "kind": "exports",
+      "createdAt": "2026-08-23T13:23:16.206Z"
+    }
+  ]
+}

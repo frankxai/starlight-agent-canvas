@@ -169,8 +169,11 @@ pnpm mcp:smoke
 pnpm mcp:codex:smoke
 pnpm canvas:smoke
 pnpm seed:starlight
+pnpm seed:q-town
 pnpm dev
 ```
+
+Q-Town is the private second-brain world graph. It registers one steward per estate domain and repo; it does not launch processes. See `docs/q-town/README.md` and `CHANGELOG.md`.
 
 From Frank's local estate:
 

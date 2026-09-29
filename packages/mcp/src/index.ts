@@ -208,7 +208,7 @@ export function createAgentCanvasMcpServer() {
       inputSchema: {
         title: z.string().min(1),
         description: z.string().optional(),
-        template: z.enum(['blank', 'competitor_teardown', 'repo_product_planning', 'agent_workflow_design', 'content_synthesis']).optional(),
+        template: z.enum(['blank', 'competitor_teardown', 'repo_product_planning', 'agent_workflow_design', 'content_synthesis', 'q_town_second_brain']).optional(),
       },
       annotations: SAFE_LOCAL_WRITE,
     },
