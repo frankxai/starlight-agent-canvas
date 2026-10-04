@@ -4,8 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { ContinuityAttention, ContinuityReadResult, ContinuityWork } from '@starlight-agent-canvas/core';
 
 type GuidedWork = ContinuityWork & { guidance: { attention: ContinuityAttention; nextStep: string; unknowns: string[] } };
+type Ready = Extract<ContinuityReadResult, { state: 'ready' }>;
 type Payload =
-  | (Extract<ContinuityReadResult, { state: 'ready' }> & { status: { works: GuidedWork[] } })
+  | (Omit<Ready, 'status'> & { status: Omit<Ready['status'], 'works'> & { works: GuidedWork[] } })
   | Extract<ContinuityReadResult, { state: 'unavailable' }>;
 
 const ATTENTION: Record<ContinuityAttention, { label: string; tone: string }> = {
