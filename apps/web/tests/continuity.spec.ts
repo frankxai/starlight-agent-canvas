@@ -15,8 +15,7 @@ test('session continuity shows recovered work, unknowns and recovers from a refu
 
   const paused = page.getByRole('article', { name: 'work:session-continuity' });
   await expect(paused.getByText('Needs owner')).toBeVisible();
-  await expect(paused.getByText('paused')).toBeVisible();
-  await expect(paused.getByText('(operator-supplied)')).toBeVisible();
+  await expect(paused.getByText(/^paused \(operator-supplied\)$/)).toBeVisible();
   await expect(paused.getByText('Has uncommitted work; preserve it')).toBeVisible();
   await expect(paused.getByText('Not admitted')).toBeVisible();
 
