@@ -26,7 +26,7 @@ export const continuityWorkSchema = z.object({
     captureCompleteness: z.array(z.string()),
     goalAuthority: z.array(z.string()),
   }),
-  reportedState: z.object({ value: z.string(), verification: z.literal('operator-supplied') }).nullable(),
+  reportedState: z.object({ value: z.string(), verification: z.enum(['operator-supplied', 'native-goal-store']) }).nullable(),
   checkout: z.object({ origin: z.string(), branch: z.string(), head: z.string(), dirty: z.boolean() }).nullable(),
   admission: z.object({ admitted: z.boolean(), byActorId: z.string().nullable(), requirements: requirementsSchema.nullable() }),
   delivery: z.object({
@@ -146,7 +146,9 @@ export function describeContinuityWork(work: ContinuityWork): { attention: Conti
     case 'input-required':
       return {
         attention: 'needs-owner',
-        nextStep: 'Last reported paused or blocked. The owner must check the checkout and uncommitted work, then reconcile explicitly.',
+        nextStep: work.reportedState
+          ? `Last reported ${work.reportedState.value}. The owner must check the checkout and uncommitted work, then reconcile explicitly.`
+          : 'Reported state is unknown. The owner must check the checkout and uncommitted work, then reconcile explicitly.',
         unknowns,
       };
     default:

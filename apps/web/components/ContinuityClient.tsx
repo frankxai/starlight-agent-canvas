@@ -46,7 +46,7 @@ function WorkCard({ work }: { work: GuidedWork }) {
         <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
           <Field label="Owner">{work.ownerActorId ?? <Unknown />}</Field>
           <Field label="Reported state">
-            {work.reportedState ? <>{work.reportedState.value} <span className="text-[var(--muted)]">(operator-supplied)</span></> : <Unknown />}
+            {work.reportedState ? <>{work.reportedState.value} <span className="text-[var(--muted)]">({work.reportedState.verification})</span></> : <Unknown />}
           </Field>
           <Field label="Checkout">
             {work.checkout ? (

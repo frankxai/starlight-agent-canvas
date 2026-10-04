@@ -49,6 +49,10 @@ describe('continuity status consumer', () => {
     expect(parseContinuityStatus(document().replace(CONTINUITY_STATUS_SCHEMA, 'starlight.continuity-status.v0'))).toBeNull();
     expect(parseContinuityStatus(JSON.stringify({ ...JSON.parse(document()), works: [{ ...work(), mayAutomaticallyResume: true }] }))).toBeNull();
     expect(parseContinuityStatus('not json')).toBeNull();
+    const native = work({ reportedState: { value: 'blocked', verification: 'native-goal-store' } });
+    expect(parseContinuityStatus(document([native]))?.works[0].reportedState?.verification).toBe('native-goal-store');
+    expect(describeContinuityWork(native).nextStep).toContain('Last reported blocked.');
+    expect(describeContinuityWork(work({ reportedState: null })).nextStep).toContain('Reported state is unknown.');
   });
 
   it('runs the SIS CLI through node with a fixed argv and reports its source', async () => {
