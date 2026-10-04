@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
@@ -15,6 +16,8 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       AGENT_CANVAS_HOME: '.agent-canvas/test-e2e',
+      STARLIGHT_CONTINUITY_CLI: path.resolve('tests/fixtures/continuity-cli.mjs'),
+      CONTINUITY_FIXTURE_MODE_FILE: path.resolve('.continuity-fixture-mode'),
     },
   },
   projects: [
