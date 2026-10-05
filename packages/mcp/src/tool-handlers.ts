@@ -5,7 +5,9 @@ import {
   createIntakeTraceForNodes,
   createCanvasInputSchema,
   enrichSourceInputSchema,
+  describeContinuityWork,
   FileCanvasStore,
+  readContinuityStatus,
   ingestSourceInputSchema,
   ingestPdf,
   ingestUrl,
@@ -104,7 +106,7 @@ function imageReferenceSource(url: string, description = '', title?: string): In
   };
 }
 
-export function createToolHandlers(store = new FileCanvasStore()) {
+export function createToolHandlers(store = new FileCanvasStore(), readContinuity = () => readContinuityStatus()) {
   async function resolveCanvasId(canvasId: string | undefined, fallbackTitle = 'Agent canvas capture'): Promise<string> {
     if (canvasId) return canvasId;
     const latest = (await store.listCanvases())[0];
@@ -134,6 +136,25 @@ export function createToolHandlers(store = new FileCanvasStore()) {
   }
 
   return {
+    async get_continuity_status(): Promise<ToolResult> {
+      const result = await readContinuity();
+      if (result.state === 'unavailable') {
+        return {
+          content: [{ type: 'text', text: `Session continuity is unavailable (${result.reason}): ${result.detail} ${result.recovery}` }],
+          structuredContent: { ...result },
+          isError: true,
+        };
+      }
+      const works = result.status.works.map((work) => ({ ...work, guidance: describeContinuityWork(work) }));
+      const lines = works.map((work) => `- ${work.workId} [${work.state}] owner ${work.ownerActorId ?? 'unknown'}: ${work.guidance.nextStep}`
+        + (work.guidance.unknowns.length ? ` Unknown: ${work.guidance.unknowns.join(', ')}.` : ''));
+      const text = [
+        `Session continuity from SIS (${result.source.command}, observed ${result.source.observedAt}).`,
+        works.length ? lines.join('\n') : 'No recovered work.',
+        'Read-only. Nothing resumes automatically; paused work needs the owner to reconcile it in SIS.',
+      ].join('\n');
+      return ok(text, { source: result.source, status: { ...result.status, works } });
+    },
     async list_canvases(): Promise<ToolResult> {
       const canvases = await store.listCanvases();
       return ok(jsonText(canvases), { canvases });

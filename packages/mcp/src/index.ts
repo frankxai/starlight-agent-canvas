@@ -164,6 +164,16 @@ export function createAgentCanvasMcpServer() {
   registerOperatorPrompts(server);
 
   server.registerTool(
+    'get_continuity_status',
+    {
+      title: 'Get Session Continuity Status',
+      description: 'Read recovered work from Starlight Intelligence System session continuity: captured intent, owner, bound checkout, admission and missing delivery proof. Read-only; never resumes or admits work.',
+      inputSchema: {},
+      annotations: READ_ONLY_LOCAL,
+    },
+    async () => handlers.get_continuity_status(),
+  );
+  server.registerTool(
     'list_canvases',
     {
       title: 'List Canvases',

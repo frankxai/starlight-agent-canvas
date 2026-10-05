@@ -2258,6 +2258,9 @@ function WorkspaceInner() {
             </span>
           </div>
           <div className="flex items-center gap-2 text-xs">
+            <a href="/continuity" className="flex min-h-9 items-center rounded-md border border-starlight-border px-3 text-starlight-ink">
+              Session continuity
+            </a>
             {busy ? <Loader2 className="h-4 w-4 animate-spin text-starlight-accent" aria-label="Busy" /> : <ShieldCheck className="h-4 w-4 text-starlight-mint" aria-hidden="true" />}
             <span className="max-w-[260px] truncate text-starlight-muted" data-testid="status">{status}</span>
           </div>

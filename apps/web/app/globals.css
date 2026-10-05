@@ -101,3 +101,17 @@ a:focus-visible {
     transition-duration: 0.01ms !important;
   }
 }
+
+.continuity-refresh {
+  transition: transform 160ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.continuity-refresh:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .continuity-refresh:hover {
+    border-color: var(--accent);
+  }
+}
