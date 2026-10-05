@@ -25,5 +25,9 @@ process.stdout.write(JSON.stringify({
       intent: { ...base.intent, captureCompleteness: ['partial'] },
       admission: { admitted: true, byActorId: 'actor:frank', requirements: { artifact: true, change: false, checks: true, deployment: false, verification: true } },
       delivery: { proofEventIds: proofs, missingProofs: ['artifact', 'checks', 'verification'], readyToComplete: false, completed: false } },
+    { ...base, workId: 'work:home-workspace', ownerActorId: 'actor:frank', state: 'input-required', scope: 'workspace',
+      reportedState: { value: 'blocked', verification: 'native-goal-store' }, checkout: null, workspace: { root: 'C:/Users/frank' },
+      admission: { admitted: false, byActorId: null, requirements: null },
+      delivery: { proofEventIds: proofs, missingProofs: [], readyToComplete: false, completed: false } },
   ],
 }));

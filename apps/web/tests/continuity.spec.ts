@@ -22,6 +22,10 @@ test('session continuity shows recovered work, unknowns and recovers from a refu
   const partial = page.getByRole('article', { name: 'work:partial-capture' });
   await expect(partial.getByText('Admitted. Still missing proof: artifact, checks, verification.')).toBeVisible();
   await expect(partial.getByText('Partial record. Unknown: owner, checkout, reported state, capture completeness.')).toBeVisible();
+  const workspace = page.getByRole('article', { name: 'work:home-workspace' });
+  await expect(workspace.getByText(/^No checkout/)).toBeVisible();
+  await expect(workspace.getByText(/^blocked \(native-goal-store\)$/)).toBeVisible();
+  await expect(workspace.getByText(/Partial record/)).toHaveCount(0);
   await expect(page.getByText(/observed .* · 2 imports/)).toBeVisible();
   await expect(page.locator('body')).not.toContainText(/resum(e|ing) (the )?work automatically/i);
 
@@ -37,7 +41,7 @@ test('session continuity shows recovered work, unknowns and recovers from a refu
 
   await writeFile(modeFile, 'ready');
   await refresh.click();
-  await expect(page.getByRole('status')).toHaveText('Updated. 2 recovered work items.');
+  await expect(page.getByRole('status')).toHaveText('Updated. 3 recovered work items.');
   await expect(page.getByRole('heading', { name: 'Continuity is not available yet' })).toHaveCount(0);
   await rm(modeFile, { force: true });
 });
