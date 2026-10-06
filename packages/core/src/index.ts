@@ -1,6 +1,7 @@
 export * from './actions.js';
 export * from './chunks.js';
 export * from './continuity.js';
+export * from './continuity-view.js';
 export * from './exporters.js';
 export * from './file-lock.js';
 export * from './home.js';

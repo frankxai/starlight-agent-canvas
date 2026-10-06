@@ -115,3 +115,13 @@ a:focus-visible {
     border-color: var(--accent);
   }
 }
+
+.continuity-choice {
+  transition: border-color 160ms ease-out, color 160ms ease-out;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .continuity-choice:hover {
+    border-color: var(--accent);
+  }
+}
