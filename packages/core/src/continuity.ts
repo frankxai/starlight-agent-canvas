@@ -27,7 +27,10 @@ export const continuityWorkSchema = z.object({
     goalAuthority: z.array(z.string()),
   }),
   reportedState: z.object({ value: z.string(), verification: z.enum(['operator-supplied', 'native-goal-store']) }).nullable(),
+  // A workspace session ran outside any checkout; older SIS builds omit both fields.
+  scope: z.enum(['checkout', 'workspace']).nullable().optional(),
   checkout: z.object({ origin: z.string(), branch: z.string(), head: z.string(), dirty: z.boolean() }).nullable(),
+  workspace: z.object({ root: z.string() }).nullable().optional(),
   admission: z.object({ admitted: z.boolean(), byActorId: z.string().nullable(), requirements: requirementsSchema.nullable() }),
   delivery: z.object({
     proofEventIds: z.record(proofKind, z.array(z.string())),
@@ -127,7 +130,7 @@ export type ContinuityAttention = 'needs-owner' | 'in-progress' | 'blocked' | 'd
 export function describeContinuityWork(work: ContinuityWork): { attention: ContinuityAttention; nextStep: string; unknowns: string[] } {
   const unknowns: string[] = [];
   if (!work.ownerActorId) unknowns.push('owner');
-  if (!work.checkout) unknowns.push('checkout');
+  if (!work.checkout && work.scope !== 'workspace') unknowns.push('checkout');
   if (!work.reportedState) unknowns.push('reported state');
   if (work.intent.captureCompleteness.length === 0 || work.intent.captureCompleteness.some((c) => c !== 'complete')) unknowns.push('capture completeness');
   switch (work.state) {

@@ -53,6 +53,10 @@ describe('continuity status consumer', () => {
     expect(parseContinuityStatus(document([native]))?.works[0].reportedState?.verification).toBe('native-goal-store');
     expect(describeContinuityWork(native).nextStep).toContain('Last reported blocked.');
     expect(describeContinuityWork(work({ reportedState: null })).nextStep).toContain('Reported state is unknown.');
+    const workspace = work({ scope: 'workspace', checkout: null, workspace: { root: 'C:/Users/frank' } });
+    expect(parseContinuityStatus(document([workspace]))?.works[0].workspace).toEqual({ root: 'C:/Users/frank' });
+    expect(describeContinuityWork(workspace).unknowns).not.toContain('checkout');
+    expect(describeContinuityWork(work({ checkout: null })).unknowns).toContain('checkout');
   });
 
   it('runs the SIS CLI through node with a fixed argv and reports its source', async () => {

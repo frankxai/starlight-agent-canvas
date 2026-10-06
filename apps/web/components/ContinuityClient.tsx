@@ -55,6 +55,8 @@ function WorkCard({ work }: { work: GuidedWork }) {
                 <span className="font-mono text-[var(--muted)]">{work.checkout.head.slice(0, 12)}</span>
                 {work.checkout.dirty ? <span className="block text-[var(--gold)]">Has uncommitted work; preserve it</span> : null}
               </>
+            ) : work.workspace ? (
+              <>No checkout <span className="text-[var(--muted)]">(workspace session in <span className="break-all">{work.workspace.root}</span>)</span></>
             ) : <Unknown />}
           </Field>
           <Field label="Captured intent">
