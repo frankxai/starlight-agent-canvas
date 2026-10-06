@@ -86,7 +86,7 @@ test('74 recovered works filter, search, group, sort and copy an exact reconcile
   const methods: string[] = [];
   page.on('request', (request) => { if (new URL(request.url()).pathname.startsWith('/api/')) methods.push(request.method()); });
 
-  await page.goto('/continuity?shell=posix');
+  await page.goto('/continuity');
   const filters = page.getByRole('group', { name: 'Filter by attention' });
   for (const [label, count] of FILTER_COUNTS) await expect(filters.getByRole('button', { name: `${label} ${count}`, exact: true })).toBeVisible();
   await expect(page.getByRole('article')).toHaveCount(74);
@@ -129,30 +129,30 @@ test('74 recovered works filter, search, group, sort and copy an exact reconcile
   }
   await page.getByLabel('Group by').selectOption('none');
 
-  // Only input-required cards with an owner get the copy button; the ownerless one explains why.
+  // Input-required cards with an owner get the copy control; the ownerless one explains why.
   await expect(page.getByRole('button', { name: 'Copy reconcile command' })).toHaveCount(40);
   await expect(page.getByRole('article', { name: 'work:goal-08' }).getByText(/No owner is registered/)).toBeVisible();
 
-  const card = page.getByRole('article', { name: "work:frank's-notes" });
+  // An ID with shell-unsafe characters never becomes a command.
+  const unsafe = page.getByRole('article', { name: "work:frank's-notes" });
+  await expect(unsafe.getByRole('button', { name: 'Copy reconcile command' })).toBeDisabled();
+  await expect(unsafe.getByText(/^Copy unavailable: this item's ID contains characters that are unsafe to paste into a shell\./)).toBeVisible();
+  await expect(unsafe.locator('code')).toHaveCount(0);
+
+  const card = page.getByRole('article', { name: 'work:session-continuity' });
   const copy = card.getByRole('button', { name: 'Copy reconcile command' });
-  await copy.click();
-  await expect(page.getByRole('status')).toHaveText('Add a reason first.');
-  await expect(card.getByLabel(/^Reason/)).toBeFocused();
-  await expect(card.getByLabel(/^Reason/)).toHaveAttribute('aria-invalid', 'true');
-
-  await card.getByLabel(/^Reason/).fill('Checked "dirty" files; keep them');
-  await copy.click();
+  await copy.focus();
+  await page.keyboard.press('Enter');
   await expect(card.getByRole('button', { name: 'Copied' })).toBeVisible();
-  await expect(page.getByRole('status')).toHaveText("Copied the reconcile command for work:frank's-notes. Paste it into a terminal in your SIS checkout.");
-  const posix = "node dist/continuity-cli.js reconcile --work 'work:frank'\\''s-notes' --actor actor:frank --decision admit --reason 'Checked \"dirty\" files; keep them' --acknowledge-paused";
-  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(posix);
-  await expect(card.getByLabel("Reconcile command for work:frank's-notes")).toHaveText(posix);
+  await expect(page.getByRole('status')).toHaveText('Copied the reconcile command for work:session-continuity. Replace <your reason> before you press Enter in your SIS checkout.');
+  const admit = 'node dist/continuity-cli.js reconcile --work "work:session-continuity" --actor "actor:frank" --decision admit --reason "<your reason>" --acknowledge-paused';
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(admit);
+  await expect(card.getByLabel('Reconcile command for work:session-continuity')).toHaveText(admit);
 
-  await page.getByLabel('Command shell').selectOption('powershell');
   await card.getByRole('radio', { name: 'Block' }).check();
   await card.getByRole('button', { name: /^(Copy reconcile command|Copied)$/ }).click();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(
-    "node dist/continuity-cli.js reconcile --work 'work:frank''s-notes' --actor actor:frank --decision block --reason 'Checked \"dirty\" files; keep them'",
+    'node dist/continuity-cli.js reconcile --work "work:session-continuity" --actor "actor:frank" --decision block --reason "<your reason>"',
   );
 
   // Read-only: the page only ever issued GET requests.
@@ -163,19 +163,18 @@ test('74 recovered works filter, search, group, sort and copy an exact reconcile
 test('74 recovered works stay usable on a phone: filter, group, search and copy', async ({ page, context, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== 'mobile', 'Phone flow.');
   await context.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: baseURL });
-  await page.goto('/continuity?shell=posix');
+  await page.goto('/continuity');
   const filters = page.getByRole('group', { name: 'Filter by attention' });
   await expect(filters.getByRole('button', { name: 'All 74', exact: true })).toBeVisible();
 
   await filters.getByRole('button', { name: 'Needs owner 41' }).tap();
   await page.getByLabel('Group by').selectOption('checkout');
-  await page.getByLabel('Search work ID or branch').fill('frank');
+  await page.getByLabel('Search work ID or branch').fill('session-continuity');
   await expect(page.getByRole('article')).toHaveCount(1);
-  const card = page.getByRole('article', { name: "work:frank's-notes" });
-  await card.getByLabel(/^Reason/).fill('Reviewed on phone');
+  const card = page.getByRole('article', { name: 'work:session-continuity' });
   await card.getByRole('button', { name: 'Copy reconcile command' }).tap();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(
-    "node dist/continuity-cli.js reconcile --work 'work:frank'\\''s-notes' --actor actor:frank --decision admit --reason 'Reviewed on phone' --acknowledge-paused",
+    'node dist/continuity-cli.js reconcile --work "work:session-continuity" --actor "actor:frank" --decision admit --reason "<your reason>" --acknowledge-paused',
   );
 
   // Widest state: every needs-owner group and reconcile panel rendered at once.
@@ -189,10 +188,8 @@ test('74 recovered works stay usable on a phone: filter, group, search and copy'
     page.getByLabel('Search work ID or branch'),
     page.getByLabel('Group by'),
     page.getByLabel('Sort by last observed'),
-    page.getByLabel('Command shell'),
     card.getByRole('button', { name: /^(Copy reconcile command|Copied)$/ }),
     card.locator('label').filter({ hasText: 'Admit' }),
-    card.getByLabel(/^Reason/),
   ];
   for (const target of targets) {
     const box = await target.boundingBox();

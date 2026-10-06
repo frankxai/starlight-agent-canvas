@@ -33,7 +33,7 @@ const fixed = [
     reportedState: { value: 'blocked', verification: 'native-goal-store' }, checkout: null, workspace: { root: 'C:/Users/frank' },
     admission: notAdmitted, delivery: delivery([]),
     intent: { ...base.intent, lastObservedAt: '2026-10-05T09:30:00.000Z' } },
-  // A hostile ID proves the copied command survives shell quoting end to end.
+  // An ID with a shell-unsafe character proves the page refuses to build a command for it.
   { ...base, workId: "work:frank's-notes", ownerActorId: 'actor:frank', state: 'input-required',
     reportedState: { value: 'paused', verification: 'native-goal-store' },
     checkout: { origin: 'https://github.com/frankxai/starlight-agent-canvas.git', branch: 'agent/claude/notes', head: 'b'.repeat(40), dirty: true },

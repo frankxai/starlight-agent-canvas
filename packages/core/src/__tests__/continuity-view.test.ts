@@ -6,12 +6,10 @@ import { describe, expect, it } from 'vitest';
 import { CONTINUITY_STATUS_SCHEMA, describeContinuityWork, parseContinuityStatus, type ContinuityWork } from '../continuity.js';
 import {
   RECONCILE_CLI,
+  RECONCILE_UNSAFE_ID,
   buildContinuityView,
   buildReconcileCommand,
   continuityGroupOf,
-  normalizeReconcileReason,
-  quoteShellArg,
-  type ReconcileShell,
 } from '../continuity-view.js';
 
 const proofs = { artifact: [], change: [], checks: [], deployment: [], verification: [] };
@@ -39,48 +37,43 @@ function work(input: Partial<ContinuityWork> = {}): ContinuityWork {
 
 const guided = (w: ContinuityWork) => ({ ...w, guidance: describeContinuityWork(w) });
 
+const REAL_ID = 'work:codex-goal:2309e8b0-b509-4e86-a9d6-e0e86e721c0b';
+
 describe('reconcile command builder', () => {
-  it('builds the exact owner command and acknowledges the paused state only when admitting input-required work', () => {
-    const admit = buildReconcileCommand({ work: work(), decision: 'admit', reason: 'Checked the checkout', shell: 'posix' });
-    expect(admit).toEqual({
+  it('builds the exact owner command with a reason placeholder and the ack flag only for an input-required admit', () => {
+    expect(buildReconcileCommand({ work: work({ workId: REAL_ID }), decision: 'admit' })).toEqual({
       ok: true,
       acknowledgesReportedState: true,
-      command: "node dist/continuity-cli.js reconcile --work work:continuity --actor actor:frank --decision admit --reason 'Checked the checkout' --acknowledge-paused",
+      command: `node dist/continuity-cli.js reconcile --work "${REAL_ID}" --actor "actor:frank" --decision admit --reason "<your reason>" --acknowledge-paused`,
     });
-    const block = buildReconcileCommand({ work: work(), decision: 'block', reason: 'Superseded', shell: 'posix' });
-    expect(block.ok && block.command).toBe(`${RECONCILE_CLI} reconcile --work work:continuity --actor actor:frank --decision block --reason Superseded`);
-    const submitted = buildReconcileCommand({ work: work({ state: 'submitted', reportedState: null }), decision: 'admit', reason: 'Go', shell: 'powershell' });
+    const block = buildReconcileCommand({ work: work(), decision: 'block' });
+    expect(block.ok && block.command).toBe(`${RECONCILE_CLI} reconcile --work "work:continuity" --actor "actor:frank" --decision block --reason "<your reason>"`);
+    const submitted = buildReconcileCommand({ work: work({ state: 'submitted', reportedState: null }), decision: 'admit' });
     expect(submitted.ok && submitted.command).not.toContain('--acknowledge-paused');
   });
 
   it('uses the registered owner and refuses what SIS would refuse', () => {
-    const owner = buildReconcileCommand({ work: work({ ownerActorId: 'actor:sam' }), decision: 'block', reason: 'x', shell: 'posix' });
-    expect(owner.ok && owner.command).toContain('--actor actor:sam ');
-    expect(buildReconcileCommand({ work: work({ ownerActorId: null }), decision: 'admit', reason: 'x', shell: 'posix' }))
+    const owner = buildReconcileCommand({ work: work({ ownerActorId: 'actor:sam@host/team.lead_1' }), decision: 'block' });
+    expect(owner.ok && owner.command).toContain('--actor "actor:sam@host/team.lead_1" ');
+    expect(buildReconcileCommand({ work: work({ ownerActorId: null }), decision: 'admit' }))
       .toEqual({ ok: false, problem: 'No owner is registered for this work, so nobody can reconcile it yet.' });
     for (const state of ['working', 'blocked', 'completed'] as const) {
-      expect(buildReconcileCommand({ work: work({ state }), decision: 'admit', reason: 'x', shell: 'posix' }).ok).toBe(false);
+      expect(buildReconcileCommand({ work: work({ state }), decision: 'admit' }).ok).toBe(false);
     }
-    expect(buildReconcileCommand({ work: work(), decision: 'admit', reason: ' \n\t ', shell: 'posix' })).toEqual({ ok: false, problem: 'Add a reason first.' });
-    expect(buildReconcileCommand({ work: work(), decision: 'admit', reason: '--decision admit', shell: 'posix' }).ok).toBe(false);
-    expect(buildReconcileCommand({ work: work({ workId: '--actor' }), decision: 'admit', reason: 'x', shell: 'posix' }).ok).toBe(false);
-    expect(buildReconcileCommand({ work: work({ workId: 'work:a\u0007b' }), decision: 'admit', reason: 'x', shell: 'posix' }).ok).toBe(false);
-    expect(buildReconcileCommand({ work: work(), decision: 'admit', reason: 'x'.repeat(501), shell: 'posix' }).ok).toBe(false);
+    expect(buildReconcileCommand({ work: work(), decision: 'admit; rm -rf /' as 'admit' }).ok).toBe(false);
   });
 
-  it('quotes for POSIX shells and PowerShell, including typographic quotes', () => {
-    expect(quoteShellArg('work:plain-id_1.2', 'posix')).toBe('work:plain-id_1.2');
-    expect(quoteShellArg("it's $HOME", 'posix')).toBe(`'it'\\''s $HOME'`);
-    expect(quoteShellArg("it's $HOME", 'powershell')).toBe(`'it''s $HOME'`);
-    expect(quoteShellArg('a\u2019b', 'powershell')).toBe(`'a\u2019\u2019b'`);
-    expect(quoteShellArg('-x', 'posix')).toBe(`'-x'`);
-    expect(normalizeReconcileReason('  line one\r\n  line\ttwo  ')).toBe('line one line two');
-  });
+  const unsafe = [
+    'work:a;b', 'work:a&b', 'work:a|b', 'work:a`b', 'work:$(whoami)', 'work:a(b)', "work:frank's", 'work:a"b', 'work:a\nb',
+    'work:%PATH%', 'work:a^b', 'work:a b', 'work:a b', 'work:аdmin', 'work:a’b', 'work:a\\b', 'work:a!b', 'work:a<b>', 'work:a*b',
+    '', '-x', '--decision', '--acknowledge-paused', '--actor', '--work', '--reason', '/work', ':work', 'w'.repeat(201),
+  ];
 
-  const hostile = {
-    workId: `work:frank's "notes" $(touch pwned) ; & | \u2018curly\u2019 \`tick\` %PATH% *`,
-    reason: 'Checked "dirty" files;\nkept $env:PATH and $(whoami) \u2019as is\u2019',
-  };
+  it.each(unsafe)('builds no command for the unsafe ID %j, as work or as actor', (value) => {
+    expect(buildReconcileCommand({ work: work({ workId: value }), decision: 'admit' })).toEqual({ ok: false, problem: RECONCILE_UNSAFE_ID });
+    const asActor = buildReconcileCommand({ work: work({ ownerActorId: value }), decision: 'admit' });
+    expect(asActor.ok).toBe(false);
+  });
 
   function argvScript(): string {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'reconcile-argv-'));
@@ -89,32 +82,32 @@ describe('reconcile command builder', () => {
     return file;
   }
 
-  function runThrough(shell: ReconcileShell): string[] | null {
-    const built = buildReconcileCommand({ work: work({ workId: hostile.workId }), decision: 'admit', reason: hostile.reason, shell });
+  type Shell = 'sh' | 'pwsh' | 'cmd';
+  function runThrough(shell: Shell): string[] {
+    const built = buildReconcileCommand({ work: work({ workId: REAL_ID, ownerActorId: 'actor:sam@host/team.lead_1' }), decision: 'admit' });
     if (!built.ok) throw new Error(built.problem);
-    const script = argvScript();
-    const prefix = shell === 'powershell'
-      ? `& ${quoteShellArg(process.execPath, shell)} ${quoteShellArg(script, shell)}`
-      : `${quoteShellArg(process.execPath, shell)} ${quoteShellArg(script, shell)}`;
-    const command = built.command.replace(RECONCILE_CLI, prefix);
-    const result = shell === 'powershell'
+    const prefix = `"${process.execPath}" "${argvScript()}"`;
+    const command = built.command.replace(RECONCILE_CLI, shell === 'pwsh' ? `& ${prefix}` : prefix);
+    const result = shell === 'pwsh'
       ? spawnSync('pwsh', ['-NoProfile', '-NonInteractive', '-EncodedCommand', Buffer.from(command, 'utf16le').toString('base64')], { encoding: 'utf8' })
-      : spawnSync('sh', ['-c', command], { encoding: 'utf8' });
-    if (result.error) return null;
+      : shell === 'cmd'
+        ? spawnSync('cmd.exe', ['/d', '/s', '/c', `"${command}"`], { encoding: 'utf8', windowsVerbatimArguments: true })
+        : spawnSync('sh', ['-c', command], { encoding: 'utf8' });
     expect(result.status, result.stderr).toBe(0);
     return JSON.parse(result.stdout) as string[];
   }
 
-  const expected = ['reconcile', '--work', hostile.workId, '--actor', 'actor:frank', '--decision', 'admit', '--reason', normalizeReconcileReason(hostile.reason), '--acknowledge-paused'];
-  const has = (bin: string) => !spawnSync(bin, bin === 'sh' ? ['-c', 'exit 0'] : ['-NoProfile', '-Command', 'exit 0']).error;
+  const expected = ['reconcile', '--work', REAL_ID, '--actor', 'actor:sam@host/team.lead_1', '--decision', 'admit', '--reason', '<your reason>', '--acknowledge-paused'];
+  const has = (shell: Shell) => {
+    if (shell === 'cmd') return process.platform === 'win32';
+    return !spawnSync(shell, shell === 'sh' ? ['-c', 'exit 0'] : ['-NoProfile', '-Command', 'exit 0']).error;
+  };
 
-  it.skipIf(!has('sh'))('passes hostile values through a POSIX shell unchanged', () => {
-    expect(runThrough('posix')).toEqual(expected);
-  });
-
-  it.skipIf(!has('pwsh'))('passes hostile values through PowerShell unchanged', () => {
-    expect(runThrough('powershell')).toEqual(expected);
-  }, 30_000);
+  for (const shell of ['sh', 'pwsh', 'cmd'] as const) {
+    it.skipIf(!has(shell))(`reaches node with the exact argv through ${shell}`, () => {
+      expect(runThrough(shell)).toEqual(expected);
+    }, 30_000);
+  }
 });
 
 describe('continuity view model', () => {

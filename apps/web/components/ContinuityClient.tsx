@@ -9,7 +9,6 @@ import {
   type ContinuityGroupBy,
   type ContinuitySort,
   type ReconcileDecision,
-  type ReconcileShell,
 } from '@starlight-agent-canvas/core/continuity-view';
 
 type GuidedWork = ContinuityWork & { guidance: { attention: ContinuityAttention; nextStep: string; unknowns: string[] } };
@@ -40,10 +39,6 @@ const SORTS: { value: ContinuitySort; label: string }[] = [
   { value: 'newest', label: 'Newest first' },
   { value: 'oldest', label: 'Oldest first' },
 ];
-const SHELLS: { value: ReconcileShell; label: string }[] = [
-  { value: 'powershell', label: 'PowerShell 7' },
-  { value: 'posix', label: 'Bash or zsh' },
-];
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const formatTime = (iso: string | null) => (iso ? new Date(iso).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : 'Unknown');
@@ -65,15 +60,12 @@ function Unknown() {
   return <span className="text-[var(--muted)]">Unknown</span>;
 }
 
-function ReconcilePanel({ work, shell, announce }: { work: GuidedWork; shell: ReconcileShell; announce: (message: string) => void }) {
+function ReconcilePanel({ work, announce }: { work: GuidedWork; announce: (message: string) => void }) {
   const id = useId();
   const [decision, setDecision] = useState<ReconcileDecision>('admit');
-  const [reason, setReason] = useState('');
   const [copied, setCopied] = useState(false);
-  const [showProblem, setShowProblem] = useState(false);
-  const reasonRef = useRef<HTMLInputElement>(null);
   const commandRef = useRef<HTMLElement>(null);
-  const built = buildReconcileCommand({ work, decision, reason, shell });
+  const built = buildReconcileCommand({ work, decision });
 
   useEffect(() => {
     if (!copied) return;
@@ -90,16 +82,11 @@ function ReconcilePanel({ work, shell, announce }: { work: GuidedWork; shell: Re
   }
 
   const copy = async () => {
-    if (!built.ok) {
-      setShowProblem(true);
-      announce(built.problem);
-      reasonRef.current?.focus();
-      return;
-    }
+    if (!built.ok) return;
     try {
       await navigator.clipboard.writeText(built.command);
       setCopied(true);
-      announce(`Copied the reconcile command for ${work.workId}. Paste it into a terminal in your SIS checkout.`);
+      announce(`Copied the reconcile command for ${work.workId}. Replace <your reason> before you press Enter in your SIS checkout.`);
     } catch {
       const node = commandRef.current;
       if (node) window.getSelection()?.selectAllChildren(node);
@@ -107,46 +94,30 @@ function ReconcilePanel({ work, shell, announce }: { work: GuidedWork; shell: Re
     }
   };
 
-  const problemVisible = showProblem && !built.ok;
   return (
     <div className="mt-4 border-t border-[var(--border)] pt-4">
       <p className="text-sm font-medium text-[var(--ink)]">Reconcile from your terminal</p>
-      <div className="mt-3 grid gap-3 sm:grid-cols-[auto_1fr]">
-        <fieldset className="min-w-0">
-          <legend className="text-xs text-[var(--muted)]">Decision</legend>
-          <div className="mt-1 flex gap-2">
-            {(['admit', 'block'] as const).map((value) => (
-              <label
-                key={value}
-                className={`continuity-choice flex min-h-11 min-w-11 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm ${decision === value ? 'border-[var(--accent)] text-[var(--ink)]' : 'border-[var(--border)] text-[var(--muted)]'}`}
-              >
-                <input type="radio" name={`${id}-decision`} value={value} checked={decision === value} onChange={() => setDecision(value)} className="accent-[var(--accent)]" />
-                {value === 'admit' ? 'Admit' : 'Block'}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <div className="min-w-0">
-          <label htmlFor={`${id}-reason`} className="text-xs text-[var(--muted)]">Reason (recorded with the decision)</label>
-          <input
-            ref={reasonRef}
-            id={`${id}-reason`}
-            type="text"
-            value={reason}
-            maxLength={500}
-            onChange={(event) => { setReason(event.target.value); setShowProblem(false); }}
-            aria-invalid={problemVisible || undefined}
-            aria-describedby={problemVisible ? `${id}-problem` : undefined}
-            className={`${controlClass} mt-1`}
-          />
+      <fieldset className="mt-3 min-w-0">
+        <legend className="text-xs text-[var(--muted)]">Decision</legend>
+        <div className="mt-1 flex gap-2">
+          {(['admit', 'block'] as const).map((value) => (
+            <label
+              key={value}
+              className={`continuity-choice flex min-h-11 min-w-11 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm ${decision === value ? 'border-[var(--accent)] text-[var(--ink)]' : 'border-[var(--border)] text-[var(--muted)]'}`}
+            >
+              <input type="radio" name={`${id}-decision`} value={value} checked={decision === value} onChange={() => setDecision(value)} className="accent-[var(--accent)]" />
+              {value === 'admit' ? 'Admit' : 'Block'}
+            </label>
+          ))}
         </div>
-      </div>
-      {problemVisible ? <p id={`${id}-problem`} className="mt-2 text-sm text-[var(--gold)]">{built.problem}</p> : null}
+      </fieldset>
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={() => void copy()}
-          className="continuity-refresh min-h-11 rounded-md border border-[var(--border)] bg-[var(--bg)] px-4 text-sm text-[var(--ink)]"
+          disabled={!built.ok}
+          aria-describedby={built.ok ? undefined : `${id}-unavailable`}
+          className="continuity-refresh min-h-11 rounded-md border border-[var(--border)] bg-[var(--bg)] px-4 text-sm text-[var(--ink)] disabled:cursor-not-allowed disabled:text-[var(--muted)]"
         >
           {copied ? 'Copied' : 'Copy reconcile command'}
         </button>
@@ -158,15 +129,17 @@ function ReconcilePanel({ work, shell, announce }: { work: GuidedWork; shell: Re
         <pre className="mt-3 overflow-x-auto whitespace-pre-wrap break-all rounded-md border border-[var(--border)] bg-[var(--bg)] p-3 text-xs text-[var(--ink)]">
           <code ref={commandRef} aria-label={`Reconcile command for ${work.workId}`}>{built.command}</code>
         </pre>
-      ) : null}
+      ) : (
+        <p id={`${id}-unavailable`} className="mt-2 text-sm text-[var(--gold)]">{built.problem}</p>
+      )}
       <p className="mt-2 text-xs text-[var(--muted)]">
-        Run it from your SIS checkout. The CLI asks you to type the work ID before it records anything; this page never admits or starts work.
+        Run it from your SIS checkout after replacing &lt;your reason&gt;. The CLI asks you to type the work ID before it records anything; this page never admits or starts work.
       </p>
     </div>
   );
 }
 
-function WorkCard({ work, headingLevel, shell, announce }: { work: GuidedWork; headingLevel: 2 | 3; shell: ReconcileShell; announce: (message: string) => void }) {
+function WorkCard({ work, headingLevel, announce }: { work: GuidedWork; headingLevel: 2 | 3; announce: (message: string) => void }) {
   const headingId = useId();
   const attention = ATTENTION[work.guidance.attention];
   const Heading = headingLevel === 2 ? 'h2' : 'h3';
@@ -211,7 +184,7 @@ function WorkCard({ work, headingLevel, shell, announce }: { work: GuidedWork; h
         {work.guidance.unknowns.length ? (
           <p className="mt-4 text-xs text-[var(--muted)]">Partial record. Unknown: {work.guidance.unknowns.join(', ')}.</p>
         ) : null}
-        {work.guidance.attention === 'needs-owner' ? <ReconcilePanel work={work} shell={shell} announce={announce} /> : null}
+        {work.guidance.attention === 'needs-owner' ? <ReconcilePanel work={work} announce={announce} /> : null}
       </article>
     </li>
   );
@@ -239,7 +212,6 @@ export function ContinuityClient() {
   const [query, setQuery] = useState('');
   const [groupBy, setGroupBy] = useState<ContinuityGroupBy>('none');
   const [sort, setSort] = useState<ContinuitySort>('newest');
-  const [shell, setShell] = useState<ReconcileShell>('posix');
   const [restored, setRestored] = useState(false);
   const inFlight = useRef<AbortController | null>(null);
   const searchSettled = useRef<string | null>(null);
@@ -281,7 +253,6 @@ export function ContinuityClient() {
     setQuery(params.get('q') ?? '');
     setGroupBy(pick(params.get('group'), GROUPS, 'none'));
     setSort(pick(params.get('sort'), SORTS, 'newest'));
-    setShell(pick(params.get('shell'), SHELLS, /windows/i.test(navigator.userAgent) ? 'powershell' : 'posix'));
     setRestored(true);
   }, []);
 
@@ -292,9 +263,8 @@ export function ContinuityClient() {
     if (query) params.set('q', query);
     if (groupBy !== 'none') params.set('group', groupBy);
     if (sort !== 'newest') params.set('sort', sort);
-    params.set('shell', shell);
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
-  }, [restored, attention, query, groupBy, sort, shell]);
+  }, [restored, attention, query, groupBy, sort]);
 
   const works = payload?.state === 'ready' ? payload.status.works : [];
   const view = useMemo(() => buildContinuityView(works, { attention, query, groupBy, sort }), [works, attention, query, groupBy, sort]);
@@ -390,14 +360,13 @@ export function ContinuityClient() {
               </button>
             ))}
           </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <div className="min-w-0">
               <label htmlFor="continuity-search" className="text-xs text-[var(--muted)]">Search work ID or branch</label>
               <input id="continuity-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} className={`${controlClass} mt-1`} />
             </div>
             <SelectControl id="continuity-group" label="Group by" value={groupBy} options={GROUPS} onChange={(value) => { setGroupBy(value); announceView({ groupBy: value }); }} />
             <SelectControl id="continuity-sort" label="Sort by last observed" value={sort} options={SORTS} onChange={(value) => { setSort(value); announceView({ sort: value }); }} />
-            <SelectControl id="continuity-shell" label="Command shell" value={shell} options={SHELLS} onChange={setShell} />
           </div>
           <p className="text-sm text-[var(--muted)]">{summary}</p>
         </section>
@@ -413,13 +382,13 @@ export function ContinuityClient() {
       {view.groups.length ? (
         groupBy === 'none' ? (
           <ul className="mt-6 grid gap-4" aria-label="Recovered work">
-            {view.groups[0].works.map((work) => <WorkCard key={work.workId} work={work} headingLevel={headingLevel} shell={shell} announce={setAnnouncement} />)}
+            {view.groups[0].works.map((work) => <WorkCard key={work.workId} work={work} headingLevel={headingLevel} announce={setAnnouncement} />)}
           </ul>
         ) : (
           <div className="mt-6 grid gap-8">
             {view.groups.map((group) => (
               <GroupSection key={group.key} label={group.label} count={group.works.length}>
-                {group.works.map((work) => <WorkCard key={work.workId} work={work} headingLevel={headingLevel} shell={shell} announce={setAnnouncement} />)}
+                {group.works.map((work) => <WorkCard key={work.workId} work={work} headingLevel={headingLevel} announce={setAnnouncement} />)}
               </GroupSection>
             ))}
           </div>

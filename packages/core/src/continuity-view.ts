@@ -1,63 +1,49 @@
+
 // Browser-safe helpers for the continuity page. Type-only imports keep node:fs and
 // child_process out of the client bundle.
 import type { ContinuityAttention, ContinuityWork } from './continuity.js';
 
-export type ReconcileShell = 'powershell' | 'posix';
 export type ReconcileDecision = 'admit' | 'block';
 
 export const RECONCILE_CLI = 'node dist/continuity-cli.js';
-export const RECONCILE_REASON_MAX = 500;
+export const RECONCILE_REASON_PLACEHOLDER = '<your reason>';
+export const RECONCILE_UNSAFE_ID =
+  "Copy unavailable: this item's ID contains characters that are unsafe to paste into a shell. Run status --json and reconcile manually.";
 
-const SAFE_BARE = /^[A-Za-z0-9][A-Za-z0-9_.\/:=+@-]*$/;
-const CONTROL = /[\x00-\x1f\x7f\p{Zl}\p{Zp}]/u;
-// U+2018..U+201B: PowerShell treats these typographic marks as single quotes.
-const POWERSHELL_QUOTES = /['\u{2018}-\u{201b}]/gu;
+// The copied text may be pasted into PowerShell, cmd or a POSIX shell, and no single quoting
+// scheme is safe in all three. Only values made of characters that are inert inside double
+// quotes in every one of them are interpolated. The leading alphanumeric also stops an ID
+// from being read as a CLI flag such as --decision.
+const SAFE_ID = /^[A-Za-z0-9][A-Za-z0-9:._@\/-]{0,199}$/;
 
-/** Quotes one argument so the shell passes it to node unchanged. */
-export function quoteShellArg(value: string, shell: ReconcileShell): string {
-  if (SAFE_BARE.test(value)) return value;
-  if (shell === 'powershell') return `'${value.replace(POWERSHELL_QUOTES, (q) => q + q)}'`;
-  return `'${value.replace(/'/g, `'\\''`)}'`;
-}
-
-/** Collapses whitespace and line breaks so a pasted command stays on one line. */
-export function normalizeReconcileReason(reason: string): string {
-  return reason.replace(/[\s\x00-\x1f\x7f]+/g, ' ').trim();
-}
+export const isShellSafeId = (value: string) => SAFE_ID.test(value);
 
 export type ReconcileCommandResult = { ok: true; command: string; acknowledgesReportedState: boolean } | { ok: false; problem: string };
 
 /**
- * Builds the owner's `reconcile` command. The CLI still asks the owner to type the work
- * ID at an interactive terminal; copying this command admits nothing.
+ * Builds the owner's `reconcile` command. The reason is a fixed placeholder the owner edits
+ * in the terminal, so no free text is ever interpolated. The CLI still asks the owner to type
+ * the work ID at an interactive terminal; copying this command admits nothing.
  */
 export function buildReconcileCommand(input: {
   work: Pick<ContinuityWork, 'workId' | 'ownerActorId' | 'state'>;
   decision: ReconcileDecision;
-  reason: string;
-  shell: ReconcileShell;
 }): ReconcileCommandResult {
-  const { work, decision, shell } = input;
+  const { work, decision } = input;
   if (work.state !== 'input-required' && work.state !== 'submitted') {
     return { ok: false, problem: 'Only work that is waiting for an owner decision can be reconciled.' };
   }
   if (!work.ownerActorId) return { ok: false, problem: 'No owner is registered for this work, so nobody can reconcile it yet.' };
-  const reason = normalizeReconcileReason(input.reason);
-  if (!reason) return { ok: false, problem: 'Add a reason first.' };
-  if (reason.length > RECONCILE_REASON_MAX) return { ok: false, problem: `Keep the reason under ${RECONCILE_REASON_MAX} characters.` };
-  // The SIS flag parser reads any value that starts with -- as the next flag.
-  for (const [label, value] of [['Work ID', work.workId], ['Owner', work.ownerActorId], ['Reason', reason]] as const) {
-    if (value.startsWith('--')) return { ok: false, problem: `${label} cannot start with --.` };
-    if (CONTROL.test(value)) return { ok: false, problem: `${label} contains control characters; reconcile it from the terminal.` };
-  }
+  if (decision !== 'admit' && decision !== 'block') return { ok: false, problem: 'Choose admit or block.' };
+  if (!isShellSafeId(work.workId) || !isShellSafeId(work.ownerActorId)) return { ok: false, problem: RECONCILE_UNSAFE_ID };
   // SIS refuses to admit input-required work unless the owner acknowledges its last reported state.
   const acknowledgesReportedState = decision === 'admit' && work.state === 'input-required';
   const args = [
     'reconcile',
-    '--work', quoteShellArg(work.workId, shell),
-    '--actor', quoteShellArg(work.ownerActorId, shell),
+    '--work', `"${work.workId}"`,
+    '--actor', `"${work.ownerActorId}"`,
     '--decision', decision,
-    '--reason', quoteShellArg(reason, shell),
+    '--reason', `"${RECONCILE_REASON_PLACEHOLDER}"`,
     ...(acknowledgesReportedState ? ['--acknowledge-paused'] : []),
   ];
   return { ok: true, command: `${RECONCILE_CLI} ${args.join(' ')}`, acknowledgesReportedState };
