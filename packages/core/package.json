@@ -24,6 +24,10 @@
     "./source-intake": {
       "types": "./dist/source-intake.d.ts",
       "import": "./dist/source-intake.js"
+    },
+    "./continuity-view": {
+      "types": "./dist/continuity-view.d.ts",
+      "import": "./dist/continuity-view.js"
     }
   },
   "scripts": {
