@@ -73,7 +73,7 @@ async function mediaFixture(page: Page, testInfo: TestInfo) {
   const generation = { ...sidecar, record_id: 'fixture:browser-media' };
   const taste = { record_id: generation.record_id, sha256: sidecar.asset.sha256, preference: null };
   await page.getByLabel('Import website plan').setInputFiles({ name: 'media-plan.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ ...record.plan, assets: [asset] })) });
-  const section = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Media with a reason to be here', exact: true }) });
+  const section = page.getByRole('heading', { name: 'Media with a reason to be here', exact: true }).locator('..');
   await section.getByText('Check local media evidence', { exact: true }).click();
   const files = {
     'Existing image or video': { name: fileName, mimeType: 'image/png', buffer: media },
