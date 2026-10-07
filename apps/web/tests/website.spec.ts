@@ -82,6 +82,13 @@ test('conflicts and invalid imports keep the draft and deny cross-origin changes
   await page.reload();
   await page.getByText('Previous drafts retained in this tab (1)', { exact: true }).click();
   await expect(page.getByRole('button', { name: 'Download draft 1: My retained draft' })).toBeVisible();
+  await page.getByLabel('Plan title', { exact: true }).fill('Draft before example');
+  await page.getByRole('button', { name: 'Load authored example', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('Authored example');
+  await page.reload();
+  await expect(page.getByRole('status')).toContainText('Recovered an unsaved draft');
+  await page.getByText('Previous drafts retained in this tab (2)', { exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Download draft 2: Draft before example' })).toBeVisible();
   await page.getByLabel('Plan title', { exact: true }).fill('');
   await page.reload();
   await expect(page.getByRole('status')).toContainText('Recovered an unsaved draft');

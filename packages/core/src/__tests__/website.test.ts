@@ -80,7 +80,7 @@ it('holds absent media provenance and invalid section links instead of marking m
 });
 
 it('rejects asset and capture reference bypasses before a builder sees them', () => {
-  for (const reference of ['file:///C:/Users/private.txt', '../../x', '..\\..\\x', '~/.ssh/id', 'http://169.254.169.254/', 'https://127.0.0.1/x', 'C:/private', '/etc/passwd', 'assets/../private', 'https://example.com/?token=secret']) {
+  for (const reference of ['file:///C:/Users/private.txt', '../../x', '..\\..\\x', '~/.ssh/id', 'http://169.254.169.254/', 'https://127.0.0.1/x', 'C:/private', '/etc/passwd', 'assets/../private', '%2e%2e/x', 'assets/c:x', 'https://example.com/?token=secret']) {
     const plan = websiteDirectionDemo(); plan.snapshot.views[0]!.reference = reference;
     expect(() => parseWebsitePlan(plan), reference).toThrow();
     plan.snapshot.views[0]!.reference = 'captures/desktop.png';

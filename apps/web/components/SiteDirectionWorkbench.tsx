@@ -7,7 +7,7 @@ import { parseWebsitePlan, parseWebsiteDraft } from '@starlight-agent-canvas/cor
 type PlanRecord = { plan: WebsitePlan; planHash: string; nodeId: string; selection?: WebsiteSelection; selectionVerified: boolean; gaps: string[] };
 type PlanState = { record: PlanRecord | null; unavailable?: { canvasHash: string; reason: string } | null };
 const control = 'min-h-11 w-full rounded-md border border-starlight-border bg-starlight-bg px-3 py-2 text-sm text-starlight-ink';
-const button = 'inline-flex min-h-11 items-center justify-center rounded-md border border-starlight-border px-4 py-2 text-sm font-medium text-starlight-ink hover:border-starlight-accent disabled:opacity-40';
+const button = 'inline-flex min-h-11 items-center justify-center rounded-md border border-starlight-border px-4 py-2 text-sm font-medium text-starlight-ink hover:border-starlight-accent disabled:opacity-40 aria-disabled:opacity-40 aria-disabled:cursor-not-allowed';
 const accents = ['border-starlight-gold/40 text-starlight-gold', 'border-starlight-violet/40 text-starlight-violet', 'border-starlight-mint/40 text-starlight-mint'];
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
@@ -77,7 +77,12 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
           }
         } catch {
           if (recoveryRaw) {
-            try { sessionStorage.setItem(`${draftKey}:unverified:${Date.now()}`, recoveryRaw); }
+            try {
+              const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(recoveryRaw));
+              const fingerprint = [...new Uint8Array(hash)].map((part) => part.toString(16).padStart(2, '0')).join('');
+              const key = `${draftKey}:unverified:${fingerprint}`;
+              if (sessionStorage.getItem(key) !== recoveryRaw) sessionStorage.setItem(key, recoveryRaw);
+            }
             catch { draftStoreHeld.current = true; }
           }
           setStorageWarning('Unverified browser draft evidence is retained in session storage. Download current edits before navigating away.');
@@ -97,7 +102,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
 
   function edit(change: (next: WebsitePlan) => void) {
     if (!draft) return;
-    const next = structuredClone(draft); change(next); draftVersion.current += 1; setDraft(next); setDirty(true); setError('');
+    const next = structuredClone(draft); change(next); if (next.origin === 'authored_example') next.origin = 'edited_authored_example'; draftVersion.current += 1; setDraft(next); setDirty(true); setError('');
   }
   async function perform(work: () => Promise<void>) {
     const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -141,13 +146,17 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     });
   }
 
-  function useSaved() {
-    if (busy || !record) return;
-    if (backupStoreUnreadable.current) { setError('Previous draft backups need owner inspection before another backup can be written. Download your current draft; the unverified browser evidence remains intact.'); return; }
-    const nextBackups = draft ? [...backups, draft] : backups;
+  function preserveDraftBeforeReplacement(): boolean {
+    if (!draft || !dirty) return true;
+    if (backupStoreUnreadable.current) { setError('Previous draft backups need owner inspection before another backup can be written. Download your current draft; the unverified browser evidence remains intact.'); return false; }
+    const nextBackups = [...backups, draft];
     try { sessionStorage.setItem(`${draftKey}:backups`, JSON.stringify(nextBackups)); }
-    catch { setError('The browser could not preserve this draft backup. Download the draft before opening a saved version. Your current draft is retained.'); return; }
-    draftVersion.current += 1; setBackups(nextBackups); acceptSaved(record); setStatus('Saved version opened. Your previous drafts remain available for download in this browser tab.');
+    catch { setError('The browser could not preserve this draft backup. Download it before replacement. Your current draft is retained.'); return false; }
+    setBackups(nextBackups); return true;
+  }
+  function useSaved() {
+    if (busy || !record || !preserveDraftBeforeReplacement()) return;
+    draftVersion.current += 1; acceptSaved(record); setStatus('Saved version opened. Your previous drafts remain available for download in this browser tab.');
   }
 
   async function exportPacket(format: 'markdown' | 'json') {
@@ -172,7 +181,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
       <p className="mt-5 max-w-2xl text-base leading-7 text-starlight-muted">Keep the source in view. Explore the promise, the page and the tradeoffs. Choose a direction you can carry into the build with its evidence attached.</p>
     </div>
     <div className="mt-8 flex flex-wrap gap-3">
-      <button type="button" className={button} disabled={busy} onClick={() => void perform(async () => { const version = draftVersion.current; const result = await request<{ plan: WebsitePlan }>(`${base}/demo`); if (alive.current && version === draftVersion.current) { draftVersion.current += 1; setDraft(result.plan); setDirty(true); setStatus('Authored example loaded as a draft. No model was called, no site was captured and no direction is selected.'); } })}>Load authored example</button>
+      <button type="button" className={button} disabled={busy} onClick={() => void perform(async () => { const version = draftVersion.current; const result = await request<{ plan: WebsitePlan }>(`${base}/demo`); if (alive.current && version === draftVersion.current) { if (!preserveDraftBeforeReplacement()) return; draftVersion.current += 1; setDraft(result.plan); setDirty(true); setStatus('Authored example loaded as a draft. No model was called, no site was captured and no direction is selected.'); } else if (alive.current) setStatus('Example loading finished while you edited. Your newer draft is retained.'); })}>Load authored example</button>
       <button type="button" className={button} disabled={busy} onClick={() => fileRef.current?.click()}>Import plan JSON</button>
       <input ref={fileRef} type="file" accept="application/json,.json" className="sr-only" aria-label="Import website plan" onChange={(event) => {
         const file = event.target.files?.[0]; event.target.value = '';
@@ -183,7 +192,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
           let plan: WebsitePlan;
           try { plan = parseWebsitePlan(JSON.parse(await file.text())); }
           catch { throw new Error('This file is not a valid website plan. Check source, IDs, target, placements and provenance; the current draft is retained.'); }
-          if (alive.current && version === draftVersion.current) { draftVersion.current += 1; setDraft(plan); setDirty(true); setStatus('Imported draft. Inspect its sources and fields before saving.'); }
+          if (alive.current && version === draftVersion.current) { if (!preserveDraftBeforeReplacement()) return; draftVersion.current += 1; setDraft(plan); setDirty(true); setStatus('Imported draft. Inspect its sources and fields before saving.'); }
           else if (alive.current) setStatus('Import finished while you were editing. Your newer draft is retained; import again when ready.');
         });
       }} />
