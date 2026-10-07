@@ -7,9 +7,12 @@ import { ATLAS_CONTEXT_MAX_BYTES, ATLAS_CONTEXT_MAX_RETAINED, atlasContextEviden
 const storageKey = (id: string) => `starlight.atlas.context.v1:${id}`;
 const noticeKey = 'starlight.atlas.notice.v1';
 type UiNotice = { kind: 'imported' | 'opened' | 'removed' | 'removed_all'; id?: string; createdAt: number };
+function clearNotice() {
+  try { sessionStorage.removeItem(noticeKey); } catch { /* Cosmetic receipts never gate source operations. */ }
+}
 function writeNotice(kind: UiNotice['kind'], id?: string) {
   try { sessionStorage.setItem(noticeKey, JSON.stringify({ kind, id, createdAt: Date.now() })); }
-  catch { try { sessionStorage.removeItem(noticeKey); } catch { /* Cosmetic receipts never gate records or navigation. */ } }
+  catch { clearNotice(); }
 }
 function readNotice(): Partial<UiNotice> {
   try {
@@ -84,11 +87,14 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
   const refreshButton = useRef<HTMLButtonElement>(null);
   const focusAfterImport = useRef(false);
   const focusAfterCancel = useRef(false);
+  const initialNotice = useRef<Partial<UiNotice> | null>(null);
 
   useEffect(() => {
     alive.current = true;
     setOpeningRef(undefined);
-    const notice = readNotice();
+    // Keyed route instances consume once. React's development effect replay
+    // reuses that receipt rather than reading a second, now-empty copy.
+    const notice = initialNotice.current ?? (initialNotice.current = readNotice());
     // A reload/back arrival must not replay a saved-link focus intent left by an
     // aborted navigation. SPA import/removal receipts remain their own actions.
     const openedBySelection = notice.kind === 'opened' && notice.id === contextRef && (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type === 'navigate';
@@ -195,15 +201,15 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
       try { next = parseAtlasContext(contents); }
       catch (validationError) { setError(`Import held. ${atlasContextImportError(validationError)} Your previous context is retained.`); return; }
       accept(next);
-    } catch {
-      if (alive.current && generation.current === ownGeneration) setError('Import held. Use a packet under 64 KB and available tab storage (at most 32 retained contexts). Save the current context before clearing retained copies. Your previous context is retained.');
+    } catch (problem) {
+      if (alive.current && generation.current === ownGeneration) setError(problem instanceof InventoryScanLimitError ? 'Import held. Tab storage has more than 2000 keys, so scanning is held. Keep your original file and inspect tab storage before removing unrelated entries. The current view is unchanged.' : 'Import held. Use a packet under 64 KB and available tab storage (at most 32 retained contexts). Save the current context before clearing retained copies. Your previous context is retained.');
     } finally { if (alive.current && generation.current === ownGeneration) setBusy(false); }
   }
 
   function loadExample() {
     if (busy || openingRef) return;
     try { accept(parseAtlasContext(atlasContextExample)); }
-    catch { setError('Tab storage is unavailable or its 32-context limit is reached. Save the current context before clearing retained copies. Your previous context is retained.'); }
+    catch (problem) { setError(problem instanceof InventoryScanLimitError ? 'Tab storage has more than 2000 keys, so example import is held. Keep your original files and inspect tab storage before removing unrelated entries. The current view is unchanged.' : 'Tab storage is unavailable or its 32-context limit is reached. Save the current context before clearing retained copies. Your previous context is retained.'); }
   }
 
   function cancelImport() { generation.current++; focusAfterCancel.current = true; setBusy(false); setStatus('Import cancelled. The previous context is retained.'); }
@@ -249,7 +255,8 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
         sessionStorage.removeItem(storageKey(id));
         if (sessionStorage.getItem(storageKey(id)) !== null) throw new Error('Removal did not persist.');
       }
-      writeNotice('removed_all');
+      if (contextRef) writeNotice('removed_all');
+      else clearNotice();
       generation.current++; setPacket(null); setActiveRef(undefined); setRetainedCount(0); setRetainedContexts([]); setError('');
       setStatus('All retained Atlas contexts were removed from this tab.');
       focusAfterImport.current = true;

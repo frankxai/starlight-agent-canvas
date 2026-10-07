@@ -307,6 +307,11 @@ test('saved-context reading stays bounded and long labels fit without pruning re
   await expect(saved.getByText(/Tab storage has more than 2000 keys/)).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as { atlasPayloadReads: number }).atlasPayloadReads)).toBe(32);
   expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => key.startsWith('starlight.atlas.context.v1:')).length)).toBe(33);
+  await page.getByRole('button', { name: 'Open public-source example', exact: true }).click();
+  await expect(page.getByTestId('atlas-context').getByRole('alert')).toContainText('more than 2000 keys');
+  await page.getByLabel('Import Atlas context', { exact: true }).setInputFiles(fixtureFile(packet()));
+  await expect(page.getByTestId('atlas-context').getByRole('alert')).toContainText('more than 2000 keys');
+  expect(await page.evaluate(() => (window as unknown as { atlasPayloadReads: number }).atlasPayloadReads)).toBe(32);
 });
 
 test('cosmetic receipt quota failures do not block packet reads, imports or removal', async ({ page }) => {
@@ -386,4 +391,8 @@ test('the retention cap holds import and root removal leaves unrelated tab state
   await expect(page.getByRole('status')).toContainText('All retained Atlas contexts were removed');
   await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
   expect(await page.evaluate(() => sessionStorage.getItem('starlight.website.draft.v1:unrelated'))).toBe('retained-other-work');
+  expect(await page.evaluate(() => sessionStorage.getItem('starlight.atlas.notice.v1'))).toBeNull();
+  await page.reload();
+  await expect(page.getByRole('heading', { level: 1 })).not.toBeFocused();
+  await expect(page.getByRole('status')).toContainText('Ready for a source-backed context');
 });
