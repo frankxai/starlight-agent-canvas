@@ -2,13 +2,16 @@ import { createHash } from 'node:crypto';
 import { applyWebsiteGeneration, websiteGenerationInput, websiteGenerationJsonSchema, WEBSITE_GENERATION_PROMPT } from '@starlight-agent-canvas/core/website';
 import type { WebsitePlan } from '@starlight-agent-canvas/core';
 
-type Provider = 'openai' | 'anthropic';
+type Provider = 'openai' | 'anthropic' | 'openrouter';
 export function websiteGenerationConfiguration() {
   const provider = process.env.AGENT_CANVAS_WEBSITE_PROVIDER;
   const model = process.env.AGENT_CANVAS_WEBSITE_MODEL;
-  const key = provider === 'openai' ? process.env.OPENAI_API_KEY : provider === 'anthropic' ? process.env.ANTHROPIC_API_KEY : undefined;
+  const key = provider === 'openai' ? process.env.OPENAI_API_KEY : provider === 'anthropic' ? process.env.ANTHROPIC_API_KEY : provider === 'openrouter' ? process.env.OPENROUTER_API_KEY : undefined;
+  const validModel = model && model.length <= 128 && (provider === 'openrouter'
+    ? /^[a-zA-Z0-9._:-]+\/[a-zA-Z0-9._:-]+$/.test(model) && !model.startsWith('openrouter/')
+    : /^[a-zA-Z0-9._:-]{1,128}$/.test(model));
   const enabled = process.env.AGENT_CANVAS_WEBSITE_GENERATION === '1' && process.env.AGENT_CANVAS_ALLOW_REMOTE !== '1'
-    && (provider === 'openai' || provider === 'anthropic') && Boolean(model && /^[a-zA-Z0-9._:-]{1,128}$/.test(model)) && Boolean(key);
+    && (provider === 'openai' || provider === 'anthropic' || provider === 'openrouter') && Boolean(validModel) && Boolean(key);
   return { enabled, provider: enabled ? provider as Provider : null, model: enabled ? model! : null,
     boundary: 'Only the displayed source observations, brief and section text are sent. Generation uses your configured provider account. No media files, provenance records or other canvas nodes are sent. No automatic retry.' };
 }
@@ -50,16 +53,18 @@ export async function generateWebsiteDirections(plan: WebsitePlan, signal: Abort
   if (active) throw new WebsiteGenerationError('Another generation is in progress. Keep your draft and try again after it finishes.', 409);
   const input = JSON.stringify(websiteGenerationInput(plan));
   const provider = configuration.provider!; const model = configuration.model!;
-  const key = provider === 'openai' ? process.env.OPENAI_API_KEY! : process.env.ANTHROPIC_API_KEY!;
+  const key = provider === 'openai' ? process.env.OPENAI_API_KEY! : provider === 'anthropic' ? process.env.ANTHROPIC_API_KEY! : process.env.OPENROUTER_API_KEY!;
   const schema = websiteGenerationJsonSchema;
   const body = provider === 'openai'
     ? { model, store: false, max_output_tokens: 6000, input: [{ role: 'developer', content: WEBSITE_GENERATION_PROMPT }, { role: 'user', content: input }], text: { format: { type: 'json_schema', name: 'website_directions', strict: true, schema } } }
-    : { model, max_tokens: 6000, system: WEBSITE_GENERATION_PROMPT, messages: [{ role: 'user', content: input }], output_config: { format: { type: 'json_schema', schema } } };
+    : provider === 'anthropic'
+      ? { model, max_tokens: 6000, system: WEBSITE_GENERATION_PROMPT, messages: [{ role: 'user', content: input }], output_config: { format: { type: 'json_schema', schema } } }
+      : { model, max_tokens: 6000, stream: false, messages: [{ role: 'system', content: WEBSITE_GENERATION_PROMPT }, { role: 'user', content: input }], response_format: { type: 'json_schema', json_schema: { name: 'website_directions', strict: true, schema } }, provider: { require_parameters: true, allow_fallbacks: false } };
   active = true;
   try {
-    const response = await fetch(provider === 'openai' ? 'https://api.openai.com/v1/responses' : 'https://api.anthropic.com/v1/messages', {
+    const response = await fetch(provider === 'openai' ? 'https://api.openai.com/v1/responses' : provider === 'anthropic' ? 'https://api.anthropic.com/v1/messages' : 'https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST', redirect: 'error', cache: 'no-store', signal,
-      headers: provider === 'openai' ? { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` } : { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
+      headers: provider !== 'anthropic' ? { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` } : { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01' },
       body: JSON.stringify(body),
     });
     if (!response.ok) { await response.body?.cancel(); throw new WebsiteGenerationError('The configured provider rejected generation. Check its configuration and account; your draft is unchanged. No retry was made.'); }
@@ -71,13 +76,22 @@ export async function generateWebsiteDirections(plan: WebsitePlan, signal: Abort
       const messages = envelope.output.filter((item) => item && item.type === 'message');
       if (messages.length !== 1 || messages[0].status !== 'completed' || !Array.isArray(messages[0].content) || messages[0].content.length !== 1 || messages[0].content[0].type !== 'output_text' || typeof messages[0].content[0].text !== 'string') throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
       output = messages[0].content[0].text;
-    } else {
+    } else if (provider === 'anthropic') {
       if (envelope.stop_reason !== 'end_turn' || !Array.isArray(envelope.content) || envelope.content.some((block) => !block || !['text', 'thinking', 'redacted_thinking'].includes(block.type))) throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
       const texts = envelope.content.filter((block) => block.type === 'text');
       if (texts.length !== 1 || typeof texts[0].text !== 'string') throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
       // This is a single-turn request, with no tool loop or continuation. Opaque
       // reasoning blocks are not surfaced, parsed, stored or round-tripped.
       output = texts[0].text;
+    } else {
+      if (envelope.error != null || !Array.isArray(envelope.choices) || envelope.choices.length !== 1) throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
+      const choice = envelope.choices[0]; const message = choice?.message;
+      if (!choice || choice.error != null || choice.finish_reason !== 'stop' || !message || message.role !== 'assistant'
+        || typeof message.content !== 'string' || message.refusal != null || message.function_call != null
+        || (message.tool_calls != null && (!Array.isArray(message.tool_calls) || message.tool_calls.length !== 0))) throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
+      // Only the final text is consumed; opaque reasoning and provider usage
+      // fields are never copied into the plan or treated as invoice evidence.
+      output = message.content;
     }
     signal.throwIfAborted();
     try {

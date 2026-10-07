@@ -49,7 +49,7 @@ export const websitePlanSchema = z.object({
     sourceQuotes: z.array(z.string().min(12).max(1000).refine((quote) => quote.trim().length >= 12, 'Keep a meaningful source quotation.')).min(1).max(3).optional(),
   }).strict()).min(1).max(3),
   generation: z.object({
-    version: z.literal('starlight.websiteGeneration.v1'), provider: z.enum(['openai', 'anthropic']),
+    version: z.literal('starlight.websiteGeneration.v1'), provider: z.enum(['openai', 'anthropic', 'openrouter']),
     requestedModel: z.string().min(1).max(128), returnedModel: z.string().min(1).max(128), generatedAt: z.string().datetime(),
     inputHash: z.string().regex(/^[a-f0-9]{64}$/), outputHash: z.string().regex(/^[a-f0-9]{64}$/), promptHash: z.string().regex(/^[a-f0-9]{64}$/),
     authority: z.literal('local_assertion'),
