@@ -34,6 +34,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
   const [activeRef, setActiveRef] = useState(contextRef);
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [openingRef, setOpeningRef] = useState<string>();
   const [error, setError] = useState('');
   const [status, setStatus] = useState('');
   const [now, setNow] = useState(() => Date.now());
@@ -95,14 +96,13 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
     sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'imported', id }));
     sessionStorage.setItem(storageKey(id), JSON.stringify(next));
     setRetainedCount(existing.length + 1);
-    setPacket(next); setActiveRef(id); setNow(Date.now()); setError('');
-    setStatus('Context retained in this tab. Only an opaque reference appears in its address.');
-    focusAfterImport.current = true;
+    setOpeningRef(id); setError('');
+    setStatus('Context retained. Opening its focused view; the previous context remains available until navigation finishes.');
     router.push(`/context/${id}`, { scroll: false });
   }
 
   async function importFile(file: File | undefined) {
-    if (!file || busy) return;
+    if (!file || busy || openingRef) return;
     const ownGeneration = ++generation.current;
     setBusy(true); setError('');
     try {
@@ -119,7 +119,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
   }
 
   function loadExample() {
-    if (busy) return;
+    if (busy || openingRef) return;
     try { accept(parseAtlasContext(atlasContextExample)); }
     catch { setError('Tab storage is unavailable or its 32-context limit is reached. Save the current context before clearing retained copies. Your previous context is retained.'); }
   }
@@ -138,7 +138,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
   }
 
   function forget() {
-    if (busy || !activeRef) return;
+    if (busy || openingRef || !activeRef) return;
     try {
       sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'removed', id: activeRef }));
       sessionStorage.removeItem(storageKey(activeRef));
@@ -152,7 +152,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
   }
 
   function forgetAll() {
-    if (busy) return;
+    if (busy || openingRef) return;
     try {
       const refs = retainedRefs();
       if (!refs.length || !window.confirm(`Remove all ${refs.length} retained Atlas contexts from this tab? Keep their original files or downloads for later.`)) return;
@@ -180,14 +180,15 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
     <section aria-label="Open Atlas context" className="mb-7 rounded-xl border border-starlight-border bg-starlight-surface p-5 sm:p-6">
       <div className="flex flex-wrap items-end gap-4">
         <label className="min-w-0 flex-1 text-sm text-starlight-ink">Import Atlas context
-          <input ref={fileInput} type="file" accept=".json,application/json" disabled={busy || !ready} className="mt-2 block min-h-11 w-full max-w-full rounded-lg border border-starlight-border p-2 text-sm file:mr-3 file:min-h-9 file:rounded file:border-0 file:bg-starlight-accent/15 file:px-3 file:text-starlight-ink"
+          <input ref={fileInput} type="file" accept=".json,application/json" disabled={busy || Boolean(openingRef) || !ready} className="mt-2 block min-h-11 w-full max-w-full rounded-lg border border-starlight-border p-2 text-sm file:mr-3 file:min-h-9 file:rounded file:border-0 file:bg-starlight-accent/15 file:px-3 file:text-starlight-ink"
             onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; void importFile(file); }} />
         </label>
-        <button type="button" className={button} disabled={busy || !ready} onClick={loadExample}>Open public-source example</button>
+        <button type="button" className={button} disabled={busy || Boolean(openingRef) || !ready} onClick={loadExample}>Open public-source example</button>
         {busy && <button type="button" className={button} onClick={cancelImport}>Cancel import</button>}
       </div>
       <p className="mt-4 text-sm leading-6 text-starlight-muted">The packet stays in tab storage. Browser duplication or session restore may retain a copy. Its address contains only an opaque reference; the address alone cannot transfer the context.</p>
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-starlight-muted"><span>Retained contexts: {retainedCount ?? 'unavailable'}</span>{Boolean(retainedCount) && <button type="button" className={button} disabled={busy} onClick={forgetAll}>Forget all retained contexts</button>}</div>
+      <div className="mt-3 flex flex-wrap items-center gap-3 text-sm text-starlight-muted"><span>Retained contexts: {retainedCount ?? 'unavailable'}</span>{Boolean(retainedCount) && <button type="button" className={button} disabled={busy || Boolean(openingRef)} onClick={forgetAll}>Forget all retained contexts</button>}</div>
+      {openingRef && <a className={sourceLink} href={`/context/${openingRef}`}>Open the retained context if navigation was interrupted</a>}
       <p role="status" className="mt-3 text-sm text-starlight-mint">{busy ? 'Reading your packet…' : status || (ready ? 'Ready for a source-backed context.' : 'Opening local context…')}</p>
       {error && <p role="alert" className="mt-3 text-sm leading-6 text-starlight-gold">{error}</p>}
     </section>
@@ -199,7 +200,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
             <h2 id="context-heading" ref={heading} tabIndex={-1} className="break-words text-2xl font-semibold tracking-tight outline-starlight-accent focus-visible:outline sm:text-3xl">{packet.entity.label}</h2>
             <p className="mt-3 break-all font-mono text-xs text-starlight-muted">{packet.entity.id}</p>
           </div>
-          <button type="button" className={button} onClick={forget}>Forget this context</button>
+          <button type="button" className={button} disabled={busy || Boolean(openingRef)} onClick={forget}>Forget this context</button>
         </div>
         <div className="mt-5 flex flex-wrap gap-3"><button type="button" className={button} onClick={() => download('markdown')}>Download context brief</button><button type="button" className={button} onClick={() => download('json')}>Download context JSON</button></div>
         <div className="mt-6 grid gap-5 border-t border-starlight-border pt-5 sm:grid-cols-2">
