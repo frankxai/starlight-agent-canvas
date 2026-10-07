@@ -1,4 +1,5 @@
 import { mkdir, readFile, readdir, rename, writeFile } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { canvasIdSchema, canvasIntakeTraceSchema, canvasRecordSchema, addNodeInputSchema, connectNodesInputSchema, createCanvasInputSchema, enrichSourceInputSchema, exportCanvasOptionsSchema, ingestSourceInputSchema, updateNodeInputSchema, type AddNodeInput, type CanvasArtifact, type CanvasEdge, type CanvasIntakeTrace, type CanvasNode, type CanvasRecord, type ConnectNodesInput, type CreateCanvasInput, type EnrichSourceInput, type IngestSourceInput, type RunActionInput, type SourceEnrichmentKind, type UpdateNodeInput, type CanvasExportFormat, type CanvasExportOptions } from './schemas.js';
@@ -11,6 +12,7 @@ import { getAgentCanvasHome } from './home.js';
 import { withFileLock } from './file-lock.js';
 import { createIntakeTraceForNodes } from './source-intake.js';
 import type { SourceReadiness } from './readiness.js';
+import { canvasContentHash, checkpointInputSchema, compareCanvasSnapshots, summarizeCheckpoint, validateCheckpoint, type CanvasCheckpoint, type CanvasComparison, type CheckpointSummary } from './checkpoints.js';
 
 export interface CanvasSummary {
   id: string;
@@ -187,6 +189,72 @@ export class FileCanvasStore {
     const parsed = createCanvasInputSchema.parse(input);
     const canvas = createCanvasRecord(parsed);
     return this.withCanvasLock(canvas.id, async () => this.saveCanvasFile(canvas));
+  }
+
+  private checkpointPath(canvasId: string, checkpointId: string): string {
+    return path.join(this.home, 'checkpoints', canvasIdSchema.parse(canvasId), `${canvasIdSchema.parse(checkpointId)}.json`);
+  }
+
+  async createCheckpoint(canvasId: string, input: { label: string }): Promise<CheckpointSummary> {
+    const { label } = checkpointInputSchema.parse(input);
+    return this.withCanvasLock(canvasId, async (safeId) => {
+      const snapshot = await this.getCanvas(safeId);
+      const checkpoint: CanvasCheckpoint = {
+        version: 'starlight.agentCanvas.checkpoint.v1',
+        id: `checkpoint-${randomUUID()}`, canvasId: safeId, label, createdAt: nowIso(),
+        canvasSchemaVersion: snapshot.schemaVersion, contentHash: canvasContentHash(snapshot), snapshot,
+      };
+      const target = this.checkpointPath(safeId, checkpoint.id);
+      await mkdir(path.dirname(target), { recursive: true });
+      const temp = `${target}.${process.pid}.tmp`;
+      await writeFile(temp, JSON.stringify(checkpoint, null, 2), { encoding: 'utf8', flag: 'wx' });
+      await renameWithRetry(temp, target);
+      return summarizeCheckpoint(checkpoint);
+    });
+  }
+
+  async getCheckpoint(canvasId: string, checkpointId: string): Promise<CanvasCheckpoint> {
+    const safeCanvasId = canvasIdSchema.parse(canvasId);
+    const safeCheckpointId = canvasIdSchema.parse(checkpointId);
+    try {
+      const raw = await readFile(this.checkpointPath(safeCanvasId, safeCheckpointId), 'utf8');
+      return validateCheckpoint(JSON.parse(raw), safeCanvasId, safeCheckpointId);
+    } catch (error) {
+      const missing = (error as NodeJS.ErrnoException).code === 'ENOENT';
+      throw new Error(missing ? 'Checkpoint was not found.' : 'Checkpoint could not be read or verified. The current canvas is unchanged.', { cause: error });
+    }
+  }
+
+  async listCheckpoints(canvasId: string): Promise<{ checkpoints: CheckpointSummary[]; unreadable: Array<{ id: string; reason: string }> }> {
+    const safeId = canvasIdSchema.parse(canvasId);
+    await this.getCanvas(safeId);
+    let files: string[];
+    try {
+      files = await readdir(path.dirname(this.checkpointPath(safeId, 'list')));
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { checkpoints: [], unreadable: [] };
+      throw error;
+    }
+    const summaries: CheckpointSummary[] = [];
+    const unreadable: Array<{ id: string; reason: string }> = [];
+    for (const file of files.filter((file) => file.endsWith('.json')).sort()) {
+      const id = file.slice(0, -5);
+      try {
+        summaries.push(summarizeCheckpoint(await this.getCheckpoint(safeId, canvasIdSchema.parse(id))));
+      } catch {
+        unreadable.push({ id, reason: 'This checkpoint could not be read or verified. It remains on disk; the current canvas is unchanged.' });
+      }
+    }
+    return { checkpoints: summaries.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)), unreadable };
+  }
+
+  async compareCheckpoints(canvasId: string, beforeId: string, afterId?: string): Promise<CanvasComparison> {
+    return this.withCanvasLock(canvasId, async (safeId) => {
+      const before = await this.getCheckpoint(safeId, beforeId);
+      const after = afterId ? await this.getCheckpoint(safeId, afterId)
+        : { id: 'current', label: 'Current canvas', snapshot: await this.getCanvas(safeId) };
+      return compareCanvasSnapshots(before, after);
+    });
   }
 
   async getCanvas(id: string): Promise<CanvasRecord> {

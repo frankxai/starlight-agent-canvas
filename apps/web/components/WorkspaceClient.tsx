@@ -19,6 +19,7 @@ import {
   type OnSelectionChangeParams,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import CanvasHistory from './CanvasHistory';
 import {
   Bot,
   Boxes,
@@ -3462,6 +3463,7 @@ function WorkspaceInner() {
           </section>
 
           <aside className="order-3 border-t border-starlight-border bg-starlight-surface/78 p-4 lg:order-none lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">
+            {canvas && <CanvasHistory key={canvas.id} canvasId={canvas.id} disabled={busy} />}
             <section className="rounded-lg border border-starlight-border bg-starlight-panel/70 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Sparkles className="h-4 w-4 text-starlight-accent" aria-hidden="true" />

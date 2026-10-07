@@ -1,5 +1,67 @@
 import { readFile, writeFile } from 'node:fs/promises';
+import path from 'node:path';
 import { expect, test } from '@playwright/test';
+
+test('history keeps exact review states and compares agent edits accessibly', async ({ page }, testInfo) => {
+  const title = `History ${testInfo.project.name} ${Date.now()}`;
+  const created = await page.request.post('/api/canvases', { data: { title, template: 'blank' } });
+  await expect(created).toBeOK();
+  const { canvas } = await created.json() as { canvas: { id: string } };
+  const added = await page.request.post(`/api/canvases/${canvas.id}/nodes`, { data: { title: 'Campaign direction', body: 'Original direction', kind: 'note' } });
+  await expect(added).toBeOK();
+  const { node } = await added.json() as { node: { id: string } };
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto('/');
+  await page.getByRole('button', { name: new RegExp(title) }).click();
+  const history = page.getByTestId('canvas-history');
+  await history.getByRole('button', { name: 'History and comparison' }).click();
+  await history.getByLabel('Checkpoint name').fill('Chosen direction');
+  await history.getByRole('button', { name: 'Save checkpoint' }).click();
+  await expect(history.getByRole('status')).toContainText('saved');
+  await expect(history.getByText('1 local checkpoint', { exact: true })).toBeVisible();
+  const mutation = await page.request.patch(`/api/canvases/${canvas.id}/nodes/${node.id}`, { data: { body: 'Agent revised the campaign.' } });
+  await expect(mutation).toBeOK();
+  const compare = history.getByRole('button', { name: 'Compare changes' });
+  await compare.focus();
+  await page.keyboard.press('Enter');
+  const diff = history.getByTestId('checkpoint-comparison');
+  await expect(diff).toContainText('Campaign direction: changed');
+  await diff.getByText('Campaign direction: changed').click();
+  await expect(diff).toContainText('Original direction');
+  await expect(diff).toContainText('Agent revised the campaign.');
+  const comparisonCapture = testInfo.outputPath('checkpoint-comparison.png');
+  await diff.screenshot({ path: comparisonCapture });
+  await testInfo.attach('checkpoint-comparison', { path: comparisonCapture, contentType: 'image/png' });
+  await history.getByRole('button', { name: 'Open checkpoint' }).click();
+  await expect(history.locator('pre')).toContainText('Original direction');
+  await expect(history.locator('pre')).not.toContainText('Agent revised the campaign.');
+  await page.reload();
+  await page.getByRole('button', { name: new RegExp(title) }).click();
+  await page.getByTestId('canvas-history').getByRole('button', { name: 'History and comparison' }).click();
+  await expect(page.getByTestId('canvas-history').getByText('1 local checkpoint', { exact: true })).toBeVisible();
+  const crossOrigin = await page.request.post(`/api/canvases/${canvas.id}/checkpoints`, {
+    headers: { Origin: 'https://untrusted.example' }, data: { label: 'Cross-origin write' },
+  });
+  expect(crossOrigin.status()).toBe(403);
+  const reboundHost = await page.request.post(`/api/canvases/${canvas.id}/checkpoints`, {
+    headers: { Host: 'rebound.example', Origin: 'http://rebound.example' }, data: { label: 'Rebound host write' },
+  });
+  expect(reboundHost.status()).toBe(403);
+  const savedHistory = await page.request.get(`/api/canvases/${canvas.id}/checkpoints`);
+  expect((await savedHistory.json()).checkpoints).toHaveLength(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const current = await page.request.get(`/api/canvases/${canvas.id}`);
+  expect(JSON.stringify(await current.json())).toContain('Agent revised the campaign.');
+  const setupResponse = await page.request.get('/api/setup/status');
+  const setup = await setupResponse.json() as { canvasHome: string };
+  await writeFile(path.resolve(setup.canvasHome, 'checkpoints', canvas.id, 'broken.json'), '{unreadable');
+  await history.getByRole('button', { name: 'Refresh history' }).click();
+  await expect(history.getByRole('alert')).toContainText('1 checkpoint could not be verified');
+  await expect(history.getByText('1 local checkpoint', { exact: true })).toBeVisible();
+  const unavailable = await page.request.get(`/api/canvases/${canvas.id}/checkpoints/missing`);
+  expect(unavailable.status()).toBe(404);
+  expect(await unavailable.text()).not.toContain(setup.canvasHome);
+});
 
 test('workspace maps sources and answers from the canvas', async ({ page }, testInfo) => {
   test.setTimeout(90_000);
