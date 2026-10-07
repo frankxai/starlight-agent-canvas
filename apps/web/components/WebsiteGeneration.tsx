@@ -43,7 +43,7 @@ export default function WebsiteGeneration({ canvasId, draft, disabled, apply }: 
     let current: WebsitePlan;
     try { current = parseWebsitePlan(draft); websiteGenerationInput(current); }
     catch { setMessage('Complete the current draft first. Generation supports a focused plan of up to six sections and 32 KB of source text.'); return; }
-    const base = JSON.stringify(current); const owner = ++serial.current;
+    const base = JSON.stringify(draft); const owner = ++serial.current;
     const controller = new AbortController(); operation.current = controller;
     const timeout = setTimeout(() => controller.abort(), 65_000);
     setRunning(true); setMessage('Creating three page directions. You can keep editing while the proposal is prepared.');
