@@ -3464,6 +3464,7 @@ function WorkspaceInner() {
           </section>
 
           <aside className="order-3 border-t border-starlight-border bg-starlight-surface/78 p-4 lg:order-none lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">
+            <a href="/context" className="mb-3 flex min-h-11 items-center justify-between gap-3 rounded-lg border border-starlight-accent/30 px-4 py-3 text-sm text-starlight-accent">Open Atlas context <span aria-hidden="true">→</span></a>
             {canvas && <a href={`/website/${encodeURIComponent(canvas.id)}`} className="mb-4 flex min-h-11 items-center justify-between gap-3 rounded-lg border border-starlight-gold/35 bg-starlight-gold/5 px-4 py-3 text-sm font-medium text-starlight-gold">Shape website directions <span aria-hidden="true">→</span></a>}
             {canvas && <CanvasHistory key={canvas.id} canvasId={canvas.id} disabled={busy} />}
             <section className="rounded-lg border border-starlight-border bg-starlight-panel/70 p-4">

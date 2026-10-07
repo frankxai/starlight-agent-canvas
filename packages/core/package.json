@@ -5,6 +5,10 @@
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {
+    "./atlas-context": {
+      "types": "./dist/atlas-context.d.ts",
+      "import": "./dist/atlas-context.js"
+    },
     "./website": {
       "types": "./dist/website.d.ts",
       "import": "./dist/website.js"
