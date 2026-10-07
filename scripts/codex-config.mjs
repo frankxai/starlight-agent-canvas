@@ -79,8 +79,9 @@ export function planCodexConfig(raw, options) {
     }
   }
 
-  expected.mcp_servers ??= {};
-  const server = expected.mcp_servers[serverId] ??= {};
+  // smol-toml uses null-prototype tables; preserve that shape in the expected tree.
+  expected.mcp_servers ??= parseCodexConfig('[mcp_servers]').mcp_servers;
+  const server = expected.mcp_servers[serverId] ??= parseCodexConfig(`[${serverTable}]`).mcp_servers[serverId];
   const existed = current !== undefined;
   if (!existed) {
     lines.push('', codexBlock(options).replaceAll('\n', lineEnding));
@@ -101,7 +102,7 @@ export function planCodexConfig(raw, options) {
   server.args = [options.cliPath];
   server.enabled ??= false;
   if (server.startup_timeout_sec === undefined && server.startup_timeout_ms === undefined) server.startup_timeout_sec = 60n;
-  server.env ??= {};
+  server.env ??= parseCodexConfig('[env]').env;
   server.env.AGENT_CANVAS_HOME ??= options.home;
   const next = lines.join(lineEnding);
   // A real parser catches table-like text in multiline strings, aliases and misplaced edits.

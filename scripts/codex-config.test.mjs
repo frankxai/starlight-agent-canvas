@@ -52,6 +52,12 @@ test('preserves CRLF and supplies a missing home without removing custom env', (
   assert.ok(!/(?<!\r)\n/.test(next));
 });
 
+test('missing server and environment tables retain parser table shape', () => {
+  assert.equal(server(planCodexConfig("model = 'example'\n", options).next).enabled, false);
+  const noEnv = fixture.replace("[mcp_servers.starlight-agent-canvas.env]\nAGENT_CANVAS_HOME = '/existing/data'\nCUSTOM = 'private-value-for-preservation'\n", '');
+  assert.equal(server(planCodexConfig(noEnv, options).next).env.AGENT_CANVAS_HOME, options.home);
+});
+
 test('refuses invalid, duplicate, HTTP, custom launcher and unsupported managed layouts without leaking values', () => {
   const bad = [
     fixture + '\n[other]\n',
