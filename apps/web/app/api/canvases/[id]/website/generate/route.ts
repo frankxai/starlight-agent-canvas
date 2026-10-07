@@ -18,6 +18,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   const denied = websiteOriginDenied(request); if (denied) return denied;
   if (!localOnly(request)) return NextResponse.json({ error: 'Generation requires the local workspace; remote mode is unsupported.' }, { status: 403, headers });
+  if (request.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase() !== 'application/json') return NextResponse.json({ error: 'Generation requires an application/json request from the workspace.' }, { status: 415, headers });
   if (!websiteGenerationConfiguration().enabled) return NextResponse.json({ error: 'Optional generation is disabled or unconfigured. Your draft is unchanged.' }, { status: 503, headers });
   const controller = new AbortController();
   const abort = () => controller.abort();

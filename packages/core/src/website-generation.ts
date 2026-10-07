@@ -7,7 +7,7 @@ export const websiteGenerationOutputSchema = z.object({
   options: z.array(z.object({
     id: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/).max(128), title: prose, premise: prose,
     headline: prose, body: prose, action: prose, tradeoff: prose,
-    sectionCopy: z.array(sectionCopy).min(1).max(6), sourceQuotes: z.array(z.string().min(1).max(1000)).min(1).max(3),
+    sectionCopy: z.array(sectionCopy).min(1).max(6), sourceQuotes: z.array(z.string().min(12).max(1000).refine((quote) => quote.trim().length >= 12)).min(1).max(3),
   }).strict()).length(3),
 }).strict();
 

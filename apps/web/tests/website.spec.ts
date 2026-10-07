@@ -9,6 +9,7 @@ test('generated proposals preserve newer edits, recover, and export the chosen e
   const endpoint = `/api/canvases/${canvas.id}/website/generate`;
   expect((await page.request.post(endpoint, { data: { plan: {} } })).status()).toBe(503);
   expect((await page.request.post(endpoint, { headers: { Origin: 'https://untrusted.example' }, data: { plan: {} } })).status()).toBe(403);
+  expect((await page.request.post(endpoint, { headers: { 'Content-Type': 'text/plain' }, data: '{}' })).status()).toBe(415);
   let release: (() => void) | undefined; let held = true; let sent: WebsitePlan | undefined;
   await page.route(`**${endpoint}`, async (route) => {
     if (route.request().method() === 'GET') return route.fulfill({ json: { enabled: true, provider: 'openai', model: 'synthetic-browser-fixture', boundary: 'Synthetic response fixture; no provider call or customer proof.' } });
@@ -29,6 +30,7 @@ test('generated proposals preserve newer edits, recover, and export the chosen e
   await page.reload(); await expect(region).toContainText('Recovered a generated proposal');
   await expect(page.getByLabel('Plan title', { exact: true })).toHaveValue('Newer draft retained');
   await region.getByRole('button', { name: 'Dismiss proposal', exact: true }).click(); held = false;
+  await page.getByLabel('Plan title', { exact: true }).fill('  Whitespace remains my draft  ');
   await region.getByRole('button', { name: 'Send source and generate directions', exact: true }).click();
   await expect(region.getByRole('button', { name: 'Use proposal as draft', exact: true })).toBeEnabled();
   await region.getByRole('button', { name: 'Use proposal as draft', exact: true }).click();

@@ -79,5 +79,9 @@ export async function generateWebsiteDirections(plan: WebsitePlan, signal: Abort
     try {
       return applyWebsiteGeneration(plan, JSON.parse(output), { version: 'starlight.websiteGeneration.v1', provider, requestedModel: model, returnedModel: envelope.model, generatedAt: new Date().toISOString(), inputHash: hash(input), outputHash: hash(output), promptHash: hash(WEBSITE_GENERATION_PROMPT), authority: 'local_assertion' });
     } catch { throw new WebsiteGenerationError('Generated copy did not satisfy the section, source quote or size checks. Your draft is unchanged. No retry was made.'); }
+  } catch (error) {
+    if (signal.aborted) throw error;
+    const explanation = error instanceof WebsiteGenerationError ? error.message : 'The provider response could not be read or validated. Your draft is unchanged.';
+    throw new WebsiteGenerationError(`${explanation} The provider may have processed billable tokens; inspect before trying again.`);
   } finally { active = false; }
 }

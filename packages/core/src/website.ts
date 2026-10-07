@@ -46,7 +46,7 @@ export const websitePlanSchema = z.object({
     .refine((target) => target.status !== 'resolved' || Boolean(target.repository), 'A resolved target needs its repository.'),
   options: z.array(z.object({ id, title: text, premise: text, headline: text, body: text, action: text, tradeoff: text,
     sectionCopy: z.array(z.object({ sectionId: id, copy: text, action: text }).strict()).min(1).max(20).optional(),
-    sourceQuotes: z.array(z.string().min(1).max(1000)).min(1).max(3).optional(),
+    sourceQuotes: z.array(z.string().min(12).max(1000).refine((quote) => quote.trim().length >= 12, 'Keep a meaningful source quotation.')).min(1).max(3).optional(),
   }).strict()).min(1).max(3),
   generation: z.object({
     version: z.literal('starlight.websiteGeneration.v1'), provider: z.enum(['openai', 'anthropic']),
