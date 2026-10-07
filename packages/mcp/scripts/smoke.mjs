@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport, getDefaultEnvironment } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { FileCanvasStore, websiteDirectionDemo } from '@starlight-agent-canvas/core';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '..', '..', '..');
@@ -10,6 +11,9 @@ const cliPath = path.join(repoRoot, 'packages', 'mcp', 'dist', 'cli.js');
 const home = process.env.AGENT_CANVAS_HOME ?? path.join(repoRoot, '.agent-canvas', 'mcp-smoke');
 
 const expectedTools = [
+  'get_website_plan',
+  'save_website_plan',
+  'export_website_implementation',
   'list_canvases',
   'get_latest_canvas',
   'get_canvas',
@@ -383,6 +387,17 @@ try {
   if (checkpointRead.structuredContent?.checkpoint?.contentHash !== checkpoint.contentHash) throw new Error('MCP checkpoint read changed input identity.');
   const checkpointDiff = await client.callTool({ name: 'compare_canvas_checkpoints', arguments: { canvasId, beforeId: checkpoint.id } });
   if (checkpointDiff.structuredContent?.comparison?.unchanged !== true) throw new Error('MCP unchanged comparison failed.');
+
+  const savedWebsite = await client.callTool({ name: 'save_website_plan', arguments: { canvasId, plan: websiteDirectionDemo() } });
+  const websiteRecord = savedWebsite.structuredContent?.record;
+  if (typeof websiteRecord?.planHash !== 'string') throw new Error('MCP website save did not return its source hash.');
+  const websiteRead = await client.callTool({ name: 'get_website_plan', arguments: { canvasId } });
+  if (websiteRead.structuredContent?.record?.planHash !== websiteRecord.planHash) throw new Error('MCP website read lost its saved identity.');
+  // Synthetic local choice fixture. Browser QA separately exercises a real
+  // user-initiated button; no selection tool is exposed to an agent.
+  await new FileCanvasStore(home).selectWebsiteDirection(canvasId, 'workshop', websiteRecord.planHash);
+  const websiteExport = await client.callTool({ name: 'export_website_implementation', arguments: { canvasId } });
+  if (websiteExport.structuredContent?.packet?.selected?.planHash !== websiteRecord.planHash || !websiteExport.content?.[0]?.text?.includes('Read-only proposal')) throw new Error('MCP website export lost the selected checkpoint boundary.');
 
   console.log(JSON.stringify({
     ok: true,

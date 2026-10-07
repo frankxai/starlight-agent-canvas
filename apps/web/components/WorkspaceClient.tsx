@@ -385,7 +385,7 @@ function AgentNode({ id, data, selected }: NodeProps<Node<AgentNodeData>>) {
       <Handle type="target" position={Position.Left} className="!h-2 !w-2 !border-0" style={{ background: style.accent }} />
       <div className="flex items-center justify-between border-b border-white/10 px-3 py-2">
         <span className="rounded-md border px-2 py-0.5 text-[11px] text-starlight-ink" style={{ borderColor: `${style.accent}66`, color: style.accent }}>
-          {style.label}
+          {typeof data.metadata.entityType === 'string' && (data.metadata.websiteProjectionOf || data.metadata.role === 'website_plan') ? `${data.metadata.entityType.replaceAll('_', ' ')}${data.metadata.websiteSelected ? ' · selected' : ''}${data.metadata.websiteProjectionRetired ? ' · prior' : ''}` : style.label}
         </span>
         <span className="text-[11px] text-starlight-muted">{data.body.length} chars</span>
       </div>
@@ -1379,7 +1379,8 @@ function WorkspaceInner() {
         const data = await refreshList();
         if (cancelled) return;
         if (data.canvases.length) {
-          await loadCanvas(data.canvases[0].id);
+          const requested = new URL(window.location.href).searchParams.get('canvas');
+          await loadCanvas(data.canvases.find((item) => item.id === requested)?.id ?? data.canvases[0].id);
           setStatus('Loaded latest local canvas.');
         } else {
           const created = await api<{ canvas: CanvasRecord }>('/api/canvases', {
@@ -3463,6 +3464,7 @@ function WorkspaceInner() {
           </section>
 
           <aside className="order-3 border-t border-starlight-border bg-starlight-surface/78 p-4 lg:order-none lg:min-h-0 lg:overflow-y-auto lg:border-l lg:border-t-0">
+            {canvas && <a href={`/website/${encodeURIComponent(canvas.id)}`} className="mb-4 flex min-h-11 items-center justify-between gap-3 rounded-lg border border-starlight-gold/35 bg-starlight-gold/5 px-4 py-3 text-sm font-medium text-starlight-gold">Shape website directions <span aria-hidden="true">→</span></a>}
             {canvas && <CanvasHistory key={canvas.id} canvasId={canvas.id} disabled={busy} />}
             <section className="rounded-lg border border-starlight-border bg-starlight-panel/70 p-4">
               <div className="flex items-center gap-2 text-sm font-semibold">
@@ -3893,10 +3895,12 @@ function WorkspaceInner() {
               </div>
               {selectedNode ? (
                 <div className="mt-3 space-y-3">
+                  {(selectedNode.metadata.websiteProjectionOf || selectedNode.metadata.role === 'website_plan') && <a href={`/website/${encodeURIComponent(canvas!.id)}`} className="flex min-h-11 items-center rounded-md border border-starlight-gold/30 px-3 text-sm text-starlight-gold">Edit this direction in the website workbench →</a>}
                   <div>
                     <span className="text-[11px] text-starlight-muted">{formatKind(selectedNode.kind)}</span>
                     <input
                       data-testid="inspector-title"
+                      readOnly={Boolean(selectedNode.metadata.websiteProjectionOf || selectedNode.metadata.role === 'website_plan')}
                       value={editTitle}
                       onChange={(event) => setEditTitle(event.target.value)}
                       className="mt-1 w-full rounded-md border border-starlight-border bg-starlight-surface px-3 py-2 text-sm font-semibold text-starlight-ink"
@@ -4122,6 +4126,7 @@ function WorkspaceInner() {
                   </div>
                   <textarea
                     data-testid="inspector-body"
+                    readOnly={Boolean(selectedNode.metadata.websiteProjectionOf || selectedNode.metadata.role === 'website_plan')}
                     value={editBody}
                     onChange={(event) => setEditBody(event.target.value)}
                     className="min-h-44 w-full rounded-md border border-starlight-border bg-starlight-surface p-3 text-xs leading-5 text-starlight-ink"
@@ -4131,7 +4136,7 @@ function WorkspaceInner() {
                     data-testid="save-node"
                     type="button"
                     onClick={saveSelectedNode}
-                    disabled={!canMutate || !editTitle.trim()}
+                    disabled={!canMutate || !editTitle.trim() || Boolean(selectedNode.metadata.websiteProjectionOf || selectedNode.metadata.role === 'website_plan')}
                     className="flex w-full items-center justify-center gap-2 rounded-md border border-starlight-violet/45 bg-starlight-violet/10 px-3 py-2 text-sm font-semibold text-starlight-ink transition hover:border-starlight-violet disabled:cursor-not-allowed disabled:opacity-45"
                   >
                     <Braces className="h-4 w-4" aria-hidden="true" />
