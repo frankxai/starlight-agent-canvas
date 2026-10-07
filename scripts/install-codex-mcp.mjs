@@ -9,10 +9,16 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const cliPath = path.join(repoRoot, 'packages', 'mcp', 'dist', 'cli.js');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 
-async function snapshot(configPath) {
+async function snapshot(configPath, ownedPublicationLink) {
   try {
     const info = await lstat(configPath);
-    if (!info.isFile() || info.isSymbolicLink() || info.nlink !== 1) throw new ConfigHold('Config must be a regular, unlinked file.');
+    if (!info.isFile() || info.isSymbolicLink()) throw new ConfigHold('Config must be a regular, unlinked file.');
+    if (info.nlink !== 1) {
+      const ownedLink = ownedPublicationLink ? await lstat(ownedPublicationLink).catch(() => null) : null;
+      if (info.nlink !== 2 || !ownedLink?.isFile() || ownedLink.isSymbolicLink() || ownedLink.ino !== info.ino || ownedLink.dev !== info.dev) {
+        throw new ConfigHold('Config must be a regular, unlinked file.');
+      }
+    }
     if (info.size > configLimit) throw new ConfigHold('Config exceeds the 1 MiB edit limit.');
     const bytes = await readFile(configPath);
     const raw = bytes.toString('utf8');
@@ -66,14 +72,14 @@ export async function installConfig(configPath, options, { expectedSha, beforePu
     if ((await snapshot(configPath)).sha !== original.sha) throw new ConfigHold('Config changed during installation. Existing config and backup are preserved.');
     if (original.bytes === null) {
       await link(tempPath, configPath);
-      await unlink(tempPath);
+      await removeOwnedFile(tempPath).catch(error => cleanupWarnings.push(`Config published with its owned temporary hard link retained (${error.code || 'unknown'}). Inspect and remove only this name before another install: ${tempPath}`));
     } else {
       // Other editors do not share this cooperative lock; keep them idle while
       // replacing an existing config after its final hash check.
       await rename(tempPath, configPath);
     }
     tempCreated = false;
-    const published = await snapshot(configPath);
+    const published = await snapshot(configPath, original.bytes === null ? tempPath : undefined);
     if (published.sha !== hash(Buffer.from(plan.next))) throw new ConfigHold('Config changed after publication; inspect the current file and backup.');
     return { ...plan, changed: true, sha: published.sha, backupPath, cleanupWarnings };
   } catch (error) {
@@ -86,7 +92,7 @@ export async function installConfig(configPath, options, { expectedSha, beforePu
     } else {
       cleanupWarnings.push(`Installer lock owner changed; preserved: ${lockPath}`);
     }
-    if (primaryError) primaryError.cleanupWarnings = cleanupWarnings;
+    if (primaryError) primaryError.cleanupWarnings = [...(primaryError.cleanupWarnings ?? []), ...cleanupWarnings];
   }
 }
 
@@ -116,7 +122,7 @@ async function main() {
     const original = await snapshot(configPath);
     if (expectedSha && expectedSha !== original.sha) throw new ConfigHold('Config changed since the reviewed hash.');
     const plan = planCodexConfig(original.raw, options);
-    console.log(`[dry-run] Target: ${configPath}\n[dry-run] Expected SHA256: ${original.sha}\n[dry-run] Managed launcher: ${JSON.stringify(options.command)} ${JSON.stringify(options.cliPath)}\n[dry-run] Base activation: enabled=${plan.enabled}\n[dry-run] Data home: ${JSON.stringify(plan.home)}\n[dry-run] Other settings/environment values are preserved and omitted from output.\nUse --write to publish with a backup. --expected-sha binds the write to this inspected config.`);
+    console.log(`[dry-run] Target: ${configPath}\n[dry-run] Expected SHA256: ${original.sha}\n[dry-run] Managed launcher: ${JSON.stringify(options.command)} ${JSON.stringify(options.cliPath)}\n[dry-run] Base activation: enabled=${plan.enabled} (${plan.activation})\n[dry-run] Data home: ${JSON.stringify(plan.home)}\n[dry-run] Other settings/environment values are preserved and omitted from output.\nUse --write to publish with a backup. --expected-sha binds the write to this inspected config.`);
     return;
   }
   try {
@@ -126,7 +132,7 @@ async function main() {
     throw error;
   }
   const result = await installConfig(configPath, options, { expectedSha });
-  console.log(`[ok] ${result.changed ? 'Installed' : 'Already configured'}: ${configPath}\n[ok] SHA256: ${result.sha}\n[ok] Base activation: enabled=${result.enabled}`);
+  console.log(`[ok] ${result.changed ? 'Installed' : 'Already configured'}: ${configPath}\n[ok] SHA256: ${result.sha}\n[ok] Base activation: enabled=${result.enabled} (${result.activation})`);
   if (result.backupPath) console.log(`[ok] Backup: ${result.backupPath}`);
   for (const warning of result.cleanupWarnings) console.warn(`[warn] Config publication succeeded. ${warning}`);
   console.log('For this task: codex -c mcp_servers.starlight-agent-canvas.enabled=true\nVerify tool discovery/calls in that task. Configuration and transport smoke alone do not prove native activation.');

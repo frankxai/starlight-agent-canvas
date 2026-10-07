@@ -166,6 +166,23 @@ test('failed lock cleanup reports successful publication and preserves the lock 
   await assert.rejects(installConfig(file, options), ConfigHold);
 }));
 
+test('new config hard-link cleanup failure retains successful publication and names the exact recovery file', async () => temporary(async (file, root) => {
+  const result = await installConfig(file, options, { removeOwnedFile: async name => {
+    if (name.endsWith('.tmp')) throw Object.assign(new Error('simulated busy'), { code: 'EBUSY' });
+    await unlink(name);
+  } });
+  assert.equal(result.changed, true);
+  const files = await readdir(root);
+  const retained = files.find(name => name.endsWith('.tmp'));
+  assert.ok(retained);
+  assert.equal(await readFile(path.join(root, retained), 'utf8'), await readFile(file, 'utf8'));
+  assert.equal((await lstat(file)).nlink, 2);
+  assert.ok(result.cleanupWarnings[0].includes(path.join(root, retained)));
+  await assert.rejects(installConfig(file, options), ConfigHold);
+  await unlink(path.join(root, retained));
+  assert.equal((await installConfig(file, options)).changed, false);
+}));
+
 test('hardlinked config is held without changing either name', async () => temporary(async (file, root) => {
   await writeFile(file, fixture);
   const other = path.join(root, 'linked.toml');
