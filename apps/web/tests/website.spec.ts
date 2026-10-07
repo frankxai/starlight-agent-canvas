@@ -36,9 +36,9 @@ test('generated proposals preserve newer edits, recover, and export the chosen e
   await region.getByRole('button', { name: 'Use proposal as draft', exact: true }).click();
   await page.getByRole('button', { name: 'Edit Fixture approach 2', exact: true }).click();
   const sectionId = sent!.sections[0]!.id;
-  await page.getByLabel(`Fixture approach 2: ${sectionId} copy`, { exact: true }).fill('Human-revised full-page section.');
+  await page.getByRole('textbox', { name: `Fixture approach 2: ${sectionId} copy`, exact: true }).fill('Human-revised full-page section.');
   await page.reload(); await page.getByRole('button', { name: 'Edit Fixture approach 2', exact: true }).click();
-  await expect(page.getByLabel(`Fixture approach 2: ${sectionId} copy`, { exact: true })).toHaveValue('Human-revised full-page section.');
+  await expect(page.getByRole('textbox', { name: `Fixture approach 2: ${sectionId} copy`, exact: true })).toHaveValue('Human-revised full-page section.');
   await page.getByRole('button', { name: 'Save website plan', exact: true }).click();
   await page.getByRole('button', { name: 'Choose Fixture approach 2', exact: true }).click();
   await expect(page.getByTestId('selected-website-direction')).toContainText('Fixture approach 2');
