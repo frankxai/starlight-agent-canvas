@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtemp, mkdir, readFile, rename, rm, symlink, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, realpath, rename, rm, symlink, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -75,7 +75,7 @@ test('an output parent junction cannot hide a directory inside the source checko
   const alias = path.join(temporary, 'source-alias');
   await symlink(root, alias, process.platform === 'win32' ? 'junction' : 'dir');
   await assert.rejects(outsideOutput(root, path.join(alias, 'new-runtime')), /outside the source checkout/);
-  assert.equal(await outsideOutput(root, path.join(temporary, 'new-runtime')), path.join(temporary, 'new-runtime'));
+  assert.equal(await outsideOutput(root, path.join(temporary, 'new-runtime')), path.join(await realpath(temporary), 'new-runtime'));
 });
 test('rejects nonportable and ambiguous paths', () => {
   for (const value of ['../outside', '/absolute', 'C:/data', 'a\\b', 'a//b', 'a/../b', 'a/CON.txt', 'a/file.']) assert.equal(portablePath(value), false, value);
