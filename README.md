@@ -225,6 +225,8 @@ pnpm mcp:smoke
 pnpm mcp:codex:smoke
 ```
 
+New Codex entries default to `enabled = false`; the installer preserves existing activation, tool controls and data home. Launch only the selected task with `codex -c mcp_servers.starlight-agent-canvas.enabled=true`, then verify discovery and calls. Config/transport smoke alone does not prove native activation.
+
 `pnpm mcp:start` is only for manual stdio debugging. Normal MCP clients spawn the server from the generated config. For Codex-specific operating guidance, see `docs/codex-integration.md`.
 
 Example MCP client entry:

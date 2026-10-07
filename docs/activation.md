@@ -28,7 +28,7 @@ The activation runway is the first successful loop for Starlight Agent Canvas. I
 5. Wire Codex MCP
    - Run `pnpm mcp:install:codex -- --write`.
    - Run `pnpm mcp:codex:smoke` when you want a safe temp-config proof before or after the real write. It verifies doctor checks, launches the configured MCP server, and calls safe read tools without touching your real config.
-   - Restart Codex.
+   - New entries remain disabled. Launch the selected task with `codex -c mcp_servers.starlight-agent-canvas.enabled=true` (Starlight uses its existing `codex-canvas` wrapper). Existing app sessions and ChatGPT cloud need their own supported setup.
    - Run `pnpm doctor` again and confirm the Codex server, CLI path, and `AGENT_CANVAS_HOME` match.
    - Ask Codex to use `starlight-agent-canvas`: list tools, call `get_latest_canvas`, inspect source readiness, and call `export_canvas` with `format: "codex"`.
 

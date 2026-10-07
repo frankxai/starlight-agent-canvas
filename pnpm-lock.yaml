@@ -19,6 +19,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      smol-toml:
+        specifier: 1.9.0
+        version: 1.9.0
     devDependencies:
       '@types/node':
         specifier: ^22.20.1
@@ -1830,6 +1834,10 @@ packages:
       react:
         optional: true
 
+  smol-toml@1.9.0:
+    resolution: {integrity: sha512-hpd+HLON7HdZXqYchMM/+LaTTbdK0AU3NngIJ4KVyWbY9bfQqdL9cD+4yf6dUoU2Ap4VsU0JkQi6FxAI1B2mXQ==}
+    engines: {node: ">= 18"}
+
 snapshots:
 
   '@ai-sdk/gateway@4.0.76(zod@4.5.4)':
@@ -3257,3 +3265,5 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.18
       react: 19.2.8
+
+  smol-toml@1.9.0: {}

@@ -23,12 +23,13 @@ pnpm mcp:install:codex
 pnpm mcp:install:codex -- --write
 ```
 
-`pnpm mcp:install:codex` is a dry-run by default. Add `-- --write` only when you want it to update `~/.codex/config.toml`. The installed block shape is:
+`pnpm mcp:install:codex` is a dry-run by default. Add `-- --write` only when you want it to update `~/.codex/config.toml`. New registrations remain disabled until the selected task enables Canvas. Existing explicit activation and custom controls are preserved. The new block shape is:
 
 ```toml
 [mcp_servers.starlight-agent-canvas]
 command = 'path\to\node.exe'
 args = ["/absolute/path/to/starlight-agent-canvas/packages/mcp/dist/cli.js"]
+enabled = false
 startup_timeout_sec = 60
 
 [mcp_servers.starlight-agent-canvas.env]
@@ -40,7 +41,7 @@ It verifies that Codex has the `starlight-agent-canvas` server/env blocks and th
 It also verifies that the built core/MCP artifacts include the current video and image node/tool schema, which catches stale MCP builds after source media support changes.
 Run `pnpm mcp:codex:smoke` when you want non-mutating proof that the Codex installer, doctor, and MCP launch path agree: the smoke script writes a temporary `config.toml`, uses a temporary canvas home, verifies it with `doctor --config`, launches the configured server from outside the repo, calls `tools/list` and `list_canvases`, and removes the temporary files.
 If a running Codex session can discover `starlight-agent-canvas` tools but tool calls fail with `Transport closed`, run `pnpm mcp:codex:smoke` to prove the config/launch path and restart Codex so the app reloads MCP servers.
-After restart, the acceptance proof is concrete: ask Codex to list the `starlight-agent-canvas` tools, call `get_latest_canvas`, inspect `sourceReadiness`, then call `export_canvas` with `format: "codex"`. If that works, the human canvas and Codex are using the same local context loop.
+Launch the selected task with `codex -c mcp_servers.starlight-agent-canvas.enabled=true` (or the installed `codex-canvas` task wrapper in Starlight). This override leaves the base file unchanged. The CLI override does not configure ChatGPT cloud or existing app sessions. In that task, the acceptance proof is concrete: ask Codex to list the `starlight-agent-canvas` tools, call `get_latest_canvas`, inspect `sourceReadiness`, then call `export_canvas` with `format: "codex"`. If that works, the human canvas and Codex are using the same local context loop.
 The in-app `Setup / MCP` panel also exposes the activation runway and a copyable Codex activation prompt backed by `/api/setup/status`.
 It also exposes the First Success contract so Codex and the human share the same install/open/capture/inspect/handoff/Codex loop.
 It also exposes the Agent toolbelt so the human can see the MCP sequence Codex should use: `get_latest_canvas`, `ingest_anything`, `enrich_source_node`, `run_node_action`, and `export_canvas`.
@@ -209,3 +210,15 @@ Return only claims supported by the selected node/chunk ids.
 - Tools do not post externally, spend money, mutate accounts, or delete canvases.
 - URL ingestion blocks private/localhost targets by default.
 - Provider-backed AI is intentionally deferred; v0.1 actions are deterministic.
+
+## Preserving configuration and recovery
+
+The installer manages only the stdio `command` and single CLI `args` path. It adds a missing timeout and data home. An existing omitted `enabled` remains omitted, preserving Codex's default enabled state. Only a new registration gets `enabled = false`. It preserves an existing home even if the current shell has a different `AGENT_CANVAS_HOME`; align the app with that existing home explicitly before use. Existing activation, tool approval/restriction tables, custom env and other configuration retain their parsed values. Uniform LF/CRLF configs retain unchanged comments and line endings; mixed endings and a BOM hold for manual editing. Managed launcher lines may lose their own trailing comment.
+
+A maintained, pinned [smol-toml parser](https://github.com/squirrelchat/smol-toml) validates the entire input and output and checks that only the planned values changed. Quoted/dotted managed keys, multiline launcher values, ambiguous tables, custom argument lists and an HTTP entry require a manual edit. Invalid configs and missing built CLI hold without replacement. Dry-run prints the target, managed launcher, activation, home and original SHA256; private custom fields are omitted. Use `--expected-sha <hash>` with `--write` to bind publication to the inspected input.
+
+Writes take an exclusive cooperative installer lock, flush a same-directory temporary file and byte-exact backup requested with mode0600, recheck the input hash, then publish and verify the result. New files use no-clobber hard-link publication; unsupported filesystems hold. If removing the owned temporary hard link fails, publication is still verified through that exact matching file identity and reported successful with a warning naming the retained path. Another install holds until that specific temporary name is inspected and removed; the canonical config remains intact. Existing-file replacement is atomic, but an unrelated editor does not share this lock and could write in the check/rename window. Keep other config writers idle. This is not a filesystem compare-and-swap guarantee. Config symlinks/hardlinks and read-only files are refused. Atomic replacement preserves requested POSIX mode but does not preserve custom ACLs, xattrs or other ownership metadata. On Windows, mode0600 does not prove owner-only access: inherited directory ACLs govern backup and temporary-file access. Use manual editing if custom file ACLs must be retained. Backups may contain private env values and are never automatically pruned. Publication success and cleanup warnings are separate; a busy owned lock is retained and named for inspection. On failure inspect the actual config and backup. Never restore a backup over another writer's changes without reconciling them. An interrupted process can leave `.canvas-install.lock`; inspect its owner before manually recovering, never remove it by age.
+
+`pnpm test:codex-config` runs in Linux and Windows CI and checks preservation, ambiguous/malicious layouts, quoted paths, retries and cooperative concurrency on temporary files. `pnpm mcp:codex:smoke` directly launches the configured stdio transport despite the disabled base entry. Its result labels that scope. It does not start Codex or prove tool discovery in an actual task. Doctor reports base activation separately from path health. The installed user's source revision and native activation still need real verification.
+
+Codex's [configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference) documents `enabled`, tool controls and environment settings. No global activation, native history change or application restart is performed by this installer.

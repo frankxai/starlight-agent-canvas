@@ -222,7 +222,7 @@ pnpm mcp:smoke
 pnpm mcp:codex:smoke
 ```
 
-`pnpm mcp:install:codex` is a dry-run. It prints the target config path and the exact TOML block. Add `-- --write` to install or replace only the `starlight-agent-canvas` MCP sections in Codex config, preserving unrelated settings and creating a backup first.
+`pnpm mcp:install:codex` previews the target, managed launcher, activation, home and original SHA256 without logging custom config values. `-- --write` updates the launcher while preserving existing activation, controls and data home; new registrations default to `enabled = false`. `--expected-sha <hash>` binds the write to the inspected input. Unsupported edits hold. Launch only the selected task with `codex -c mcp_servers.starlight-agent-canvas.enabled=true`, then verify actual tool calls. See [configuration preservation and recovery](codex-integration.md#preserving-configuration-and-recovery) for lock, backup and concurrent-editor limits.
 Run `pnpm mcp:codex:smoke` before writing when you want non-mutating proof that the generated block is parseable by `doctor` and can launch a working MCP server.
 
 Use generated config for real MCP clients because it prints absolute paths for the current machine:

@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { parseCodexConfig } from './codex-config.mjs';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { spawn, spawnSync } from 'node:child_process';
 import os from 'node:os';
@@ -36,52 +37,12 @@ function assertCheck(parsed, label) {
   return check.detail;
 }
 
-function section(raw, name) {
-  const lines = raw.split(/\r?\n/);
-  const collected = [];
-  let inSection = false;
-  for (const line of lines) {
-    const match = line.match(/^\s*\[([^\]]+)\]\s*$/);
-    if (match) {
-      if (inSection) break;
-      inSection = match[1].trim() === name;
-      continue;
-    }
-    if (inSection) collected.push(line);
-  }
-  return collected.join('\n');
-}
-
-function parseTomlString(block, key) {
-  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = block.match(new RegExp(`^\\s*${escaped}\\s*=\\s*(['"])([\\s\\S]*?)\\1\\s*$`, 'm'));
-  return match?.[2];
-}
-
-function parseTomlArrayStrings(block, key) {
-  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = block.match(new RegExp(`^\\s*${escaped}\\s*=\\s*\\[([\\s\\S]*?)\\]\\s*$`, 'm'));
-  if (!match) return [];
-  return [...match[1].matchAll(/(['"])([\s\S]*?)\1/g)].map((item) => item[2]);
-}
-
-function parseTomlEnv(block) {
-  const env = {};
-  for (const line of block.split(/\r?\n/)) {
-    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(['"])([\s\S]*?)\2\s*$/);
-    if (match) env[match[1]] = match[3];
-  }
-  return env;
-}
-
 async function callConfiguredMcp(configPathForLaunch) {
   const raw = await readFile(configPathForLaunch, 'utf8');
-  const serverBlock = section(raw, 'mcp_servers.starlight-agent-canvas');
-  const envBlock = section(raw, 'mcp_servers.starlight-agent-canvas.env');
-  const command = parseTomlString(serverBlock, 'command');
-  const args = parseTomlArrayStrings(serverBlock, 'args');
-  const env = parseTomlEnv(envBlock);
-  if (!command || !args.length || !env.AGENT_CANVAS_HOME) {
+  const server = parseCodexConfig(raw).mcp_servers?.['starlight-agent-canvas'];
+  const { command, args, env } = server ?? {};
+  if (server?.enabled !== false) throw new Error('New Codex registration must remain disabled by default.');
+  if (typeof command !== 'string' || !Array.isArray(args) || !args.length || !env?.AGENT_CANVAS_HOME) {
     throw new Error('Could not parse command, args, or AGENT_CANVAS_HOME from generated Codex config.');
   }
 
@@ -95,6 +56,7 @@ async function callConfiguredMcp(configPathForLaunch) {
     windowsHide: true,
   });
 
+  const closed = new Promise(resolve => child.once('close', resolve));
   let nextId = 1;
   let stdoutBuffer = '';
   let stderr = '';
@@ -205,6 +167,9 @@ async function callConfiguredMcp(configPathForLaunch) {
   } finally {
     child.stdin.end();
     child.kill();
+    let timer;
+    await Promise.race([closed, new Promise(resolve => { timer = setTimeout(resolve, 5000); })]);
+    clearTimeout(timer);
   }
 }
 
@@ -228,6 +193,8 @@ try {
   console.log(JSON.stringify({
     ok: true,
     configPath,
+    scope: 'configured stdio transport; native Codex activation is not exercised',
+    baseEnabled: false,
     canvasHome,
     configuredCliPath,
     configuredHome,
@@ -236,6 +203,6 @@ try {
   }, null, 2));
 } finally {
   if (!keepTemp) {
-    await rm(tempRoot, { recursive: true, force: true });
+    await rm(tempRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   }
 }
