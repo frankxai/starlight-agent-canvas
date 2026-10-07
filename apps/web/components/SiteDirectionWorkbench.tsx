@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import type { WebsitePlan, WebsiteSelection } from '@starlight-agent-canvas/core';
-import { parseWebsitePlan, parseWebsiteDraft } from '@starlight-agent-canvas/core/website';
+import type { WebsiteMediaReport, WebsitePlan, WebsiteSelection } from '@starlight-agent-canvas/core';
+import { parseWebsitePlan, parseWebsiteDraft, websiteMediaReportMatches } from '@starlight-agent-canvas/core/website';
+import WebsiteMediaEvidence from './WebsiteMediaEvidence';
 
 type PlanRecord = { plan: WebsitePlan; planHash: string; nodeId: string; selection?: WebsiteSelection; selectionVerified: boolean; gaps: string[] };
 type PlanState = { record: PlanRecord | null; unavailable?: { canvasHash: string; reason: string } | null };
@@ -23,10 +24,10 @@ function downloadDraft(plan: WebsitePlan) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function Field({ label, value, onChange, multiline = false }: { label: string; value: string; onChange: (value: string) => void; multiline?: boolean }) {
+function Field({ label, value, onChange, multiline = false, maxLength = 4000 }: { label: string; value: string; onChange: (value: string) => void; multiline?: boolean; maxLength?: number }) {
   const fieldId = useId();
   return <label className="block space-y-2 text-sm text-starlight-muted" htmlFor={fieldId}>{label}
-    {multiline ? <textarea id={fieldId} className={`${control} min-h-24 resize-y leading-6`} value={value} maxLength={4000} onChange={(event) => onChange(event.target.value)} /> : <input id={fieldId} className={control} value={value} maxLength={4000} onChange={(event) => onChange(event.target.value)} />}
+    {multiline ? <textarea id={fieldId} className={`${control} min-h-24 resize-y leading-6`} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} /> : <input id={fieldId} className={control} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} />}
   </label>;
 }
 
@@ -39,7 +40,12 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
   const draftStoreHeld = useRef(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [record, setRecord] = useState<PlanRecord | null>(null);
-  const [draft, setDraft] = useState<WebsitePlan>();
+  const [draft, setDraftState] = useState<WebsitePlan>();
+  const latestDraft = useRef<WebsitePlan | undefined>(undefined);
+  const mediaCheckOwner = useRef<string | null>(null);
+  const [mediaBusy, setMediaBusy] = useState(false);
+  // File checks finish asynchronously; always attach to the latest edited plan.
+  function setDraft(value: WebsitePlan | undefined) { latestDraft.current = value; setDraftState(value); }
   const [backups, setBackups] = useState<WebsitePlan[]>([]);
   const [unavailable, setUnavailable] = useState<PlanState['unavailable']>();
   const [expectedHash, setExpectedHash] = useState<string>();
@@ -103,6 +109,24 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
   function edit(change: (next: WebsitePlan) => void) {
     if (!draft) return;
     const next = structuredClone(draft); change(next); if (next.origin === 'authored_example') next.origin = 'edited_authored_example'; draftVersion.current += 1; setDraft(next); setDirty(true); setError('');
+  }
+  function beginMediaCheck(token: string): boolean {
+    if (mediaCheckOwner.current !== null) return false;
+    mediaCheckOwner.current = token; setMediaBusy(true); return true;
+  }
+  function endMediaCheck(token: string) {
+    if (mediaCheckOwner.current === token) { mediaCheckOwner.current = null; setMediaBusy(false); }
+  }
+  function attachMediaReport(report: WebsiteMediaReport): boolean {
+    const current = latestDraft.current;
+    const asset = current?.assets.find((item) => item.id === report.assetId);
+    if (!alive.current || !current || !asset || !websiteMediaReportMatches(asset, report)) return false;
+    const next = structuredClone(current);
+    if (next.origin === 'authored_example') next.origin = 'edited_authored_example';
+    next.assets.find((item) => item.id === report.assetId)!.mediaCheckReport = report;
+    draftVersion.current += 1; setDraft(next); setDirty(true); setError('');
+    setStatus('Local media match added to the draft. Save and choose the updated plan before exporting.');
+    return true;
   }
   async function perform(work: () => Promise<void>) {
     const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -251,7 +275,10 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
         </div>
         <div className="space-y-6">
           <section className="rounded-lg border border-starlight-border bg-starlight-panel/70 p-6"><h2 className="text-lg font-semibold">The implementation belongs here</h2><div className="mt-5 space-y-4"><Field label="Owning repository" value={draft.target.repository ?? ''} onChange={(value) => edit((next) => { next.target.repository = value || undefined; next.target.status = value ? 'resolved' : 'unresolved'; })} /><Field label="Source issue" value={draft.target.issueUrl ?? ''} onChange={(value) => edit((next) => { next.target.issueUrl = value || undefined; })} /></div></section>
-          <section className="rounded-lg border border-starlight-border p-6"><h2 className="text-lg font-semibold">Media with a reason to be here</h2>{draft.assets.length ? <ul className="mt-4 space-y-5">{draft.assets.map((asset) => <li key={asset.id} className="text-sm leading-6"><p className="break-all font-medium">{asset.reference} · {asset.status}</p><p className="text-starlight-muted">{asset.why}</p><p className="text-starlight-muted">{asset.responsive}</p><p className="text-starlight-muted">{asset.kind === 'image' ? `Alt: ${asset.alt ?? 'Missing'}` : `Transcript: ${asset.transcript ?? 'Missing'}`}</p><p className="break-all text-xs text-starlight-muted">Provenance: {asset.provenance?.sidecar ?? 'Not verified'}</p></li>)}</ul> : <p className="mt-3 text-sm leading-6 text-starlight-muted">No media proposed. Add approved references through a plan import or your agent; keep files in their existing asset home.</p>}</section>
+          <section className="rounded-lg border border-starlight-border p-6"><h2 className="text-lg font-semibold">Media with a reason to be here</h2>{draft.assets.length ? <ul className="mt-4 space-y-5">{draft.assets.map((asset) => <li key={asset.id} className="text-sm leading-6"><p className="break-all font-medium">{asset.reference} · {asset.status === 'ready' ? 'Declared ready' : 'Reference only'}</p><p className="text-starlight-muted">{asset.why}</p><p className="text-starlight-muted">{asset.responsive}</p><p className="text-starlight-muted">{asset.kind === 'image' ? `Alt: ${asset.alt ?? 'Missing'}` : `Transcript: ${asset.transcript ?? 'Missing'}`}</p><p className="break-all text-xs text-starlight-muted">Provenance: {asset.provenance?.sidecar ?? 'Not verified'}</p><details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Edit placement text and references</summary><div className="mt-3 space-y-4">
+            {(['reference', 'why', 'responsive', asset.kind === 'image' ? 'alt' : 'transcript'] as const).map((key) => <Field key={key} label={`${asset.id}: ${key === 'reference' ? 'media reference' : key === 'alt' ? 'image alternative' : key}`} multiline={key !== 'reference'} maxLength={key === 'reference' ? 512 : 4000} value={asset[key] ?? ''} onChange={(value) => edit((next) => { const changed = next.assets.find((item) => item.id === asset.id)!; changed[key] = value; if (key === 'reference') delete changed.mediaCheckReport; })} />)}
+            {(['sidecar', 'generationLedger', 'tasteLedger'] as const).map((key) => <Field key={key} label={`${asset.id}: ${key === 'sidecar' ? 'sidecar reference' : key === 'generationLedger' ? 'generation ledger reference' : 'taste ledger reference'}`} maxLength={512} value={asset.provenance?.[key] ?? ''} onChange={(value) => edit((next) => { const changed = next.assets.find((item) => item.id === asset.id)!; changed.provenance ??= { sidecar: '', generationLedger: '', tasteLedger: '' }; changed.provenance[key] = value; delete changed.mediaCheckReport; })} />)}
+          </div></details><WebsiteMediaEvidence key={JSON.stringify([draft.id, asset.id, asset.kind, asset.reference, asset.provenance])} asset={asset} disabled={busy || mediaBusy} begin={beginMediaCheck} end={endMediaCheck} attach={attachMediaReport} /></li>)}</ul> : <p className="mt-3 text-sm leading-6 text-starlight-muted">No media proposed. Add approved references through a plan import or your agent; keep files in their existing asset home.</p>}</section>
           {!!record?.gaps.length && <section className="border-l-2 border-starlight-gold pl-5"><h2 className="text-lg font-semibold">Evidence still needed</h2><ul className="mt-3 space-y-3 text-sm leading-6 text-starlight-muted">{record.gaps.map((gap) => <li key={gap}>{gap}</li>)}</ul></section>}
           {record?.selection && record.selectionVerified && !dirty && <section className="rounded-lg border border-starlight-mint/30 bg-starlight-mint/5 p-6" data-testid="selected-website-direction"><h2 className="text-lg font-semibold">A decision you can carry forward</h2><p className="mt-3 text-sm leading-6">{record.plan.options.find((option) => option.id === record.selection?.optionId)?.title}</p><p className="mt-2 break-all text-xs leading-6 text-starlight-muted">Checkpoint {record.selection.checkpointId}</p><p className="mt-3 text-sm leading-6 text-starlight-muted">This records your local choice. Implementation and release still need their own checks.</p><div className="mt-5 flex flex-wrap gap-2"><button type="button" className={button} disabled={busy} onClick={() => void exportPacket('markdown')}>Download implementation brief</button><button type="button" className={button} disabled={busy} onClick={() => void exportPacket('json')}>Download packet JSON</button></div></section>}
         </div>

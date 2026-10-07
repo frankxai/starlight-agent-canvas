@@ -1,5 +1,8 @@
 import { z } from 'zod';
 import type { CanvasRecord } from './schemas.js';
+import { websiteMediaReportMatches, websiteMediaReportSchema } from './website-media.js';
+export { checkWebsiteMedia, websiteMediaReportMatches, WEBSITE_MEDIA_MAX_BYTES, WEBSITE_MEDIA_RECORD_MAX_BYTES } from './website-media.js';
+export type { WebsiteMediaReport } from './website-media.js';
 
 const text = z.string().trim().min(1).max(4000);
 const id = z.string().min(1).max(128).regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/);
@@ -50,13 +53,17 @@ export const websitePlanSchema = z.object({
     id, sectionId: id, kind: z.enum(['image', 'video']), reference, why: text, responsive: text,
     alt: text.optional(), transcript: text.optional(), status: z.enum(['reference', 'ready']),
     provenance: z.object({ sidecar: reference, generationLedger: reference, tasteLedger: reference }).strict().optional(),
+    mediaCheckReport: websiteMediaReportSchema.optional(),
   }).strict().refine((asset) => asset.status !== 'ready' || (Boolean(asset.provenance) && (asset.kind === 'image' ? Boolean(asset.alt) : Boolean(asset.transcript))), 'Ready media needs provenance and alt text or transcript.')).max(30),
 }).strict().superRefine((plan, ctx) => {
   for (const [name, items] of Object.entries({ options: plan.options, sections: plan.sections, assets: plan.assets })) {
     if (new Set(items.map((item) => item.id)).size !== items.length) ctx.addIssue({ code: 'custom', message: `${name} IDs must be unique.`, path: [name] });
   }
   if (new Set(plan.snapshot.views.map((view) => view.viewport)).size !== plan.snapshot.views.length) ctx.addIssue({ code: 'custom', message: 'Snapshot viewports must be unique.', path: ['snapshot', 'views'] });
-  for (const asset of plan.assets) if (!plan.sections.some((section) => section.id === asset.sectionId)) ctx.addIssue({ code: 'custom', message: 'Asset placement must reference an existing section.', path: ['assets'] });
+  for (const asset of plan.assets) {
+    if (!plan.sections.some((section) => section.id === asset.sectionId)) ctx.addIssue({ code: 'custom', message: 'Asset placement must reference an existing section.', path: ['assets'] });
+    if (asset.mediaCheckReport && !websiteMediaReportMatches(asset, asset.mediaCheckReport)) ctx.addIssue({ code: 'custom', message: 'Local media report belongs to a different placement or provenance reference. Recheck the chosen files.', path: ['assets'] });
+  }
 });
 
 export type WebsitePlan = z.infer<typeof websitePlanSchema>;
@@ -86,6 +93,14 @@ export function parseWebsiteDraft(raw: unknown): WebsitePlan {
   editable(candidate.brief, ['audience', 'job', 'outcome', 'copyConstraints', 'accessibilityConstraints', 'productConstraints']);
   for (const option of candidate.options) editable(option, ['title', 'headline', 'body', 'action', 'premise', 'tradeoff']);
   for (const section of candidate.sections) { editable(section, ['copy', 'action', 'why', 'responsive']); if (typeof section.route === 'string' && section.route.length <= 4000) section.route = '/draft'; }
+  for (const asset of candidate.assets) {
+    if (asset.mediaCheckReport && (!websiteMediaReportSchema.safeParse(asset.mediaCheckReport).success || !websiteMediaReportMatches(asset, asset.mediaCheckReport))) throw new Error('Local media report needs reconciliation before draft recovery.');
+    editable(asset, ['why', 'responsive', 'alt', 'transcript']);
+    if (typeof asset.reference === 'string' && asset.reference.length <= 512) asset.reference = 'draft/media.png';
+    if (asset.provenance) for (const key of ['sidecar', 'generationLedger', 'tasteLedger'] as const) if (typeof asset.provenance[key] === 'string' && asset.provenance[key].length <= 512) asset.provenance[key] = 'draft/evidence.json';
+    // Validate an unchanged report against its original reference, not the editor placeholder.
+    if (asset.mediaCheckReport) { asset.reference = asset.mediaCheckReport.reference; if (asset.provenance) { asset.provenance.sidecar = asset.mediaCheckReport.sidecarReference; asset.provenance.generationLedger = asset.mediaCheckReport.generationLedgerReference; asset.provenance.tasteLedger = asset.mediaCheckReport.tasteLedgerReference; } }
+  }
   if (typeof candidate.target.repository === 'string' && candidate.target.repository.length <= 4000) candidate.target.repository = 'https://github.com/example/example';
   if (typeof candidate.target.issueUrl === 'string' && candidate.target.issueUrl.length <= 4000) candidate.target.issueUrl = 'https://example.com/issue';
   websitePlanSchema.parse(candidate);
@@ -107,7 +122,9 @@ export function websitePlanGaps(plan: WebsitePlan): string[] {
   if (!plan.target.issueUrl) gaps.push('Link the source issue before implementation.');
   for (const section of plan.sections) if (!section.files.length) gaps.push(`${section.label}: resolve proposed repository files.`);
   for (const viewport of ['desktop', 'mobile']) if (!plan.snapshot.views.some((view) => view.viewport === viewport && view.status === 'captured')) gaps.push(`Attach a verified ${viewport} capture; source observations are available.`);
-  for (const asset of plan.assets) gaps.push(`${asset.reference}: verify the actual asset and its provenance references${asset.status === 'ready' ? ' (declared ready)' : `, and supply ${asset.kind === 'image' ? 'alt text' : 'transcript'}`} before use.`);
+  for (const asset of plan.assets) gaps.push(asset.mediaCheckReport
+    ? `${asset.reference}: local file match reported ${asset.mediaCheckReport.checkedAt}. Verify source location, generator, licensing, playback and publication; this report and readiness remain local declarations.`
+    : `${asset.reference}: verify the actual asset and its provenance references${asset.status === 'ready' ? ' (declared ready)' : `, and supply ${asset.kind === 'image' ? 'alt text' : 'transcript'}`} before use.`);
   return gaps;
 }
 

@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page, type TestInfo } from '@playwright/test';
 
 test('website directions preserve edits, record a choice and export a source-backed brief', async ({ page }, testInfo) => {
   const created = await page.request.post('/api/canvases', { data: { title: `Website ${testInfo.project.name} ${Date.now()}`, template: 'blank' } });
@@ -53,6 +53,131 @@ test('website directions preserve edits, record a choice and export a source-bac
   const storedCanvas = await page.request.get(`/api/canvases/${canvas.id}`);
   const stored = (await storedCanvas.json()).canvas;
   expect(stored.nodes.filter((node: { metadata: { entityType?: string } }) => node.metadata.entityType === 'design_option')).toHaveLength(3);
+});
+
+async function mediaFixture(page: Page, testInfo: TestInfo) {
+  const created = await page.request.post('/api/canvases', { data: { title: `Media ${testInfo.project.name} ${Date.now()}`, template: 'blank' } });
+  await expect(created).toBeOK(); const { canvas } = await created.json();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(`/website/${canvas.id}`);
+  await page.getByRole('button', { name: 'Load authored example' }).click();
+  await page.getByRole('button', { name: 'Save website plan', exact: true }).click();
+  await expect(page.getByRole('status').first()).toContainText('Plan saved locally');
+  const { record } = await (await page.request.get(`/api/canvases/${canvas.id}/website`)).json();
+  const fileName = 'mobile-supported-input-first-viewport.png';
+  const media = await readFile(new URL(`../../../docs/visual-qa/${fileName}`, import.meta.url));
+  const asset = { id: 'browser-media', sectionId: 'hero', kind: 'image', reference: `evidence/${fileName}`, why: 'Show the source and artifact workspace.', responsive: 'Keep a text alternative on narrow screens.', alt: 'Existing Canvas source and artifact controls.', status: 'reference', provenance: { sidecar: `evidence/${fileName}.vis.provenance.json`, generationLedger: 'evidence/generation.jsonl', tasteLedger: 'evidence/taste.jsonl' } };
+  // These matching records test comparison only. They are not original capture
+  // provenance, a canonical ledger lookup or a human preference.
+  const sidecar = { asset: { id: 'owned-capture-fixture', sha256: createHash('sha256').update(media).digest('hex'), media_type: 'image/png', relative_path: fileName }, generation: { provider: 'Synthetic fixture for an existing owned capture', model: null, seed: null, prompt: 'Fixture comparison; no original generation proof asserted.' }, agent: { harness: 'test', session: 'synthetic-fixture' } };
+  const generation = { ...sidecar, record_id: 'fixture:browser-media' };
+  const taste = { record_id: generation.record_id, sha256: sidecar.asset.sha256, preference: null };
+  await page.getByLabel('Import website plan').setInputFiles({ name: 'media-plan.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify({ ...record.plan, assets: [asset] })) });
+  const section = page.locator('section').filter({ has: page.getByRole('heading', { name: 'Media with a reason to be here', exact: true }) });
+  await section.getByText('Check local media evidence', { exact: true }).click();
+  const files = {
+    'Existing image or video': { name: fileName, mimeType: 'image/png', buffer: media },
+    'Provenance sidecar': { name: 'sidecar.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(sidecar)) },
+    'One generation-ledger record': { name: 'generation.jsonl', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(generation)) },
+    'One taste-ledger record': { name: 'taste.jsonl', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(taste)) },
+  };
+  for (const [label, file] of Object.entries(files)) await section.getByLabel(label, { exact: true }).setInputFiles(file);
+  return { canvas, section, files, sidecar };
+}
+
+test('local media reports preserve edits, reject mismatches and travel through saved choice and export', async ({ page }, testInfo) => {
+  const { canvas, section, files, sidecar } = await mediaFixture(page, testInfo);
+  await section.getByText('Edit placement text and references', { exact: true }).click();
+  await section.getByLabel('browser-media: image alternative', { exact: true }).fill('The source list beside an editable artifact.');
+  await section.getByRole('button', { name: 'Check selected files', exact: true }).click();
+  await expect(section.getByTestId('local-media-report')).toContainText(sidecar.asset.sha256);
+  await expect(section.getByTestId('local-media-report')).toContainText('publication remain unverified');
+  await expect(section).toContainText('Reference only');
+  await page.getByRole('button', { name: 'Save website plan', exact: true }).click();
+  await expect(page.getByRole('status').first()).toContainText('Plan saved locally');
+  const choose = page.getByRole('button', { name: 'Choose The open workshop', exact: true });
+  await choose.focus(); await page.keyboard.press('Enter'); await expect(choose).toBeFocused();
+  await expect(page.getByTestId('selected-website-direction')).toBeVisible();
+  const exported = await page.request.get(`/api/canvases/${canvas.id}/website/export`); await expect(exported).toBeOK();
+  const packet = await exported.json();
+  expect(packet.assets[0].mediaCheckReport.assetSha256).toBe(sidecar.asset.sha256);
+  expect(packet.assets[0].alt).toBe('The source list beside an editable artifact.');
+  expect(packet.assets[0].status).toBe('reference');
+  expect(packet.gaps.join(' ')).toContain('licensing');
+  expect(JSON.stringify(packet)).not.toContain(sidecar.generation.prompt);
+  const markdown = await page.request.get(`/api/canvases/${canvas.id}/website/export?format=markdown`);
+  expect(await markdown.text()).toContain(sidecar.asset.sha256);
+
+  await section.getByLabel('Provenance sidecar', { exact: true }).setInputFiles({ ...files['Provenance sidecar'], buffer: Buffer.from(JSON.stringify({ ...sidecar, asset: { ...sidecar.asset, sha256: '0'.repeat(64) } })) });
+  await section.getByRole('button', { name: 'Check selected files', exact: true }).click();
+  await expect(section.getByRole('alert')).toContainText('does not match the sidecar');
+  await expect(section.getByTestId('local-media-report')).toContainText(sidecar.asset.sha256);
+  await expect(page.getByTestId('selected-website-direction')).toBeVisible();
+  await section.getByLabel('Provenance sidecar', { exact: true }).setInputFiles([]);
+  await section.getByRole('button', { name: 'Check selected files', exact: true }).click();
+  await expect(section.getByRole('alert')).toContainText('Choose the media, sidecar');
+  await page.reload();
+  await expect(section.getByTestId('local-media-report')).toContainText(sidecar.asset.sha256);
+  await section.getByText('Check local media evidence', { exact: true }).click();
+  expect(await section.getByLabel('Existing image or video', { exact: true }).evaluate((input: HTMLInputElement) => input.files?.length)).toBe(0);
+
+  for (const width of [375, 768, 1440]) {
+    await page.setViewportSize({ width, height: 950 });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    const capture = testInfo.outputPath(`website-media-${width}.png`);
+    await section.screenshot({ path: capture });
+    const bytes = await readFile(capture);
+    await writeFile(`${capture}.vis.provenance.json`, JSON.stringify({
+      $schema: 'https://frankx.ai/schemas/vis-provenance-sidecar.schema.json', schema_version: '1.0.0',
+      asset: { id: `website-media-${testInfo.project.name}-${width}`, version: 1, media_type: 'image/png', sha256: createHash('sha256').update(bytes).digest('hex'), relative_path: `website-media-${width}.png` },
+      generation: { provider: 'Playwright browser capture / GitHub Actions', model: null, seed: null, prompt: 'Capture the actual media evidence inspector after local byte comparison, saved checkpoint-linked export, mismatch rejection and reload. Synthetic comparison metadata; no model generation, customer approval or original media provenance asserted.', settings: { revision: process.env.GITHUB_SHA ?? null, project: testInfo.project.name, width, reduced_motion: true }, created_at: new Date().toISOString(), output_paths: [`website-media-${width}.png`] },
+      agent: { harness: 'Codex', session: '01a113ec-1c95-70a0-84eb-ae2b8aae03a3' },
+      evaluation: { schema_validation: 'No external schema validation claimed.', visual_inspection: 'Pending actual capture inspection.' }, rights: { source: 'Owned authored synthetic test fixture', public_release: false },
+    }, null, 2));
+    await testInfo.attach(`website-media-${width}`, { path: capture, contentType: 'image/png' });
+  }
+});
+
+test('cancelled and late media checks retain the latest draft and discard changed placement results', async ({ page }, testInfo) => {
+  const { canvas, section, sidecar } = await mediaFixture(page, testInfo);
+  // A finite controlled digest delay exercises actual component cleanup and
+  // attachment. No application test hook or replacement checker is introduced.
+  await page.evaluate(() => {
+    const state = window as unknown as { holdMediaDigest?: boolean; releaseMediaDigest?: () => void; mediaDigestWaiting?: boolean };
+    const original = crypto.subtle.digest.bind(crypto.subtle);
+    Object.defineProperty(crypto.subtle, 'digest', { value: async (...args: Parameters<SubtleCrypto['digest']>) => {
+      if (state.holdMediaDigest) {
+        state.holdMediaDigest = false; state.mediaDigestWaiting = true;
+        await new Promise<void>((resolve) => { state.releaseMediaDigest = () => { state.mediaDigestWaiting = false; resolve(); }; });
+      }
+      return original(...args);
+    } });
+  });
+  const hold = async () => page.evaluate(() => { (window as unknown as { holdMediaDigest: boolean }).holdMediaDigest = true; });
+  const waiting = async () => expect.poll(() => page.evaluate(() => Boolean((window as unknown as { mediaDigestWaiting: boolean }).mediaDigestWaiting))).toBe(true);
+  const release = async () => page.evaluate(() => (window as unknown as { releaseMediaDigest: () => void }).releaseMediaDigest());
+  await hold(); await section.getByRole('button', { name: 'Check selected files', exact: true }).click(); await waiting();
+  await page.getByLabel('Plan title', { exact: true }).fill('Latest title survives cancellation');
+  await section.getByRole('button', { name: 'Cancel check', exact: true }).click(); await release();
+  await expect(section.getByRole('alert')).toContainText('Check cancelled');
+  await expect(section.getByTestId('local-media-report')).toHaveCount(0);
+  await expect(page.getByLabel('Plan title', { exact: true })).toHaveValue('Latest title survives cancellation');
+  await hold(); await section.getByRole('button', { name: 'Check selected files', exact: true }).click(); await waiting();
+  await page.getByLabel('Plan title', { exact: true }).fill('Copy edited while hashing'); await release();
+  await expect(section.getByTestId('local-media-report')).toContainText(sidecar.asset.sha256);
+  await expect(page.getByLabel('Plan title', { exact: true })).toHaveValue('Copy edited while hashing');
+  await hold(); await section.getByRole('button', { name: 'Check selected files', exact: true }).click(); await waiting();
+  await section.getByText('Edit placement text and references', { exact: true }).click();
+  await section.getByLabel('browser-media: media reference', { exact: true }).fill(''); await release();
+  await expect(section.getByTestId('local-media-report')).toHaveCount(0);
+  await expect.poll(() => page.evaluate((id) => sessionStorage.getItem(`starlight.website.draft.v1:${id}`), canvas.id)).toContain('Copy edited while hashing');
+  await page.reload();
+  await expect(page.getByRole('status').first()).toContainText('Recovered an unsaved draft');
+  await section.getByText('Edit placement text and references', { exact: true }).click();
+  await expect(section.getByLabel('browser-media: media reference', { exact: true })).toHaveValue('');
+  await expect(page.getByLabel('Plan title', { exact: true })).toHaveValue('Copy edited while hashing');
+  await page.getByRole('button', { name: 'Save website plan', exact: true }).click();
+  await expect(page.getByTestId('site-directions').getByRole('alert')).toContainText('reference');
 });
 
 test('conflicts and invalid imports keep the draft and deny cross-origin changes', async ({ page }, testInfo) => {
