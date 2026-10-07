@@ -45,7 +45,9 @@
     "mcp:codex:smoke": "pnpm mcp:build && node scripts/codex-config-smoke.mjs",
     "mcp:smoke": "pnpm mcp:build && node packages/mcp/scripts/smoke.mjs",
     "mcp:start": "pnpm --filter @starlight-agent-canvas/mcp start",
-    "test:codex-config": "node --test scripts/codex-config.test.mjs"
+    "test:codex-config": "node --test scripts/codex-config.test.mjs",
+    "test:portable-mcp": "node --test scripts/portable-mcp.test.mjs",
+    "mcp:package": "node scripts/portable-mcp.mjs"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

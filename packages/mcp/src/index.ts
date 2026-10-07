@@ -6,8 +6,9 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { canvasIdSchema, canvasRecordSchema, exportFormatSchema, websitePlanSchema } from '@starlight-agent-canvas/core';
 import { createToolHandlers } from './tool-handlers.js';
+import { guideResources } from './guides.js';
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
+const guideRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), 'guides');
 
 const READ_ONLY_LOCAL = {
   readOnlyHint: true,
@@ -30,81 +31,12 @@ const SAFE_NETWORK_SOURCE_INTAKE = {
   openWorldHint: true,
 };
 
-async function readRepoDoc(relativePath: string): Promise<string> {
-  return readFile(path.join(repoRoot, relativePath), 'utf8');
+async function readPackagedGuide(relativePath: string): Promise<string> {
+  return readFile(path.join(guideRoot, path.basename(relativePath)), 'utf8');
 }
 
 function registerGuideResources(server: McpServer) {
-  const resources = [
-    {
-      name: 'mcp-setup',
-      uri: 'starlight-agent-canvas://docs/mcp-setup',
-      title: 'MCP Setup',
-      file: 'docs/mcp-setup.md',
-    },
-    {
-      name: 'install',
-      uri: 'starlight-agent-canvas://docs/install',
-      title: 'Install And First Run',
-      file: 'docs/install.md',
-    },
-    {
-      name: 'prd',
-      uri: 'starlight-agent-canvas://docs/prd',
-      title: 'Product Requirements',
-      file: 'docs/prd.md',
-    },
-    {
-      name: 'user-flows',
-      uri: 'starlight-agent-canvas://docs/user-flows',
-      title: 'User Flows',
-      file: 'docs/user-flows.md',
-    },
-    {
-      name: 'codex-integration',
-      uri: 'starlight-agent-canvas://docs/codex-integration',
-      title: 'Codex Integration',
-      file: 'docs/codex-integration.md',
-    },
-    {
-      name: 'operator-loop',
-      uri: 'starlight-agent-canvas://docs/operator-loop',
-      title: 'Operator Loop',
-      file: 'docs/operator-loop.md',
-    },
-    {
-      name: 'first-success',
-      uri: 'starlight-agent-canvas://docs/first-success',
-      title: 'First Success Contract',
-      file: 'docs/first-success.md',
-    },
-    {
-      name: 'demo-walkthrough',
-      uri: 'starlight-agent-canvas://docs/demo-walkthrough',
-      title: 'Demo Walkthrough',
-      file: 'docs/demo-walkthrough.md',
-    },
-    {
-      name: 'technology-stack',
-      uri: 'starlight-agent-canvas://docs/technology-stack',
-      title: 'Technology Stack',
-      file: 'docs/technology-stack.md',
-    },
-    {
-      name: 'production-readiness',
-      uri: 'starlight-agent-canvas://docs/production-readiness',
-      title: 'Production Readiness',
-      file: 'docs/production-readiness.md',
-    },
-    {
-      name: 'readiness-evidence',
-      uri: 'starlight-agent-canvas://docs/readiness-evidence',
-      title: 'Readiness Evidence',
-      file: 'docs/readiness-evidence.md',
-    },
-  ];
-
-  for (const resource of resources) {
+  for (const resource of guideResources) {
     server.registerResource(
       resource.name,
       resource.uri,
@@ -117,7 +49,7 @@ function registerGuideResources(server: McpServer) {
         contents: [{
           uri: uri.toString(),
           mimeType: 'text/markdown',
-          text: await readRepoDoc(resource.file),
+          text: await readPackagedGuide(resource.file),
         }],
       }),
     );

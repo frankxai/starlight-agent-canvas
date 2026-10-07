@@ -6,6 +6,53 @@ on:
     branches: [main]
 
 jobs:
+  portable-mcp:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:portable-mcp
+      - name: Deploy and verify production MCP outside the source checkout
+        id: package
+        run: pnpm mcp:package "${{ runner.temp }}/canvas-runtime"
+      - name: Upload only verified regular-file runtime
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: canvas-mcp-${{ matrix.os }}-node24
+          path: ${{ runner.temp }}/canvas-runtime/
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error
+      - name: Receive the actual uploaded artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: canvas-mcp-${{ matrix.os }}-node24
+          path: ${{ runner.temp }}/received-artifact/
+      - name: Check the received bytes against the pre-upload receipt
+        run: node scripts/runtime-integrity.mjs "${{ runner.temp }}/received-artifact" "${{ steps.package.outputs.sourceCommit }}" "${{ steps.package.outputs.manifestSha256 }}"
+      - name: Exercise received MCP tools and all packaged guides
+        run: node "${{ runner.temp }}/received-artifact/smoke.mjs"
+        working-directory: ${{ runner.temp }}
+        env:
+          AGENT_CANVAS_HOME: ${{ runner.temp }}/received-smoke-private-data
+          CANVAS_SMOKE_CLI: ${{ runner.temp }}/received-artifact/dist/cli.js
+          CANVAS_SMOKE_CWD: ${{ runner.temp }}
+          NODE_OPTIONS: ''
+          NODE_PATH: ''
   installer-windows:
     runs-on: windows-latest
     timeout-minutes: 10
@@ -20,6 +67,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:codex-config
+      - run: pnpm test:portable-mcp
   verify:
     runs-on: ubuntu-latest
     strategy:
@@ -37,6 +85,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:codex-config
+      - run: pnpm test:portable-mcp
       - run: pnpm mcp:build
       - run: pnpm doctor
       - run: pnpm doctor:json
