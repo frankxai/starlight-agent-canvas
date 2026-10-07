@@ -30,7 +30,7 @@ export function canonicalJson(value: unknown): string {
 }
 
 export function canvasContentHash(canvas: CanvasRecord): string {
-  return createHash('sha256').update(canonicalJson(canvasRecordSchema.parse(canvas))).digest('hex');
+  return createHash('sha256').update(canonicalJson(canvas)).digest('hex');
 }
 
 export function validateCheckpoint(raw: unknown, canvasId: string, checkpointId: string): CanvasCheckpoint {
@@ -38,10 +38,25 @@ export function validateCheckpoint(raw: unknown, canvasId: string, checkpointId:
   if (checkpoint.canvasId !== canvasId || checkpoint.snapshot.id !== canvasId || checkpoint.id !== checkpointId) {
     throw new Error('Checkpoint identity does not match the requested canvas and checkpoint.');
   }
-  if (canvasContentHash(checkpoint.snapshot) !== checkpoint.contentHash) {
+  const storedHash = createHash('sha256').update(canonicalJson((raw as { snapshot: unknown }).snapshot)).digest('hex');
+  if (storedHash !== checkpoint.contentHash) {
     throw new Error('Checkpoint content hash does not match its snapshot.');
   }
   return checkpoint;
+}
+
+/** A review projection, never a replacement for the exact stored snapshot. */
+export function checkpointReviewView<T>(value: T): T {
+  function project(item: unknown): unknown {
+    if (typeof item === 'string') {
+      if (item.startsWith('data:')) return `[Embedded media: ${Math.ceil(item.length / 1024)} KiB encoded; retained in the local snapshot]`;
+      return item.length > 8_000 ? `${item.slice(0, 8_000)}\n[Review excerpt; full text retained in the local snapshot]` : item;
+    }
+    if (Array.isArray(item)) return item.map(project);
+    if (item && typeof item === 'object') return Object.fromEntries(Object.entries(item).map(([key, child]) => [key, project(child)]));
+    return item;
+  }
+  return project(value) as T;
 }
 
 export function summarizeCheckpoint(checkpoint: CanvasCheckpoint): CheckpointSummary {
@@ -103,7 +118,8 @@ export function compareCanvasSnapshots(
     artifacts: compareRecords(before.snapshot.artifacts, after.snapshot.artifacts),
     runs: compareRecords(before.snapshot.runs, after.snapshot.runs),
   };
-  const canvasFields = ['title', 'description', 'intakeTraces'].filter((field) =>
+  const omitted = new Set(['nodes', 'edges', 'artifacts', 'runs', 'updatedAt']);
+  const canvasFields = [...new Set([...Object.keys(before.snapshot), ...Object.keys(after.snapshot)])].filter((field) => !omitted.has(field)).filter((field) =>
     canonicalJson(before.snapshot[field as keyof CanvasRecord]) !== canonicalJson(after.snapshot[field as keyof CanvasRecord]));
   return {
     canvasId: before.canvasId,

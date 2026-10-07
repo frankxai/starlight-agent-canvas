@@ -225,22 +225,27 @@ export class FileCanvasStore {
     }
   }
 
-  async listCheckpoints(canvasId: string): Promise<CheckpointSummary[]> {
+  async listCheckpoints(canvasId: string): Promise<{ checkpoints: CheckpointSummary[]; unreadable: Array<{ id: string; reason: string }> }> {
     const safeId = canvasIdSchema.parse(canvasId);
     await this.getCanvas(safeId);
     let files: string[];
     try {
       files = await readdir(path.dirname(this.checkpointPath(safeId, 'list')));
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') return { checkpoints: [], unreadable: [] };
       throw error;
     }
     const summaries: CheckpointSummary[] = [];
+    const unreadable: Array<{ id: string; reason: string }> = [];
     for (const file of files.filter((file) => file.endsWith('.json')).sort()) {
-      const id = canvasIdSchema.parse(file.slice(0, -5));
-      summaries.push(summarizeCheckpoint(await this.getCheckpoint(safeId, id)));
+      const id = file.slice(0, -5);
+      try {
+        summaries.push(summarizeCheckpoint(await this.getCheckpoint(safeId, canvasIdSchema.parse(id))));
+      } catch {
+        unreadable.push({ id, reason: 'This checkpoint could not be read or verified. It remains on disk; the current canvas is unchanged.' });
+      }
     }
-    return summaries.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id));
+    return { checkpoints: summaries.sort((a, b) => b.createdAt.localeCompare(a.createdAt) || a.id.localeCompare(b.id)), unreadable };
   }
 
   async compareCheckpoints(canvasId: string, beforeId: string, afterId?: string): Promise<CanvasComparison> {

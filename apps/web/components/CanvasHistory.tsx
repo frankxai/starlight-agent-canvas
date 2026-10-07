@@ -5,7 +5,9 @@ import type { CanvasCheckpoint, CanvasComparison, CheckpointSummary } from '@sta
 
 async function historyRequest<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, { ...init, cache: 'no-store', signal: AbortSignal.timeout(15_000) });
-  const body = await response.json();
+  let body;
+  try { body = await response.json(); }
+  catch { throw new Error('History returned an unreadable response. Refresh the list and try again.'); }
   if (!response.ok) throw new Error(body.error ?? 'History could not be loaded. Try refreshing the list.');
   return body as T;
 }
@@ -18,6 +20,7 @@ export default function CanvasHistory({ canvasId, disabled }: { canvasId: string
   const [open, setOpen] = useState(false);
   const [label, setLabel] = useState('');
   const [checkpoints, setCheckpoints] = useState<CheckpointSummary[]>([]);
+  const [unreadable, setUnreadable] = useState<Array<{ id: string; reason: string }>>([]);
   const [before, setBefore] = useState('');
   const [after, setAfter] = useState('');
   const [comparison, setComparison] = useState<CanvasComparison>();
@@ -33,9 +36,10 @@ export default function CanvasHistory({ canvasId, disabled }: { canvasId: string
   }, []);
 
   async function loadHistory() {
-    const result = await historyRequest<{ checkpoints: CheckpointSummary[] }>(`${base}/checkpoints`);
+    const result = await historyRequest<{ checkpoints: CheckpointSummary[]; unreadable: Array<{ id: string; reason: string }> }>(`${base}/checkpoints`);
     if (!alive.current) return;
     setCheckpoints(result.checkpoints);
+    setUnreadable(result.unreadable);
     setBefore((current) => result.checkpoints.some((item) => item.id === current) ? current : result.checkpoints[0]?.id ?? '');
   }
 
@@ -58,7 +62,7 @@ export default function CanvasHistory({ canvasId, disabled }: { canvasId: string
           setOpen(!open);
           if (!open) void perform(loadHistory);
         }}>
-        <span id={`${fieldId}-heading`} className="text-sm font-semibold">History and comparison</span>
+        <span id={`${fieldId}-heading`} role="heading" aria-level={2} className="text-sm font-semibold">History and comparison</span>
         <span className="text-xs text-starlight-muted">{open ? 'Close' : 'Open'}</span>
       </button>
       {open && <div id={`${fieldId}-panel`} className="space-y-4 pt-2">
@@ -82,12 +86,18 @@ export default function CanvasHistory({ canvasId, disabled }: { canvasId: string
           <input id={`${fieldId}-label`} className={control} maxLength={120} required value={label}
             placeholder="A direction worth keeping" disabled={busy || disabled} onChange={(event) => setLabel(event.target.value)} />
           <button type="submit" disabled={busy || disabled || !label.trim()}
-            className={`${control} border-starlight-accent/40 bg-starlight-accent/10 font-semibold text-starlight-accent`}>Save checkpoint</button>
+            className="min-h-11 w-full rounded-md border border-starlight-accent/40 bg-starlight-accent/10 px-3 py-2 text-sm font-semibold text-starlight-accent disabled:opacity-50">Save checkpoint</button>
         </form>
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs text-starlight-muted">{checkpoints.length} local checkpoints</p>
+          <p className="text-xs text-starlight-muted">{checkpoints.length} local {checkpoints.length === 1 ? 'checkpoint' : 'checkpoints'}</p>
           <button type="button" className="min-h-11 px-2 text-sm text-starlight-accent" disabled={busy} onClick={() => void perform(loadHistory)}>Refresh history</button>
         </div>
+        {unreadable.length > 0 && <div role="alert" className="text-sm leading-6 text-starlight-ink">
+          {unreadable.length} {unreadable.length === 1 ? 'checkpoint could' : 'checkpoints could'} not be verified. Your current canvas and readable history are available.
+          <details><summary className="min-h-11 cursor-pointer text-starlight-muted">Inspect unavailable history</summary>
+            <ul>{unreadable.map((item) => <li key={item.id} className="break-all">{item.id}: {item.reason}</li>)}</ul>
+          </details>
+        </div>}
         {!checkpoints.length && !busy && <p className="text-sm leading-6 text-starlight-muted">Save your first checkpoint to keep the current sources, output, and connections together.</p>}
         {!!checkpoints.length && <>
           <label htmlFor={`${fieldId}-before`} className="block text-xs text-starlight-muted">Compare from</label>
@@ -124,11 +134,11 @@ export default function CanvasHistory({ canvasId, disabled }: { canvasId: string
           {comparison.unchanged && <p className="text-sm text-starlight-muted">No graph or content changes.</p>}
           {!!comparison.canvasFields.length && <p className="text-sm">Canvas changed: {comparison.canvasFields.join(', ')}</p>}
           {Object.entries(comparison.collections).map(([collection, changes]) => changes.length > 0 && <div key={collection}>
-            <h3 className="text-xs text-starlight-muted">{collection}: {changes.length} changes</h3>
+            <h3 className="text-xs text-starlight-muted">{collection === 'artifacts' ? 'Sources' : collection}: {changes.length} {changes.length === 1 ? 'change' : 'changes'}</h3>
             {changes.map((change) => <details key={change.id} className="border-b border-starlight-border py-2">
               <summary className="min-h-11 cursor-pointer text-sm leading-6">{change.title}: {change.positionOnly ? 'position changed' : change.kind}</summary>
               {!!change.fields.length && <p className="text-xs leading-5 text-starlight-muted">Changed fields: {change.fields.join(', ')}</p>}
-              <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-all pt-2 text-xs leading-5">{JSON.stringify({ before: change.before, after: change.after }, null, 2)}</pre>
+              <pre tabIndex={0} role="region" aria-label={`${change.title} record changes`} className="max-h-72 overflow-auto whitespace-pre-wrap break-all pt-2 text-xs leading-5">{JSON.stringify({ before: change.before, after: change.after }, null, 2)}</pre>
             </details>)}
           </div>)}
           <details><summary className="min-h-11 cursor-pointer text-xs text-starlight-muted">Exact input hashes</summary>
@@ -138,7 +148,7 @@ export default function CanvasHistory({ canvasId, disabled }: { canvasId: string
         {snapshot && <div className="space-y-2">
           <h3 className="text-sm font-semibold">{snapshot.label}</h3>
           <p className="break-all text-xs leading-5 text-starlight-muted">{snapshot.contentHash}</p>
-          <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-all text-xs leading-5">{JSON.stringify(snapshot.snapshot, null, 2)}</pre>
+          <pre tabIndex={0} role="region" aria-label={`${snapshot.label} checkpoint records`} className="max-h-96 overflow-auto whitespace-pre-wrap break-all text-xs leading-5">{JSON.stringify(snapshot.snapshot, null, 2)}</pre>
         </div>}
       </div>}
     </section>

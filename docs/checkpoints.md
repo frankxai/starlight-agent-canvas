@@ -10,7 +10,9 @@ History is retained until the local owner removes it. There is no automatic prun
 
 The web interface and MCP clients read the same store. MCP exposes `create_canvas_checkpoint`, `list_canvas_checkpoints`, `get_canvas_checkpoint`, and `compare_canvas_checkpoints`. Supply an explicit canvas ID; comparison defaults to the current canvas when `afterId` is omitted. These tools neither mutate another repository nor publish a site.
 
-Missing, corrupt or mismatched history produces a visible error and never overwrites the current canvas. If a save times out, refresh history before retrying: the local operation may already have completed. Comparison reads are serialized with canvas writes so the reported input hash matches the graph inspected.
+Missing, corrupt or mismatched history produces a visible error and never overwrites the current canvas. Readable checkpoints remain available beside an unreadable item. If a save times out, refresh history before retrying: the local operation may already have completed. Comparison reads are serialized with canvas writes so the reported input hash matches the graph inspected. Writer locks are never removed because of their age; a abandoned lock requires owner reconciliation before further writes.
+
+Review views abbreviate embedded media and text over 8,000 characters to keep browser rendering and model context bounded. Their displayed content hashes identify the original stored inputs, rather than the abbreviated view. Exact snapshots remain on disk. The built-in web start and development commands bind to `127.0.0.1`.
 
 Design review:
 

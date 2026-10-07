@@ -1,28 +1,19 @@
-import { mkdir, open, rm, stat } from 'node:fs/promises';
+import { mkdir, open, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
 export interface FileLockOptions {
   timeoutMs?: number;
+  /** Deprecated: elapsed time never establishes that a writer lock is safe to remove. */
   staleMs?: number;
   retryMs?: number;
 }
 
 const DEFAULT_LOCK_TIMEOUT_MS = 10_000;
-const DEFAULT_STALE_LOCK_MS = 30_000;
 const DEFAULT_RETRY_MS = 35;
 
 function isLockContention(code: string | undefined): boolean {
   return code === 'EEXIST' || code === 'EPERM' || code === 'EACCES';
-}
-
-async function isStaleLock(lockPath: string, staleMs: number): Promise<boolean> {
-  try {
-    const lock = await stat(lockPath);
-    return Date.now() - lock.mtimeMs > staleMs;
-  } catch {
-    return false;
-  }
 }
 
 export async function withFileLock<T>(
@@ -31,7 +22,6 @@ export async function withFileLock<T>(
   options: FileLockOptions = {},
 ): Promise<T> {
   const timeoutMs = options.timeoutMs ?? DEFAULT_LOCK_TIMEOUT_MS;
-  const staleMs = options.staleMs ?? DEFAULT_STALE_LOCK_MS;
   const retryMs = options.retryMs ?? DEFAULT_RETRY_MS;
   const startedAt = Date.now();
 
@@ -49,11 +39,6 @@ export async function withFileLock<T>(
     } catch (error) {
       const code = (error as NodeJS.ErrnoException).code;
       if (!isLockContention(code)) throw error;
-
-      if (await isStaleLock(lockPath, staleMs)) {
-        await rm(lockPath, { force: true }).catch(() => undefined);
-        continue;
-      }
 
       if (Date.now() - startedAt > timeoutMs) {
         throw new Error(`Timed out waiting for canvas lock: ${path.basename(lockPath)}`);

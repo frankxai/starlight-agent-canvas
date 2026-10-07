@@ -1,5 +1,6 @@
 import {
   addNodeInputSchema,
+  checkpointReviewView,
   canvasRecordSchema,
   connectNodesInputSchema,
   createIntakeTraceForNodes,
@@ -461,17 +462,17 @@ export function createToolHandlers(store = new FileCanvasStore(), readContinuity
     },
 
     async list_canvas_checkpoints(args: { canvasId: string }): Promise<ToolResult> {
-      const checkpoints = await store.listCheckpoints(args.canvasId);
-      return ok(jsonText(checkpoints), { checkpoints });
+      const history = await store.listCheckpoints(args.canvasId);
+      return ok(jsonText(history), history);
     },
 
     async get_canvas_checkpoint(args: { canvasId: string; checkpointId: string }): Promise<ToolResult> {
-      const checkpoint = await store.getCheckpoint(args.canvasId, args.checkpointId);
+      const checkpoint = checkpointReviewView(await store.getCheckpoint(args.canvasId, args.checkpointId));
       return ok(jsonText(checkpoint), { checkpoint });
     },
 
     async compare_canvas_checkpoints(args: { canvasId: string; beforeId: string; afterId?: string }): Promise<ToolResult> {
-      const comparison = await store.compareCheckpoints(args.canvasId, args.beforeId, args.afterId);
+      const comparison = checkpointReviewView(await store.compareCheckpoints(args.canvasId, args.beforeId, args.afterId));
       return ok(jsonText(comparison), { comparison });
     },
   };
