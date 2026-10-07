@@ -15,7 +15,7 @@ function fixture() {
 }
 
 it('scopes generation to retained notes, brief and section text without files, media or other canvas nodes', () => {
-  const { plan, output } = fixture(); const input = websiteGenerationInput(plan);
+  const { plan, output } = fixture(); const before = structuredClone(plan); const input = websiteGenerationInput(plan);
   expect(Object.keys(input)).toEqual(['snapshot', 'brief', 'sections']);
   expect(JSON.stringify(input)).not.toContain('provenance'); expect(input.sections[0]).not.toHaveProperty('files');
   const generated = applyWebsiteGeneration(plan, output, receipt);
@@ -23,7 +23,9 @@ it('scopes generation to retained notes, brief and section text without files, m
   expect(generated.assets).toEqual(plan.assets); expect(generated.sections).toEqual(plan.sections);
   expect(generated.origin).toBe('model_generated'); expect(generated.generation).toEqual(receipt);
   expect(websiteSectionsForDirection(generated, generated.options[1]!)[0]!.copy).toContain('direction 1');
-  expect(plan.options[1]).not.toHaveProperty('sectionCopy');
+  expect(plan).toEqual(before);
+  const legacy = structuredClone(plan); for (const option of legacy.options) { delete option.sectionCopy; delete option.sourceQuotes; }
+  expect(websiteSectionsForDirection(parseWebsitePlan(legacy), legacy.options[1]!)).toEqual(plan.sections);
 });
 
 it('rejects unsupported scope, fabricated quotes, missing/duplicate sections and authority additions', () => {
@@ -39,6 +41,7 @@ it('rejects unsupported scope, fabricated quotes, missing/duplicate sections and
     (value: typeof output) => { Object.assign(value.options[0]!, { target: { status: 'resolved' } }); },
   ]) { const invalid = structuredClone(output); mutate(invalid); expect(() => applyWebsiteGeneration(plan, invalid, receipt)).toThrow(); }
   const large = structuredClone(plan); large.sections = Array.from({ length: 7 }, (_, index) => ({ ...plan.sections[0]!, id: `section-${index}` }));
+  for (const option of large.options) delete option.sectionCopy;
   expect(() => websiteGenerationInput(large)).toThrow('six sections');
   expect(() => applyWebsiteGeneration(plan, { ...output, tools: [] }, receipt)).toThrow();
 });
@@ -47,6 +50,44 @@ it('recovers incomplete direction edits while a canonical save still requires co
   const { plan, output } = fixture(); const generated = applyWebsiteGeneration(plan, output, receipt);
   generated.origin = 'edited_model_generated'; generated.options[0]!.sectionCopy![0]!.copy = '';
   expect(parseWebsiteDraft(generated)).toEqual(generated); expect(() => parseWebsitePlan(generated)).toThrow();
+});
+
+it('exports three complete authored pages without keys and retains direction-specific edits through reload', async () => {
+  const home = await mkdtemp(path.join(os.tmpdir(), 'canvas-authored-pages-'));
+  try {
+    const store = new FileCanvasStore(home); const canvas = await store.createCanvas({ title: 'Authored page alternatives', template: 'blank' });
+    const plan = websiteDirectionDemo(); const saved = await store.saveWebsitePlan(canvas.id, plan);
+    const pageCopies: string[] = [];
+    for (const option of plan.options) {
+      expect(option.sectionCopy).toHaveLength(plan.sections.length);
+      expect(option.sourceQuotes?.every((quote) => plan.snapshot.notes.includes(quote))).toBe(true);
+      await store.selectWebsiteDirection(canvas.id, option.id, saved.record!.planHash);
+      const packet = await new FileCanvasStore(home).exportWebsiteImplementation(canvas.id);
+      expect(packet.origin).toBe('authored_example'); expect(packet.generation).toBeUndefined();
+      expect(packet.direction.id).toBe(option.id);
+      for (const section of packet.sections) {
+        const copy = option.sectionCopy!.find((item) => item.sectionId === section.id)!;
+        expect(section.copy).toBe(copy.copy); expect(section.action).toBe(copy.action);
+        const original = plan.sections.find((item) => item.id === section.id)!;
+        expect(section.files).toEqual(original.files); expect(section.route).toBe(original.route);
+        expect(section.acceptance).toEqual(original.acceptance); expect(section.accessibility).toEqual(original.accessibility);
+      }
+      expect(packet.direction.sourceQuotes).toEqual(option.sourceQuotes);
+      pageCopies.push(packet.sections.map((section) => section.copy).join('\n'));
+    }
+    expect(new Set(pageCopies).size).toBe(3);
+    const edited = structuredClone(plan); edited.origin = 'edited_authored_example';
+    edited.options[1]!.sectionCopy![0]!.copy = 'A reviewed paragraph for the connected studio.';
+    const revised = await store.saveWebsitePlan(canvas.id, edited, saved.record!.planHash);
+    expect(revised.record!.selection).toBeUndefined();
+    await expect(store.exportWebsiteImplementation(canvas.id)).rejects.toThrow('Choose a saved');
+    await store.selectWebsiteDirection(canvas.id, edited.options[1]!.id, revised.record!.planHash);
+    const packet = await new FileCanvasStore(home).exportWebsiteImplementation(canvas.id);
+    expect(packet.sections[0]!.copy).toBe('A reviewed paragraph for the connected studio.');
+    expect(packet.origin).toBe('edited_authored_example');
+    expect(packet.sections[1]!.copy).toBe(edited.options[1]!.sectionCopy![1]!.copy);
+    expect(packet.sections[1]!.copy).not.toBe(edited.sections[1]!.copy);
+  } finally { await rm(home, { recursive: true, force: true }); }
 });
 
 it('exports chosen page copy and generation declaration through the existing store and checkpoint', async () => {

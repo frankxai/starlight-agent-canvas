@@ -74,7 +74,14 @@ test('website directions preserve edits, record a choice and export a source-bac
   await page.getByRole('button', { name: 'Load authored example' }).click();
   await expect(page.getByRole('status')).toContainText('Authored example');
   await expect(page.getByRole('button', { name: 'Choose The open workshop', exact: true })).toHaveAttribute('aria-disabled', 'true');
+  const pageDirection = page.getByRole('combobox', { name: 'Page direction', exact: true });
+  const heroCopy = page.getByTestId('direction-page-sections').getByRole('textbox', { name: 'A useful first promise: copy', exact: true });
+  await pageDirection.selectOption('constellation');
+  await expect(heroCopy).toHaveValue(/See the sources behind a direction/);
+  await pageDirection.selectOption('field-notes');
+  await expect(heroCopy).toHaveValue(/Pick up the direction you saved/);
   await page.getByRole('button', { name: 'Edit The open workshop', exact: true }).click();
+  await expect(heroCopy).toHaveValue(/Edit a direction with the sources beside it/);
   await page.getByLabel('The open workshop: headline', { exact: true }).fill('Make the next version worth keeping.');
   await expect.poll(async () => page.evaluate((id) => sessionStorage.getItem(`starlight.website.draft.v1:${id}`), canvas.id)).toContain('Make the next version worth keeping.');
   await page.reload();
@@ -90,6 +97,9 @@ test('website directions preserve edits, record a choice and export a source-bac
   const packetResponse = await page.request.get(`/api/canvases/${canvas.id}/website/export`); await expect(packetResponse).toBeOK();
   const packet = await packetResponse.json();
   expect(packet.direction.headline).toBe('Make the next version worth keeping.');
+  expect(packet.sections[0].copy).toMatch(/Edit a direction with the sources beside it/);
+  expect(packet.direction.sourceQuotes.length).toBeGreaterThan(0);
+  expect(packet.generation).toBeUndefined();
   expect(packet.selected.checkpointId).toMatch(/^checkpoint-/);
   expect(packet.gaps.join(' ')).toContain('mobile');
   const markdown = await page.request.get(`/api/canvases/${canvas.id}/website/export?format=markdown`);
