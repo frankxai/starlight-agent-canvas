@@ -31,6 +31,8 @@ it('rejects unsupported scope, fabricated quotes, missing/duplicate sections and
   for (const mutate of [
     (value: typeof output) => { value.options[0]!.sourceQuotes = ['This is invented evidence.']; },
     (value: typeof output) => { value.options[0]!.sourceQuotes = [' ']; },
+    (value: typeof output) => { value.options[0]!.sourceQuotes = [' '.repeat(12)]; },
+    (value: typeof output) => { value.options[0]!.sourceQuotes = ['         a         ']; },
     (value: typeof output) => { value.options[0]!.sectionCopy.pop(); },
     (value: typeof output) => { value.options[0]!.sectionCopy[1]!.sectionId = value.options[0]!.sectionCopy[0]!.sectionId; },
     (value: typeof output) => { value.options[0]!.headline = value.options[1]!.headline; },

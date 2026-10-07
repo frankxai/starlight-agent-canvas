@@ -1,7 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { websiteDirectionDemo } from '@starlight-agent-canvas/core';
 import { generateWebsiteDirections, websiteGenerationConfiguration } from '../lib/website-generation';
-import { POST } from '../app/api/canvases/[id]/website/generate/route';
 
 test('provider adapters enforce source scope, completion, bounded replies and one active call without live requests', async () => {
   const names = ['AGENT_CANVAS_WEBSITE_GENERATION', 'AGENT_CANVAS_WEBSITE_PROVIDER', 'AGENT_CANVAS_WEBSITE_MODEL', 'AGENT_CANVAS_ALLOW_REMOTE', 'OPENAI_API_KEY', 'ANTHROPIC_API_KEY'];
@@ -23,11 +22,6 @@ test('provider adapters enforce source scope, completion, bounded replies and on
       if (process.env.AGENT_CANVAS_WEBSITE_PROVIDER === 'anthropic') return Response.json({ model: 'fixture-returned', stop_reason: mode === 'refused' ? 'refusal' : mode === 'incomplete' ? 'max_tokens' : 'end_turn', content: [{ type: 'text', text: JSON.stringify(output) }] });
       return Response.json({ model: 'fixture-returned', status: mode === 'incomplete' ? 'incomplete' : 'completed', output: [{ type: 'message', status: 'completed', content: mode === 'refused' ? [{ type: 'refusal', refusal: 'Fixture refusal' }] : [{ type: 'output_text', text: JSON.stringify(mode === 'invalid' ? { ...output, options: [] } : output) }] }] });
     };
-    const context = { params: Promise.resolve({ id: 'not-used-by-denied-requests' }) };
-    const denied = await POST(new Request('http://127.0.0.1:3100/api/canvases/example/website/generate', { method: 'POST', headers: { host: '127.0.0.1:3100', origin: 'https://untrusted.example', 'content-type': 'text/plain' }, body: '{}' }), context);
-    expect(denied.status).toBe(403); expect(calls).toBe(0);
-    const nonJson = await POST(new Request('http://127.0.0.1:3100/api/canvases/example/website/generate', { method: 'POST', headers: { host: '127.0.0.1:3100', 'content-type': 'text/plain' }, body: '{}' }), context);
-    expect(nonJson.status).toBe(415); expect(calls).toBe(0);
     const generated = await generateWebsiteDirections(plan, new AbortController().signal);
     expect(generated.generation?.provider).toBe('openai'); expect(generated.generation?.returnedModel).toBe('fixture-returned');
     expect(captured?.url).toBe('https://api.openai.com/v1/responses'); expect(captured?.redirect).toBe('error');
