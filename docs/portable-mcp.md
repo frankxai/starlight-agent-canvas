@@ -39,6 +39,10 @@ dependency versions without absolute workspace paths. Dependency content
 integrity relies on pnpm's frozen/offline store verification. File hashes bind
 the resulting artifact; they do not independently rebuild third-party tarballs,
 validate publisher signatures or prove lifecycle-generated native files.
+The deployment command explicitly shares the source's populated store. Windows
+chooses a default store per drive; using a temporary directory on C: after a
+source install on D: would otherwise select an empty store. This invocation-only
+setting preserves offline behavior without changing global configuration.
 
 The server reads eleven guide resources inside its own built package. Compiled
 MCP/core bytes are compared with the source build. The command copies its output

@@ -3,7 +3,7 @@ import { appendFile, copyFile, cp, lstat, mkdir, mkdtemp, readFile, readdir, rea
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MANIFEST, assertGraphParity, hashFile, inventory, outsideOutput, productionGraph, verifyRuntime } from './runtime-integrity.mjs';
+import { MANIFEST, assertGraphParity, hashFile, inventory, outsideOutput, productionGraph, sharedStoreRoot, verifyRuntime } from './runtime-integrity.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const packageRoot = path.join(root, 'packages/mcp');
@@ -57,6 +57,7 @@ async function assertCurrentBuild(name) {
 await assertCurrentBuild('core');
 await assertCurrentBuild('mcp');
 const sourceGraph = await productionGraph(packageRoot, root);
+const storeRoot = sharedStoreRoot(pnpm(['store', 'path', '--silent']));
 const temporaryParent = await realpath(os.tmpdir());
 const temporary = await mkdtemp(path.join(temporaryParent, 'canvas-production-'));
 const deployed = path.join(temporary, 'deploy');
@@ -95,7 +96,7 @@ async function copyRegular(source, destination, depth = 0) {
 try {
   // The supported shared-lock path rewrites workspace links into frozen file
   // dependencies. Injection applies to this deploy invocation, not global config.
-  pnpm(['--config.node-linker=hoisted', '--config.package-import-method=copy', '--config.inject-workspace-packages=true', '--filter', '@starlight-agent-canvas/mcp', 'deploy', '--prod', '--offline', '--ignore-scripts', deployed]);
+  pnpm([`--config.store-dir=${storeRoot}`, '--config.node-linker=hoisted', '--config.package-import-method=copy', '--config.inject-workspace-packages=true', '--filter', '@starlight-agent-canvas/mcp', 'deploy', '--prod', '--offline', '--ignore-scripts', deployed]);
   const deployedGraph = await productionGraph(deployed, deployed);
   assertGraphParity(sourceGraph, deployedGraph);
   await mkdir(output); // Exclusive claim; an existing directory is never overwritten.

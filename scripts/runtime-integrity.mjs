@@ -31,6 +31,13 @@ export async function outsideOutput(sourceRoot, requested) {
   return output;
 }
 
+export function sharedStoreRoot(activeStore) {
+  // pnpm 11 reports the versioned store. A different destination drive changes
+  // its default store, so bind deploy to the source's already populated parent.
+  if (!path.isAbsolute(activeStore) || path.basename(path.normalize(activeStore)) !== 'v11') throw new Error('Unrecognized pinned pnpm store path; refuse to guess its parent.');
+  return path.dirname(path.normalize(activeStore));
+}
+
 export async function hashFile(file) {
   const digest = createHash('sha256');
   for await (const chunk of createReadStream(file)) digest.update(chunk);

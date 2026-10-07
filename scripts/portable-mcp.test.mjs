@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, readFile, realpath, rename, rm, symlink, writeFile } fr
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { MANIFEST, assertGraphParity, hashFile, inventory, outsideOutput, portablePath, productionGraph, verifyRuntime } from './runtime-integrity.mjs';
+import { MANIFEST, assertGraphParity, hashFile, inventory, outsideOutput, portablePath, productionGraph, sharedStoreRoot, verifyRuntime } from './runtime-integrity.mjs';
 
 const source = 'a'.repeat(40);
 async function fixture(t) {
@@ -80,6 +80,12 @@ test('an output parent junction cannot hide a directory inside the source checko
 test('rejects nonportable and ambiguous paths', () => {
   for (const value of ['../outside', '/absolute', 'C:/data', 'a\\b', 'a//b', 'a/../b', 'a/CON.txt', 'a/file.']) assert.equal(portablePath(value), false, value);
   assert.equal(portablePath('node_modules/@scope/package/dist/index.js'), true);
+});
+test('cross-volume deployment uses the source store instead of an empty destination store', () => {
+  const store = path.resolve(os.tmpdir(), 'source-store', 'v11');
+  assert.equal(sharedStoreRoot(store), path.dirname(store));
+  assert.throws(() => sharedStoreRoot('relative/v11'), /refuse to guess/);
+  assert.throws(() => sharedStoreRoot(path.resolve(os.tmpdir(), 'v10')), /refuse to guess/);
 });
 test('dependency comparison includes edges and optional availability', () => {
   const a = { root: 'app@1', records: [{ id: 'app@1', edges: [{ name: 'dep', target: 'dep@1' }], optionalMissing: [] }] };
