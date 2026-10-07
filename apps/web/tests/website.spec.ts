@@ -120,6 +120,29 @@ test('website directions preserve edits, record a choice and export a source-bac
   await writeFile(`${capture}.vis.provenance.json`, JSON.stringify(sidecar, null, 2));
   await testInfo.attach('website-directions', { path: capture, contentType: 'image/png' });
 
+  const previousViewport = page.viewportSize()!;
+  for (const width of [375, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const direction of ['workshop', 'constellation', 'field-notes']) {
+      await pageDirection.selectOption(direction);
+      await expect(pageDirection).toHaveValue(direction);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      const name = `website-authored-page-${direction}-${width}.png`;
+      const authoredCapture = testInfo.outputPath(name);
+      await page.getByTestId('direction-page-sections').locator('..').screenshot({ path: authoredCapture });
+      const authoredSidecar = structuredClone(sidecar);
+      authoredSidecar.asset.id = `website-authored-page-${direction}-${width}-${testInfo.project.name}`;
+      authoredSidecar.asset.relative_path = name;
+      authoredSidecar.asset.sha256 = createHash('sha256').update(await readFile(authoredCapture)).digest('hex');
+      authoredSidecar.generation.prompt = `Capture the actual authored ${direction} page inspector at ${width}px under reduced motion. The test edited a headline and checkpointed workshop; this selector changes the viewed direction only, not the fixture choice. No model generation, actual about-page deployment or customer approval.`;
+      authoredSidecar.generation.created_at = new Date().toISOString();
+      authoredSidecar.generation.output_paths = [name];
+      authoredSidecar.generation.settings = { ...authoredSidecar.generation.settings, ...{ width, direction, content_origin: 'edited_authored_example', choice_scope: 'View selector only; existing workshop fixture checkpoint unchanged.' } };
+      await writeFile(`${authoredCapture}.vis.provenance.json`, JSON.stringify(authoredSidecar, null, 2));
+    }
+  }
+  await page.setViewportSize(previousViewport);
+
   await page.reload();
   await expect(page.getByTestId('selected-website-direction')).toContainText(packet.selected.checkpointId);
   await page.getByRole('link', { name: 'Return to canvas' }).click();
