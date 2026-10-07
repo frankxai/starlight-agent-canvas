@@ -53,7 +53,7 @@
     {
       "id": "codex",
       "label": "Codex",
-      "humanAction": "Install MCP config, restart Codex, and ask it to operate on the latest canvas.",
+      "humanAction": "Install MCP config, enable Canvas only for the selected Codex task, and verify tools on the latest canvas.",
       "detail": "Use MCP tools to read, ingest, run actions, and export the same canvas.",
       "command": "pnpm mcp:install:codex -- --write",
       "mcpLoop": ["get_latest_canvas", "ingest_anything", "enrich_source_node", "run_node_action", "export_canvas"],

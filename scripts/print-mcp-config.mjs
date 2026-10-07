@@ -1,3 +1,4 @@
+import { codexBlock } from './codex-config.mjs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,9 +15,6 @@ function slash(value) {
   return value.replace(/\\/g, '/');
 }
 
-function tomlLiteral(value) {
-  return `'${value.replace(/'/g, "''")}'`;
-}
 
 function jsonConfig() {
   return JSON.stringify({
@@ -33,15 +31,7 @@ function jsonConfig() {
 }
 
 function codexConfig() {
-  return [
-    '[mcp_servers.starlight-agent-canvas]',
-    `command = ${tomlLiteral(command)}`,
-    `args = ["${slash(cliPath)}"]`,
-    'startup_timeout_sec = 60',
-    '',
-    '[mcp_servers.starlight-agent-canvas.env]',
-    `AGENT_CANVAS_HOME = "${slash(home)}"`,
-  ].join('\n');
+  return codexBlock({ command, cliPath, home });
 }
 
 if (client === 'codex' || client === 'toml') {

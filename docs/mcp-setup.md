@@ -46,7 +46,7 @@ pnpm mcp:install:codex
 pnpm mcp:install:codex -- --write
 ```
 
-The first command is a dry-run. The second command updates `~/.codex/config.toml`, removes any previous `starlight-agent-canvas` MCP block, preserves unrelated settings, and writes a timestamped backup first.
+The first command previews the managed changes and input hash. The second preserves existing activation, controls, custom env and data home, updating only the launcher and adding missing defaults with a backup. New entries have `enabled = false`. Launch the selected task with `codex -c mcp_servers.starlight-agent-canvas.enabled=true` and verify actual tool calls. See [preservation and recovery](codex-integration.md#preserving-configuration-and-recovery); unsupported formats and interrupted ownership hold.
 Run `pnpm mcp:codex:smoke` when you want to prove the installer, doctor, and launch path without changing your real Codex config. It writes a temporary config, uses a temporary canvas home, verifies it through `doctor --config`, launches the configured MCP server from outside the repo, calls `tools/list` and `list_canvases`, and cleans up.
 
 The output shape is:
@@ -55,6 +55,7 @@ The output shape is:
 [mcp_servers.starlight-agent-canvas]
 command = 'path\to\node.exe'
 args = ["/absolute/path/to/starlight-agent-canvas/packages/mcp/dist/cli.js"]
+enabled = false
 startup_timeout_sec = 60
 
 [mcp_servers.starlight-agent-canvas.env]

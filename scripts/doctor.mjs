@@ -1,3 +1,4 @@
+import { parseCodexConfig } from './codex-config.mjs';
 import { existsSync } from 'node:fs';
 import { access, readFile } from 'node:fs/promises';
 import { exec, execFile } from 'node:child_process';
@@ -97,34 +98,6 @@ function slash(value) {
   return value.replace(/\\/g, '/');
 }
 
-function section(raw, name) {
-  const lines = raw.split(/\r?\n/);
-  const collected = [];
-  let inSection = false;
-  for (const line of lines) {
-    const match = line.match(/^\s*\[([^\]]+)\]\s*$/);
-    if (match) {
-      if (inSection) break;
-      inSection = match[1].trim() === name;
-      continue;
-    }
-    if (inSection) collected.push(line);
-  }
-  return collected.join('\n');
-}
-
-function parseTomlString(block, key) {
-  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = block.match(new RegExp(`^\\s*${escaped}\\s*=\\s*(['"])([\\s\\S]*?)\\1\\s*$`, 'm'));
-  return match?.[2];
-}
-
-function parseTomlFirstArrayString(block, key) {
-  const escaped = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = block.match(new RegExp(`^\\s*${escaped}\\s*=\\s*\\[\\s*(['"])([\\s\\S]*?)\\1`, 'm'));
-  return match?.[2];
-}
-
 async function codexConfigStatus(configPath, expectedCliPath, expectedHome) {
   if (!(await canRead(configPath))) {
     return {
@@ -139,10 +112,11 @@ async function codexConfigStatus(configPath, expectedCliPath, expectedHome) {
   }
 
   const raw = await readFile(configPath, 'utf8');
-  const server = section(raw, 'mcp_servers.starlight-agent-canvas');
-  const env = section(raw, 'mcp_servers.starlight-agent-canvas.env');
-  const cliPath = parseTomlFirstArrayString(server, 'args') ?? '';
-  const home = parseTomlString(env, 'AGENT_CANVAS_HOME') ?? '';
+  let server;
+  try { server = parseCodexConfig(raw).mcp_servers?.['starlight-agent-canvas']; }
+  catch { return { exists: true, hasServer: false, hasEnv: false, cliPath: '', home: '', pointsAtCurrentCli: false, usesExpectedHome: false, invalid: true }; }
+  const cliPath = typeof server?.args?.[0] === 'string' ? server.args[0] : '';
+  const home = typeof server?.env?.AGENT_CANVAS_HOME === 'string' ? server.env.AGENT_CANVAS_HOME : '';
   const normalizedCli = slash(path.resolve(cliPath));
   const normalizedExpectedCli = slash(path.resolve(expectedCliPath));
   const normalizedHome = home ? slash(path.resolve(home)) : '';
@@ -150,8 +124,9 @@ async function codexConfigStatus(configPath, expectedCliPath, expectedHome) {
 
   return {
     exists: true,
-    hasServer: Boolean(server.trim()),
-    hasEnv: Boolean(env.trim()),
+    hasServer: Boolean(server),
+    hasEnv: Boolean(server?.env),
+    enabled: Boolean(server) && server.enabled !== false,
     cliPath,
     home,
     pointsAtCurrentCli: Boolean(cliPath) && normalizedCli === normalizedExpectedCli,
@@ -241,6 +216,8 @@ status(codex.exists, 'Codex config', codex.exists ? codexConfigPath : 'run pnpm 
 status(codex.hasServer && codex.hasEnv, 'Codex MCP block', codex.hasServer && codex.hasEnv ? 'starlight-agent-canvas configured' : 'missing server/env sections');
 status(codex.pointsAtCurrentCli, 'Codex MCP CLI path', codex.cliPath || 'missing');
 status(codex.usesExpectedHome, 'Codex canvas home env', codex.home || 'missing');
+status(codex.exists && !codex.invalid, 'Codex TOML syntax', codex.invalid ? 'invalid or unsupported; no values logged' : codex.exists ? 'parsed' : 'config absent; syntax not checked');
+status(codex.enabled, 'Codex base MCP activation', codex.enabled ? 'enabled in this file; task discovery is still required' : 'disabled or absent; activate only the selected task with -c mcp_servers.starlight-agent-canvas.enabled=true');
 
 const summary = {
   pass: checks.filter((check) => check.level === 'pass').length,
