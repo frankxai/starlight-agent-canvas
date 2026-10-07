@@ -51,7 +51,8 @@ describe('scoped Atlas context', () => {
     expect(parseAtlasContext(packet).observedAt).toBe(packet.observedAt);
     expect(atlasContextEvidence(parseAtlasContext(packet), Date.parse('2026-10-07T05:00:00Z')).ageSeconds).toBe(0);
     for (const source of ['https://example.com/guide\n', 'https://example.com/\u202efake', 'https://example.com/%252fhome']) expect(() => parseAtlasContext({ ...packet, sources: [source] })).toThrow();
-    for (const value of ['password: missing-secret-value', '"password":"secret-value"', 'sk_' + 'live_' + 'x'.repeat(30), 'hidden\u{e0069}instruction', '/mnt/private/file']) expect(() => parseAtlasContext({ ...packet, entity: { ...packet.entity, label: value } })).toThrow();
+    for (const value of ['password: missing-secret-value', '"password":"secret-value"', 'access_token: example-value', 'OPENAI_API_KEY=abc', 'clientSecret: example-value', 'DB_PASSWORD=example-value', 'sk_' + 'live_' + 'x'.repeat(30), 'hidden\u{e0069}instruction', '/mnt/private/file']) expect(() => parseAtlasContext({ ...packet, entity: { ...packet.entity, label: value } })).toThrow();
+    expect(parseAtlasContext({ ...packet, entity: { ...packet.entity, label: 'token: missing' } }).entity.label).toBe('token: missing');
   });
   it('reports a field path without echoing rejected content', () => {
     let failure: unknown;

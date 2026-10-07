@@ -49,6 +49,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
 
   useEffect(() => {
     alive.current = true;
+    setOpeningRef(undefined);
     let notice: { kind?: string; id?: string } = {};
     try { notice = JSON.parse(sessionStorage.getItem(noticeKey) || '{}') ?? {}; } catch { /* Optional UI receipt never becomes evidence. */ }
     try { setRetainedCount(retainedRefs().length); } catch { setRetainedCount(null); }
