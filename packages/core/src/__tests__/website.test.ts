@@ -4,7 +4,7 @@ import path from 'node:path';
 import { afterEach, expect, it } from 'vitest';
 import { FileCanvasStore } from '../store.js';
 import { websiteDirectionDemo } from '../website-demo.js';
-import { parseWebsitePlan, publicSiteUrlSchema, websitePacketMarkdown, websitePlanFromCanvas } from '../website.js';
+import { parseWebsiteDraft, parseWebsitePlan, publicSiteUrlSchema, websitePacketMarkdown, websitePlanFromCanvas } from '../website.js';
 
 const homes: string[] = [];
 async function setup() { const home = await mkdtemp(path.join(os.tmpdir(), 'canvas-website-')); homes.push(home); const store = new FileCanvasStore(home); const canvas = await store.createCanvas({ title: 'Website', template: 'blank' }); return { store, home, canvas }; }
@@ -25,6 +25,10 @@ it('makes an editable source-backed artifact, preserves unrelated work and expor
   expect(JSON.stringify(packet)).not.toContain('Private note');
   expect(websitePacketMarkdown(packet)).toContain(chosen.record!.selection!.checkpointId);
   expect((await store.getCanvas(canvas.id)).nodes.find((node) => node.id === unrelated.node.id)?.body).toContain('unrelated');
+  const projection = (await store.getCanvas(canvas.id)).nodes.find((node) => node.metadata.entityType === 'design_option')!;
+  await expect(store.updateNode(canvas.id, projection.id, { body: 'Hidden different copy' })).rejects.toThrow('workbench');
+  await store.updateNode(canvas.id, projection.id, { position: { x: 900, y: 100 } });
+  expect((await store.getCanvas(canvas.id)).nodes.find((node) => node.id === projection.id)?.position.x).toBe(900);
   const reloaded = new FileCanvasStore(store.home);
   expect(await reloaded.exportWebsiteImplementation(canvas.id)).toEqual(packet);
   expect(websitePlanFromCanvas(JSON.parse(await store.exportCanvas(canvas.id, 'json')))?.plan).toEqual(saved.record!.plan);
@@ -73,6 +77,55 @@ it('holds absent media provenance and invalid section links instead of marking m
   expect(() => parseWebsitePlan(plan)).toThrow();
   plan.assets[0]!.status = 'reference'; expect(parseWebsitePlan(plan).assets[0]!.status).toBe('reference');
   plan.assets[0]!.sectionId = 'missing'; expect(() => parseWebsitePlan(plan)).toThrow();
+});
+
+it('rejects asset and capture reference bypasses before a builder sees them', () => {
+  for (const reference of ['file:///C:/Users/private.txt', '../../x', '..\\..\\x', '~/.ssh/id', 'http://169.254.169.254/', 'https://127.0.0.1/x', 'C:/private', '/etc/passwd', 'assets/../private', 'https://example.com/?token=secret']) {
+    const plan = websiteDirectionDemo(); plan.snapshot.views[0]!.reference = reference;
+    expect(() => parseWebsitePlan(plan), reference).toThrow();
+    plan.snapshot.views[0]!.reference = 'captures/desktop.png';
+    plan.assets = [{ id: 'hero-image', sectionId: 'hero', kind: 'image', reference, why: 'Shows the artifact.', responsive: 'Fits mobile.', status: 'reference' }];
+    expect(() => parseWebsitePlan(plan), reference).toThrow();
+  }
+  const plan = websiteDirectionDemo(); plan.sections[0]!.files = ['file:///C:/outside']; expect(() => parseWebsitePlan(plan)).toThrow();
+});
+
+it('recovers incomplete editor text while retaining strict source and size boundaries', () => {
+  const draft = websiteDirectionDemo(); draft.title = ''; draft.options[0]!.headline = ''; draft.target.repository = 'unfinished'; draft.sections[0]!.route = 'route being edited';
+  expect(parseWebsiteDraft(draft)).toEqual(draft);
+  expect(() => parseWebsitePlan(draft)).toThrow();
+  expect(() => parseWebsiteDraft({ ...draft, snapshot: { ...draft.snapshot, views: [] } })).toThrow();
+});
+
+it('makes a fresh checkpoint on an explicit choice when imported or damaged history is unavailable', async () => {
+  const { store, canvas, home } = await setup();
+  const { record } = await store.saveWebsitePlan(canvas.id, websiteDirectionDemo());
+  const chosen = await store.selectWebsiteDirection(canvas.id, 'workshop', record!.planHash);
+  await writeFile(path.join(home, 'checkpoints', canvas.id, `${chosen.record!.selection!.checkpointId}.json`), '{broken');
+  expect((await store.getWebsitePlan(canvas.id))?.selectionVerified).toBe(false);
+  const repaired = await store.selectWebsiteDirection(canvas.id, 'workshop', record!.planHash);
+  expect(repaired.record!.selectionVerified).toBe(true);
+  expect(repaired.record!.selection!.checkpointId).not.toBe(chosen.record!.selection!.checkpointId);
+  expect((await store.exportWebsiteImplementation(canvas.id)).origin).toBe('authored_example');
+});
+
+it('retains invalid authority evidence while a hash-guarded replacement makes the plan usable again', async () => {
+  const { store, canvas } = await setup();
+  const invalid = await store.addNode(canvas.id, { kind: 'note', title: 'Unverified import', body: 'Original evidence stays intact.', metadata: { role: 'website_plan', websitePlan: { broken: true } } });
+  const state = await store.getWebsitePlanState(canvas.id);
+  expect(state.record).toBeNull(); expect(state.unavailable?.reason).toContain('retained');
+  await expect(store.recoverWebsitePlan(canvas.id, websiteDirectionDemo(), 'a'.repeat(64))).rejects.toThrow('changed in another');
+  const recovered = await store.recoverWebsitePlan(canvas.id, websiteDirectionDemo(), state.unavailable!.canvasHash);
+  expect(recovered.record!.plan.options).toHaveLength(3);
+  expect(recovered.canvas.nodes.find((node) => node.id === invalid.node.id)).toMatchObject({ body: 'Original evidence stays intact.', metadata: { role: 'website_plan_unverified', websitePlan: { broken: true } } });
+});
+
+it('retries an identical save after a lost response without needing the stale previous hash', async () => {
+  const { store, canvas } = await setup(); const plan = websiteDirectionDemo();
+  const first = await store.saveWebsitePlan(canvas.id, plan);
+  const retry = await store.saveWebsitePlan(canvas.id, plan);
+  expect(retry.record!.planHash).toBe(first.record!.planHash);
+  expect(retry.canvas.nodes).toEqual(first.canvas.nodes);
 });
 
 it('refuses a corrupt selected checkpoint and preserves the current plan', async () => {

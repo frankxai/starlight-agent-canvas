@@ -4,7 +4,7 @@ import type { WebsitePlan } from './website.js';
 // invocation, site capture, customer approval or media generation is implied.
 export function websiteDirectionDemo(): WebsitePlan {
   return {
-    version: 'starlight.websitePlan.v1', id: 'canvas-website-study', title: 'A place to turn context into finished work',
+    version: 'starlight.websitePlan.v1', id: 'canvas-website-study', title: 'A place to turn context into finished work', origin: 'authored_example',
     snapshot: {
       id: 'canvas-source-contract',
       source: { kind: 'repository', repository: 'https://github.com/frankxai/starlight-agent-canvas', branch: 'main', commit: '77df15d3b1ea76dfb6540f1a52bbcbb1c77458bc' },

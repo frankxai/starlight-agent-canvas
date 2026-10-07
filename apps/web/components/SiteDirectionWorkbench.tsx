@@ -2,9 +2,10 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import type { WebsitePlan, WebsiteSelection } from '@starlight-agent-canvas/core';
-import { parseWebsitePlan } from '@starlight-agent-canvas/core/website';
+import { parseWebsitePlan, parseWebsiteDraft } from '@starlight-agent-canvas/core/website';
 
-type PlanRecord = { plan: WebsitePlan; planHash: string; nodeId: string; selection?: WebsiteSelection; gaps: string[] };
+type PlanRecord = { plan: WebsitePlan; planHash: string; nodeId: string; selection?: WebsiteSelection; selectionVerified: boolean; gaps: string[] };
+type PlanState = { record: PlanRecord | null; unavailable?: { canvasHash: string; reason: string } | null };
 const control = 'min-h-11 w-full rounded-md border border-starlight-border bg-starlight-bg px-3 py-2 text-sm text-starlight-ink';
 const button = 'inline-flex min-h-11 items-center justify-center rounded-md border border-starlight-border px-4 py-2 text-sm font-medium text-starlight-ink hover:border-starlight-accent disabled:opacity-40';
 const accents = ['border-starlight-gold/40 text-starlight-gold', 'border-starlight-violet/40 text-starlight-violet', 'border-starlight-mint/40 text-starlight-mint'];
@@ -33,10 +34,14 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
   const base = `/api/canvases/${encodeURIComponent(canvasId)}/website`;
   const draftKey = `starlight.website.draft.v1:${canvasId}`;
   const alive = useRef(true);
+  const draftVersion = useRef(0);
+  const backupStoreUnreadable = useRef(false);
+  const draftStoreHeld = useRef(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [record, setRecord] = useState<PlanRecord | null>(null);
   const [draft, setDraft] = useState<WebsitePlan>();
-  const [backup, setBackup] = useState<WebsitePlan>();
+  const [backups, setBackups] = useState<WebsitePlan[]>([]);
+  const [unavailable, setUnavailable] = useState<PlanState['unavailable']>();
   const [expectedHash, setExpectedHash] = useState<string>();
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(true);
@@ -46,63 +51,113 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
   const [expanded, setExpanded] = useState<string>();
 
   useEffect(() => {
+    let cancelled = false;
     alive.current = true;
     void (async () => {
       try {
-        const { record: saved } = await request<{ record: PlanRecord | null }>(base);
-        if (!alive.current) return;
+        const { record: saved, unavailable: unreadable } = await request<PlanState>(base);
+        if (!alive.current || cancelled) return;
+        setUnavailable(unreadable);
         setRecord(saved); setDraft(saved?.plan); setExpectedHash(saved?.planHash);
+        let recoveryRaw: string | null = null;
         try {
-          const raw = sessionStorage.getItem(draftKey);
+          const prior = sessionStorage.getItem(`${draftKey}:backups`);
+          if (prior) {
+            try { setBackups((JSON.parse(prior) as unknown[]).map(parseWebsiteDraft)); }
+            catch { backupStoreUnreadable.current = true; setStorageWarning('Previous draft backups need inspection in browser storage. Current draft recovery is still available.'); }
+          }
+          const raw = sessionStorage.getItem(draftKey); recoveryRaw = raw;
+          if (raw && raw.length > 120_000) throw new Error('Browser draft is oversized.');
           if (raw && raw.length <= 120_000) {
             const recovered = JSON.parse(raw) as { plan: WebsitePlan; expectedHash?: string };
             if (recovered.plan) {
-              setDraft(parseWebsitePlan(recovered.plan)); setExpectedHash(recovered.expectedHash); setDirty(true);
+              setDraft(parseWebsiteDraft(recovered.plan)); setExpectedHash(recovered.expectedHash && /^[a-f0-9]{64}$/.test(recovered.expectedHash) ? recovered.expectedHash : undefined); setDirty(true);
               setStatus('Recovered an unsaved draft from this browser tab. Compare it with the saved version before saving.'); return;
             }
           }
-        } catch { setStorageWarning('Browser draft recovery is unavailable. Download a draft before navigating away.'); }
+        } catch {
+          if (recoveryRaw) {
+            try { sessionStorage.setItem(`${draftKey}:unverified:${Date.now()}`, recoveryRaw); }
+            catch { draftStoreHeld.current = true; }
+          }
+          setStorageWarning('Unverified browser draft evidence is retained in session storage. Download current edits before navigating away.');
+        }
         setStatus(saved ? 'Your saved plan is ready to edit.' : 'Bring a source and shape a direction. The authored example is available below.');
-      } catch (problem) { if (alive.current) setError((problem as Error).message); }
-      finally { if (alive.current) setBusy(false); }
+      } catch (problem) { if (alive.current && !cancelled) setError((problem as Error).message); }
+      finally { if (alive.current && !cancelled) setBusy(false); }
     })();
-    return () => { alive.current = false; };
+    return () => { cancelled = true; alive.current = false; };
   }, [base, draftKey]);
 
   useEffect(() => {
-    if (!dirty || !draft) return;
-    const timer = setTimeout(() => {
-      try { sessionStorage.setItem(draftKey, JSON.stringify({ plan: draft, expectedHash })); }
-      catch { setStorageWarning('Browser draft recovery is unavailable. Download your draft before navigating away.'); }
-    }, 200);
-    return () => clearTimeout(timer);
+    if (!dirty || !draft || draftStoreHeld.current) return;
+    try { sessionStorage.setItem(draftKey, JSON.stringify({ plan: draft, expectedHash })); }
+    catch { setStorageWarning('Browser draft recovery is unavailable. Download your draft before navigating away.'); }
   }, [draft, dirty, draftKey, expectedHash]);
 
   function edit(change: (next: WebsitePlan) => void) {
     if (!draft) return;
-    const next = structuredClone(draft); change(next); setDraft(next); setDirty(true); setError('');
+    const next = structuredClone(draft); change(next); draftVersion.current += 1; setDraft(next); setDirty(true); setError('');
   }
   async function perform(work: () => Promise<void>) {
+    const focused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setBusy(true); setError('');
     try { await work(); }
     catch (problem) { if (alive.current) setError((problem as Error).name === 'TimeoutError' ? 'The request timed out. Keep your draft and inspect the saved version before retrying; a save may have completed.' : (problem as Error).message); }
-    finally { if (alive.current) setBusy(false); }
+    finally { if (alive.current) { setBusy(false); requestAnimationFrame(() => { if (alive.current && focused?.isConnected && (document.activeElement === document.body || document.activeElement === focused)) focused.focus(); }); } }
   }
   function acceptSaved(saved: PlanRecord) {
     setRecord(saved); setDraft(saved.plan); setExpectedHash(saved.planHash); setDirty(false);
-    try { sessionStorage.removeItem(draftKey); } catch { /* Durable local store succeeded. */ }
+    if (!draftStoreHeld.current) try { sessionStorage.removeItem(draftKey); } catch { /* Durable local store succeeded. */ }
   }
   async function save() {
+    if (busy || !dirty) return;
+    let submitted: WebsitePlan;
+    try { submitted = parseWebsitePlan(draft); }
+    catch (problem) {
+      const issues = (problem as { issues?: Array<{ path: Array<string | number>; message: string }> }).issues;
+      setError(issues?.slice(0, 4).map((issue) => `${issue.path.join('.')}: ${issue.message}`).join(' · ') ?? (problem as Error).message); return;
+    }
+    const version = draftVersion.current;
     await perform(async () => {
-      const result = await request<{ record: PlanRecord }>(base, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ plan: draft, expectedHash }) });
-      if (alive.current) { acceptSaved(result.record); setStatus('Plan saved locally. Choose a direction to preserve its exact source state.'); }
+      const input = unavailable ? { plan: submitted, expectedCanvasHash: unavailable.canvasHash } : { plan: submitted, expectedHash };
+      const result = await request<{ record: PlanRecord }>(base, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
+      if (alive.current) {
+        setUnavailable(null);
+        if (draftVersion.current === version) { acceptSaved(result.record); setStatus('Plan saved locally. Choose a direction to preserve its exact source state.'); }
+        else { setRecord(result.record); setExpectedHash(result.record.planHash); setStatus('Submitted version saved locally. Your newer edits remain in the unsaved draft.'); }
+      }
     });
   }
   async function choose(optionId: string) {
-    if (dirty || !record) return;
+    if (busy || dirty || !record) return;
+    const version = draftVersion.current;
     await perform(async () => {
       const result = await request<{ record: PlanRecord }>(`${base}/select`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ optionId, expectedHash: record.planHash }) });
-      if (alive.current) { acceptSaved(result.record); setStatus('Direction selected. Its checkpoint is preserved; the implementation brief is ready to export.'); }
+      if (alive.current) {
+        if (draftVersion.current === version) { acceptSaved(result.record); setStatus('Direction selected. Its checkpoint is preserved; the implementation brief is ready to export.'); }
+        else { setRecord(result.record); setExpectedHash(result.record.planHash); setStatus('Saved direction selected. Your newer edits remain unsaved and need a new choice after saving.'); }
+      }
+    });
+  }
+
+  function useSaved() {
+    if (busy || !record) return;
+    if (backupStoreUnreadable.current) { setError('Previous draft backups need owner inspection before another backup can be written. Download your current draft; the unverified browser evidence remains intact.'); return; }
+    const nextBackups = draft ? [...backups, draft] : backups;
+    try { sessionStorage.setItem(`${draftKey}:backups`, JSON.stringify(nextBackups)); }
+    catch { setError('The browser could not preserve this draft backup. Download the draft before opening a saved version. Your current draft is retained.'); return; }
+    draftVersion.current += 1; setBackups(nextBackups); acceptSaved(record); setStatus('Saved version opened. Your previous drafts remain available for download in this browser tab.');
+  }
+
+  async function exportPacket(format: 'markdown' | 'json') {
+    if (busy) return;
+    await perform(async () => {
+      const response = await fetch(`${base}/export${format === 'markdown' ? '?format=markdown' : ''}`, { cache: 'no-store', signal: AbortSignal.timeout(15_000) });
+      if (!response.ok) { const result = await response.json().catch(() => null); throw new Error(result?.error ?? 'The brief could not be exported. Inspect the saved choice before retrying.'); }
+      const blob = await response.blob(); if (!alive.current) return;
+      const url = URL.createObjectURL(blob); const anchor = document.createElement('a'); anchor.href = url; anchor.download = `${canvasId}.website.${format === 'markdown' ? 'md' : 'json'}`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+      setStatus('Implementation packet downloaded. Unresolved evidence remains in the brief.');
     });
   }
 
@@ -117,30 +172,34 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
       <p className="mt-5 max-w-2xl text-base leading-7 text-starlight-muted">Keep the source in view. Explore the promise, the page and the tradeoffs. Choose a direction you can carry into the build with its evidence attached.</p>
     </div>
     <div className="mt-8 flex flex-wrap gap-3">
-      <button type="button" className={button} disabled={busy} onClick={() => void perform(async () => { const result = await request<{ plan: WebsitePlan }>(`${base}/demo`); if (alive.current) { setDraft(result.plan); setDirty(true); setStatus('Authored example loaded as a draft. No model was called, no site was captured and no direction is selected.'); } })}>Load authored example</button>
+      <button type="button" className={button} disabled={busy} onClick={() => void perform(async () => { const version = draftVersion.current; const result = await request<{ plan: WebsitePlan }>(`${base}/demo`); if (alive.current && version === draftVersion.current) { draftVersion.current += 1; setDraft(result.plan); setDirty(true); setStatus('Authored example loaded as a draft. No model was called, no site was captured and no direction is selected.'); } })}>Load authored example</button>
       <button type="button" className={button} disabled={busy} onClick={() => fileRef.current?.click()}>Import plan JSON</button>
       <input ref={fileRef} type="file" accept="application/json,.json" className="sr-only" aria-label="Import website plan" onChange={(event) => {
         const file = event.target.files?.[0]; event.target.value = '';
         if (!file) return;
         void perform(async () => {
+          const version = draftVersion.current;
           if (file.size > 100_000) throw new Error('Keep the imported plan under 100 KB.');
           let plan: WebsitePlan;
           try { plan = parseWebsitePlan(JSON.parse(await file.text())); }
           catch { throw new Error('This file is not a valid website plan. Check source, IDs, target, placements and provenance; the current draft is retained.'); }
-          if (alive.current) { setDraft(plan); setDirty(true); setStatus('Imported draft. Inspect its sources and fields before saving.'); }
+          if (alive.current && version === draftVersion.current) { draftVersion.current += 1; setDraft(plan); setDirty(true); setStatus('Imported draft. Inspect its sources and fields before saving.'); }
+          else if (alive.current) setStatus('Import finished while you were editing. Your newer draft is retained; import again when ready.');
         });
       }} />
       {draft && <button type="button" className={button} onClick={() => downloadDraft(draft)}>Download draft JSON</button>}
-      <button type="button" className={button} disabled={busy} onClick={() => void perform(async () => { const result = await request<{ record: PlanRecord | null }>(base); if (alive.current) { setRecord(result.record); if (!dirty) { setDraft(result.record?.plan); setExpectedHash(result.record?.planHash); } setStatus('Saved version refreshed. Your unsaved draft is retained.'); } })}>Inspect saved version</button>
+      <button type="button" className={button} disabled={busy} onClick={() => void perform(async () => { const version = draftVersion.current; const result = await request<PlanState>(base); if (alive.current) { setRecord(result.record); setUnavailable(result.unavailable); if (!dirty && version === draftVersion.current) { setDraft(result.record?.plan); setExpectedHash(result.record?.planHash); } setStatus('Saved version refreshed. Your unsaved draft is retained.'); } })}>Inspect saved version</button>
     </div>
     <p role="status" aria-live="polite" className="mt-5 text-sm leading-6 text-starlight-mint">{busy ? 'Working with your local plan…' : status}</p>
     {error && <p role="alert" className="mt-3 border-l-2 border-starlight-gold pl-4 text-sm leading-6">{error}</p>}
     {storageWarning && <p className="mt-3 text-sm leading-6 text-starlight-gold">{storageWarning}</p>}
+    {unavailable && <section className="mt-5 border-l-2 border-starlight-gold pl-5"><h2 className="text-lg font-semibold">Keep the original evidence</h2><p className="mt-3 text-sm leading-6 text-starlight-muted">{unavailable.reason}</p><a href={`/api/canvases/${encodeURIComponent(canvasId)}/export?format=json`} className={`${button} mt-4`}>Download original canvas</a><p className="mt-3 text-sm leading-6 text-starlight-muted">Load or import a valid draft. Saving it will retain the unverified nodes and establish one current plan.</p></section>}
     {dirty && record && <details className="mt-5 rounded-lg border border-starlight-border p-4"><summary className="min-h-11 cursor-pointer text-sm">Compare with the saved plan</summary>
       <p className="my-3 whitespace-pre-wrap text-sm leading-6">{record.plan.title}: {record.plan.brief.job}</p>
-      <button type="button" className={button} onClick={() => { setBackup(draft); acceptSaved(record); setStatus('Saved version opened. Your previous draft is available as a download.'); }}>Use saved version</button>
+      <button type="button" className={`${button} mb-4`} onClick={() => downloadDraft(record.plan)}>Download saved plan JSON</button>
+      <button type="button" className={button} disabled={busy} onClick={useSaved}>Use saved version</button>
     </details>}
-    {backup && <button type="button" className={`${button} mt-3`} onClick={() => downloadDraft(backup)}>Download previous draft</button>}
+    {!!backups.length && <details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Previous drafts retained in this tab ({backups.length})</summary><div className="mt-2 flex flex-wrap gap-3">{backups.map((item, index) => <button key={index} type="button" className={button} onClick={() => downloadDraft(item)}>Download draft {index + 1}: {item.title}</button>)}</div></details>}
     {draft && <>
       <section className="mt-10 grid gap-8 border-y border-starlight-border py-7 lg:grid-cols-[1fr_1.15fr]" aria-labelledby="source-heading">
         <div>
@@ -159,7 +218,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
         </div>
       </section>
       <section className="mt-10" aria-labelledby="directions-heading">
-        <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="directions-heading" className="text-2xl font-semibold">Three ways the story could begin</h2><p className="mt-2 text-sm leading-6 text-starlight-muted">These are editable concepts. Make a choice after saving the version you reviewed.</p></div><p className="text-xs text-starlight-muted">{dirty ? 'Unsaved changes' : 'Saved locally'}</p></div>
+        <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="directions-heading" className="text-2xl font-semibold">Ways the story could begin</h2><p className="mt-2 text-sm leading-6 text-starlight-muted">These are editable concepts. Make a choice after saving the version you reviewed.</p></div><p className="text-xs text-starlight-muted">{dirty ? 'Unsaved changes' : 'Saved locally'}</p></div>
         <div className="mt-6 grid gap-5 lg:grid-cols-3" data-testid="direction-options">{draft.options.map((option, index) => <article key={option.id} className={`flex min-w-0 flex-col rounded-xl border bg-starlight-surface p-6 ${accents[index % accents.length]}`}>
           <p className="text-sm font-medium">0{index + 1} · {option.title}</p>
           <h3 className="mt-7 text-2xl font-semibold leading-snug tracking-tight text-starlight-ink">{option.headline}</h3>
@@ -169,8 +228,9 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
           <p className="mt-4 text-xs leading-6 text-starlight-muted">Tradeoff: {option.tradeoff}</p>
           <div className="mt-auto flex flex-wrap gap-2 pt-6">
             <button type="button" className={button} aria-expanded={expanded === option.id} onClick={() => setExpanded(expanded === option.id ? undefined : option.id)}>Edit {option.title}</button>
-            <button type="button" className={`${button} border-current`} disabled={busy || dirty || !record} aria-pressed={!dirty && record?.selection?.optionId === option.id} onClick={() => void choose(option.id)}>{!dirty && record?.selection?.optionId === option.id ? 'Selected direction' : `Choose ${option.title}`}</button>
+            <button type="button" className={`${button} border-current`} aria-disabled={busy || dirty || !record} aria-pressed={!dirty && record?.selectionVerified && record?.selection?.optionId === option.id || false} onClick={() => void choose(option.id)}>Choose {option.title}</button>
           </div>
+          {!dirty && record?.selectionVerified && record.selection?.optionId === option.id && <p className="mt-3 text-sm text-starlight-mint">Selected direction</p>}
           {expanded === option.id && <div className="mt-5 space-y-4 border-t border-starlight-border pt-5">{(['title', 'headline', 'body', 'action', 'premise', 'tradeoff'] as const).map((key) => <Field key={key} label={`${option.title}: ${key}`} multiline={['body', 'premise', 'tradeoff'].includes(key)} value={option[key]} onChange={(value) => edit((next) => { next.options[index]![key] = value; })} />)}</div>}
         </article>)}</div>
       </section>
@@ -184,10 +244,10 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
           <section className="rounded-lg border border-starlight-border bg-starlight-panel/70 p-6"><h2 className="text-lg font-semibold">The implementation belongs here</h2><div className="mt-5 space-y-4"><Field label="Owning repository" value={draft.target.repository ?? ''} onChange={(value) => edit((next) => { next.target.repository = value || undefined; next.target.status = value ? 'resolved' : 'unresolved'; })} /><Field label="Source issue" value={draft.target.issueUrl ?? ''} onChange={(value) => edit((next) => { next.target.issueUrl = value || undefined; })} /></div></section>
           <section className="rounded-lg border border-starlight-border p-6"><h2 className="text-lg font-semibold">Media with a reason to be here</h2>{draft.assets.length ? <ul className="mt-4 space-y-5">{draft.assets.map((asset) => <li key={asset.id} className="text-sm leading-6"><p className="break-all font-medium">{asset.reference} · {asset.status}</p><p className="text-starlight-muted">{asset.why}</p><p className="text-starlight-muted">{asset.responsive}</p><p className="text-starlight-muted">{asset.kind === 'image' ? `Alt: ${asset.alt ?? 'Missing'}` : `Transcript: ${asset.transcript ?? 'Missing'}`}</p><p className="break-all text-xs text-starlight-muted">Provenance: {asset.provenance?.sidecar ?? 'Not verified'}</p></li>)}</ul> : <p className="mt-3 text-sm leading-6 text-starlight-muted">No media proposed. Add approved references through a plan import or your agent; keep files in their existing asset home.</p>}</section>
           {!!record?.gaps.length && <section className="border-l-2 border-starlight-gold pl-5"><h2 className="text-lg font-semibold">Evidence still needed</h2><ul className="mt-3 space-y-3 text-sm leading-6 text-starlight-muted">{record.gaps.map((gap) => <li key={gap}>{gap}</li>)}</ul></section>}
-          {record?.selection && !dirty && <section className="rounded-lg border border-starlight-mint/30 bg-starlight-mint/5 p-6" data-testid="selected-website-direction"><h2 className="text-lg font-semibold">A decision you can carry forward</h2><p className="mt-3 text-sm leading-6">{record.plan.options.find((option) => option.id === record.selection?.optionId)?.title}</p><p className="mt-2 break-all text-xs leading-6 text-starlight-muted">Checkpoint {record.selection.checkpointId}</p><p className="mt-3 text-sm leading-6 text-starlight-muted">This records your local choice. Implementation and release still need their own checks.</p><div className="mt-5 flex flex-wrap gap-2"><a className={button} href={`${base}/export?format=markdown`}>Download implementation brief</a><a className={button} href={`${base}/export`}>Download packet JSON</a></div></section>}
+          {record?.selection && record.selectionVerified && !dirty && <section className="rounded-lg border border-starlight-mint/30 bg-starlight-mint/5 p-6" data-testid="selected-website-direction"><h2 className="text-lg font-semibold">A decision you can carry forward</h2><p className="mt-3 text-sm leading-6">{record.plan.options.find((option) => option.id === record.selection?.optionId)?.title}</p><p className="mt-2 break-all text-xs leading-6 text-starlight-muted">Checkpoint {record.selection.checkpointId}</p><p className="mt-3 text-sm leading-6 text-starlight-muted">This records your local choice. Implementation and release still need their own checks.</p><div className="mt-5 flex flex-wrap gap-2"><button type="button" className={button} disabled={busy} onClick={() => void exportPacket('markdown')}>Download implementation brief</button><button type="button" className={button} disabled={busy} onClick={() => void exportPacket('json')}>Download packet JSON</button></div></section>}
         </div>
       </section>
-      <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-starlight-border py-6"><p className="max-w-xl text-sm leading-6 text-starlight-muted">Save keeps the editable plan in your canvas. Changes to the plan clear its earlier selection so the next build cites what you actually reviewed.</p><button type="button" className={`${button} border-starlight-gold/50 bg-starlight-gold/10 text-starlight-gold`} disabled={busy || !dirty} onClick={() => void save()}>Save website plan</button></footer>
+      <footer className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-starlight-border py-6"><p className="max-w-xl text-sm leading-6 text-starlight-muted">Save keeps the editable plan in your canvas. Changes to the plan clear its earlier selection so the next build cites what you actually reviewed.</p><button type="button" className={`${button} border-starlight-gold/50 bg-starlight-gold/10 text-starlight-gold`} aria-disabled={busy || !dirty} onClick={() => void save()}>{unavailable ? 'Replace invalid plan with draft' : 'Save website plan'}</button></footer>
     </>}
   </main>;
 }

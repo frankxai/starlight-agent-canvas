@@ -225,16 +225,48 @@ export class FileCanvasStore {
 
   async getWebsitePlan(canvasId: string) {
     const record = websitePlanFromCanvas(await this.getCanvas(canvasId));
-    return record ? { ...record, planHash: websitePlanHash(record.plan), gaps: websitePlanGaps(record.plan) } : null;
+    if (!record) return null;
+    let selectionVerified = false;
+    if (record.selection) {
+      try {
+        const checkpoint = await this.getCheckpoint(canvasId, record.selection.checkpointId);
+        const original = websitePlanFromCanvas(checkpoint.snapshot);
+        selectionVerified = checkpoint.contentHash === record.selection.checkpointHash && Boolean(original?.plan.options.some((option) => option.id === record.selection!.optionId)) && websitePlanHash(original!.plan) === record.selection.planHash && websitePlanHash(record.plan) === record.selection.planHash;
+      } catch { /* Retain the assertion; an explicit choice creates new evidence. */ }
+    }
+    return { ...record, selectionVerified, planHash: websitePlanHash(record.plan), gaps: [...websitePlanGaps(record.plan), ...(record.selection && !selectionVerified ? ['The saved choice has unavailable checkpoint evidence. Choose the saved direction again to capture its current state.'] : [])] };
+  }
+
+  async getWebsitePlanState(canvasId: string) {
+    const canvas = await this.getCanvas(canvasId);
+    try { websitePlanFromCanvas(canvas); }
+    catch { return { record: null, unavailable: { canvasHash: canvasContentHash(canvas), reason: 'Website plan evidence could not be parsed or has multiple authorities. Download the canvas before replacing the plan; prior evidence will be retained.' } }; }
+    return { record: await this.getWebsitePlan(canvasId), unavailable: null };
+  }
+
+  async recoverWebsitePlan(canvasId: string, raw: unknown, expectedCanvasHash: string) {
+    const plan = parseWebsitePlan(raw);
+    return this.withCanvasLock(canvasId, async (safeId) => {
+      const canvas = await this.getCanvas(safeId);
+      if (canvasContentHash(canvas) !== expectedCanvasHash) throw new Error('Website plan changed in another client. Keep your draft and reload the saved version before merging.');
+      let invalid = false;
+      try { websitePlanFromCanvas(canvas); } catch { invalid = true; }
+      if (!invalid) throw new Error('Website plan evidence is now readable. Reload it before saving.');
+      const retained = { ...canvas, nodes: canvas.nodes.map((node) => node.metadata.role === WEBSITE_ROLE ? { ...node, metadata: { ...node.metadata, role: 'website_plan_unverified', previousRole: WEBSITE_ROLE } } : node.metadata.websiteProjectionOf ? { ...node, metadata: { ...node.metadata, websiteProjectionRetired: true, websiteSelected: false } } : node) };
+      return this.saveWebsitePlanLocked(retained, plan);
+    });
   }
 
   async saveWebsitePlan(canvasId: string, raw: unknown, expectedHash?: string) {
     const plan = parseWebsitePlan(raw);
-    return this.withCanvasLock(canvasId, async (safeId) => {
-      const canvas = await this.getCanvas(safeId);
+    return this.withCanvasLock(canvasId, async (safeId) => this.saveWebsitePlanLocked(await this.getCanvas(safeId), plan, expectedHash));
+  }
+
+  private async saveWebsitePlanLocked(canvas: CanvasRecord, plan: ReturnType<typeof parseWebsitePlan>, expectedHash?: string) {
+      const safeId = canvas.id;
       const previous = websitePlanFromCanvas(canvas);
-      if ((previous ? websitePlanHash(previous.plan) : undefined) !== expectedHash) throw new Error('Website plan changed in another client. Keep your draft and reload the saved version before merging.');
       if (previous && websitePlanHash(previous.plan) === websitePlanHash(plan)) return { canvas, record: await this.getWebsitePlan(safeId) };
+      if ((previous ? websitePlanHash(previous.plan) : undefined) !== expectedHash) throw new Error('Website plan changed in another client. Keep your draft and reload the saved version before merging.');
       const timestamp = nowIso();
       const previousNode = previous ? canvas.nodes.find((node) => node.id === previous.nodeId)! : undefined;
       const metadata = { ...(previousNode?.metadata ?? {}), role: WEBSITE_ROLE, entityType: 'design_brief', websitePlan: plan };
@@ -248,7 +280,7 @@ export class FileCanvasStore {
       const activeIds = new Set(projections.map((item) => item.id));
       // Retain retired projections and user-created links as historical evidence.
       // Only this plan's read-only current projections are regenerated.
-      const retained = canvas.nodes.filter((item) => item.id !== node.id && !activeIds.has(item.id)).map((item) => item.metadata.websiteProjectionOf === node.id ? { ...item, metadata: { ...item.metadata, websiteProjectionRetired: true } } : item);
+      const retained = canvas.nodes.filter((item) => item.id !== node.id && !activeIds.has(item.id)).map((item) => item.metadata.websiteProjectionOf === node.id ? { ...item, metadata: { ...item.metadata, websiteProjectionRetired: true, websiteSelected: false } } : item);
       const generatedPrefix = `website-${node.id}-`;
       const projectedEdges: CanvasEdge[] = projections.map((view) => ({ id: `${generatedPrefix}${view.id}`, source: view.metadata.entityType === 'site_snapshot' ? view.id : node.id, target: view.metadata.entityType === 'site_snapshot' ? node.id : view.id, kind: view.metadata.entityType === 'design_option' ? 'compares' : 'references', createdAt: canvas.edges.find((edge) => edge.id === `${generatedPrefix}${view.id}`)?.createdAt ?? timestamp }));
       const artifactId = `${node.id}-snapshot`;
@@ -258,7 +290,6 @@ export class FileCanvasStore {
       snapshotView.metadata.artifactId = artifactId; snapshotView.metadata.source = source;
       const saved = await this.saveCanvasFile({ ...canvas, updatedAt: timestamp, nodes: [...retained, node, ...projections], edges: [...canvas.edges.filter((edge) => !edge.id.startsWith(generatedPrefix)), ...projectedEdges], artifacts: [...canvas.artifacts.filter((item) => item.id !== artifactId), artifact] });
       return { canvas: saved, record: await this.getWebsitePlan(safeId) };
-    });
   }
 
   async selectWebsiteDirection(canvasId: string, optionId: string, expectedHash: string) {
@@ -269,9 +300,10 @@ export class FileCanvasStore {
       const option = record.plan.options.find((item) => item.id === optionId);
       if (!option) throw new Error('Website direction was not found.');
       if (record.selection?.optionId === optionId && record.selection.planHash === expectedHash) {
-        const existing = await this.getCheckpoint(safeId, record.selection.checkpointId);
-        if (existing.contentHash !== record.selection.checkpointHash) throw new Error('Selected website plan could not be verified. Save and select the current direction again.');
-        return { canvas, record: await this.getWebsitePlan(safeId) };
+        const existingRecord = await this.getWebsitePlan(safeId);
+        if (existingRecord?.selectionVerified) return { canvas, record: existingRecord };
+        // An explicit repeated choice can checkpoint the current verified plan
+        // when imported or corrupt history made the previous assertion unusable.
       }
       const checkpoint = await this.writeCheckpoint(canvas, `Website direction: ${option.title}`.slice(0, 120));
       const selection: WebsiteSelection = { optionId, checkpointId: checkpoint.id, checkpointHash: checkpoint.contentHash, planHash: expectedHash, selectedAt: nowIso(), authority: 'user_assertion' };
@@ -289,7 +321,7 @@ export class FileCanvasStore {
       if (!original || checkpoint.contentHash !== record.selection.checkpointHash || websitePlanHash(original.plan) !== record.selection.planHash || websitePlanHash(record.plan) !== record.selection.planHash) throw new Error('Selected website plan could not be verified. Save and select the current direction again.');
       const direction = original.plan.options.find((item) => item.id === record.selection!.optionId);
       if (!direction) throw new Error('Website direction was not found.');
-      return { version: 'starlight.websiteImplementation.v1', canvasId: safeId, selected: record.selection, target: original.plan.target, source: original.plan.snapshot, brief: original.plan.brief, direction, sections: original.plan.sections, assets: original.plan.assets, gaps: websitePlanGaps(original.plan), boundary: 'Read-only proposal. Selection is a local user assertion, not release authorization. Verify target, provenance and gates before implementing.' };
+      return { version: 'starlight.websiteImplementation.v1', canvasId: safeId, origin: original.plan.origin ?? 'unspecified', selected: record.selection, target: original.plan.target, source: original.plan.snapshot, brief: original.plan.brief, direction, sections: original.plan.sections, assets: original.plan.assets, gaps: websitePlanGaps(original.plan), boundary: 'Read-only proposal. Selection is a local user assertion, not release authorization. Verify target, provenance and gates before implementing.' };
     });
   }
 

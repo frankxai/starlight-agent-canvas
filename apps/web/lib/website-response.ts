@@ -29,9 +29,10 @@ export async function websiteRequestBody(request: Request): Promise<unknown> {
 export function websiteErrorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : '';
   if (message.startsWith('Website plan changed') || message.startsWith('Selected website plan') || message.startsWith('Choose a saved')) return NextResponse.json({ error: message }, { status: 409, headers: { 'Cache-Control': 'no-store' } });
-  if (message.startsWith('Multiple website')) return NextResponse.json({ error: 'Website plan evidence needs owner reconciliation. The canvas is still available.' }, { status: 409 });
-  if (message.startsWith('Website request exceeds') || message.startsWith('Website plan exceeds')) return NextResponse.json({ error: 'Website plan is too large. Keep a focused plan under 100 KB.' }, { status: 413 });
+  if (message === 'Website direction was not found.') return NextResponse.json({ error: message }, { status: 404, headers: { 'Cache-Control': 'no-store' } });
+  if (message.startsWith('Multiple website') || message.startsWith('Website plan evidence is now')) return NextResponse.json({ error: 'Website plan evidence needs owner reconciliation. Refresh its saved state; the canvas is still available.' }, { status: 409, headers: { 'Cache-Control': 'no-store' } });
+  if (message.startsWith('Website request exceeds') || message.startsWith('Website plan exceeds')) return NextResponse.json({ error: 'Website plan is too large. Keep a focused plan under 100 KB.' }, { status: 413, headers: { 'Cache-Control': 'no-store' } });
   const code = (error as NodeJS.ErrnoException | undefined)?.code;
   if (code === 'ENOENT' || ['EACCES', 'EPERM', 'EBUSY', 'ENOSPC'].includes(code ?? '') || message.startsWith('Checkpoint') || message.startsWith('Timed out waiting') || message.startsWith('Canvas lock ownership')) return checkpointErrorResponse(error);
-  return NextResponse.json({ error: 'Website plan could not be validated. Check its source, unique IDs, target, placement references and provenance. Your draft is unchanged.' }, { status: 400 });
+  return NextResponse.json({ error: 'Website plan could not be validated. Check its source, unique IDs, target, placement references and provenance. Your draft is unchanged.' }, { status: 400, headers: { 'Cache-Control': 'no-store' } });
 }
