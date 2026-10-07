@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
-import { canvasIdSchema, canvasRecordSchema, exportFormatSchema } from '@starlight-agent-canvas/core';
+import { canvasIdSchema, canvasRecordSchema, exportFormatSchema, websitePlanSchema } from '@starlight-agent-canvas/core';
 import { createToolHandlers } from './tool-handlers.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
@@ -484,6 +484,19 @@ export function createAgentCanvasMcpServer() {
     },
     async (args) => handlers.export_canvas(args),
   );
+
+  server.registerTool('get_website_plan', {
+    title: 'Get website plan', description: 'Read the local source-backed website plan, selection and missing evidence.',
+    inputSchema: { canvasId: canvasIdSchema }, annotations: READ_ONLY_LOCAL,
+  }, async (args) => handlers.get_website_plan(args));
+  server.registerTool('save_website_plan', {
+    title: 'Save website plan', description: 'Save a bounded source-backed website plan in the existing canvas. Requires the last plan hash for updates. Plan changes clear earlier human selections; this tool cannot select a direction.',
+    inputSchema: { canvasId: canvasIdSchema, plan: websitePlanSchema, expectedHash: z.string().regex(/^[a-f0-9]{64}$/).optional() }, annotations: SAFE_LOCAL_WRITE,
+  }, async (args) => handlers.save_website_plan(args));
+  server.registerTool('export_website_implementation', {
+    title: 'Export website implementation', description: 'Read-only implementation brief tied to a human-selected checkpoint. Missing captures and media provenance remain explicit. Does not run an agent, write to another repository or deploy.',
+    inputSchema: { canvasId: canvasIdSchema }, annotations: READ_ONLY_LOCAL,
+  }, async (args) => handlers.export_website_implementation(args));
 
   server.registerTool('create_canvas_checkpoint', {
     title: 'Save Canvas Checkpoint',

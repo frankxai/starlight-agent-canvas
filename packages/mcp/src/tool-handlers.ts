@@ -1,6 +1,7 @@
 import {
   addNodeInputSchema,
   checkpointReviewView,
+  websitePacketMarkdown,
   canvasRecordSchema,
   connectNodesInputSchema,
   createIntakeTraceForNodes,
@@ -459,6 +460,21 @@ export function createToolHandlers(store = new FileCanvasStore(), readContinuity
     async create_canvas_checkpoint(args: { canvasId: string; label: string }): Promise<ToolResult> {
       const checkpoint = await store.createCheckpoint(args.canvasId, { label: args.label });
       return ok(`Checkpoint saved: ${checkpoint.label}`, { checkpoint });
+    },
+
+    async get_website_plan(args: { canvasId: string }): Promise<ToolResult> {
+      const record = await store.getWebsitePlan(args.canvasId);
+      return ok(jsonText(record), { record });
+    },
+
+    async save_website_plan(args: { canvasId: string; plan: unknown; expectedHash?: string }): Promise<ToolResult> {
+      const result = await store.saveWebsitePlan(args.canvasId, args.plan, args.expectedHash);
+      return ok('Website plan saved locally. Edits require a new human direction choice in the workbench.', { record: result.record });
+    },
+
+    async export_website_implementation(args: { canvasId: string }): Promise<ToolResult> {
+      const packet = await store.exportWebsiteImplementation(args.canvasId);
+      return ok(websitePacketMarkdown(packet), { packet });
     },
 
     async list_canvas_checkpoints(args: { canvasId: string }): Promise<ToolResult> {
