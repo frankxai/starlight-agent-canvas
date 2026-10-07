@@ -39,6 +39,7 @@ test('source context opens through an opaque reference and preserves conflicts w
   await page.reload();
   await expect(page.getByRole('heading', { name: 'A more considered creation journey', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  if (testInfo.project.name === 'mobile') expect((await page.getByLabel('Import Atlas context', { exact: true }).boundingBox())!.width).toBeGreaterThan(250);
   expect(external).toEqual([]);
   expect(writes).toEqual([]);
   expect(transmittedContext).toEqual([]);

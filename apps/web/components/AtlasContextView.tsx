@@ -185,8 +185,8 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
       <p className="mt-5 max-w-2xl text-base leading-7 text-starlight-muted">Open one entity from your Atlas. Keep its sources and open questions together while you decide what to make next.</p>
     </header>
     <section aria-label="Open Atlas context" className="mb-7 rounded-xl border border-starlight-border bg-starlight-surface p-5 sm:p-6">
-      <div className="flex flex-wrap items-end gap-4">
-        <label className="min-w-0 flex-1 text-sm text-starlight-ink">Import Atlas context
+      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+        <label className="min-w-0 text-sm text-starlight-ink">Import Atlas context
           <input ref={fileInput} type="file" accept=".json,application/json" disabled={busy || Boolean(openingRef) || !ready} className="mt-2 block min-h-11 w-full max-w-full rounded-lg border border-starlight-border p-2 text-sm file:mr-3 file:min-h-9 file:rounded file:border-0 file:bg-starlight-accent/15 file:px-3 file:text-starlight-ink"
             onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; void importFile(file); }} />
         </label>
