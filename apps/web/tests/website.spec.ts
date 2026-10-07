@@ -1,6 +1,57 @@
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
+import { applyWebsiteGeneration, type WebsitePlan } from '@starlight-agent-canvas/core';
+
+test('generated proposals preserve newer edits, recover, and export the chosen editable page', async ({ page }, testInfo) => {
+  const created = await page.request.post('/api/canvases', { data: { title: `Generation fixture ${testInfo.project.name} ${Date.now()}`, template: 'blank' } });
+  const { canvas } = await created.json();
+  const endpoint = `/api/canvases/${canvas.id}/website/generate`;
+  expect((await page.request.post(endpoint, { data: { plan: {} } })).status()).toBe(503);
+  expect((await page.request.post(endpoint, { headers: { Origin: 'https://untrusted.example' }, data: { plan: {} } })).status()).toBe(403);
+  let release: (() => void) | undefined; let held = true; let sent: WebsitePlan | undefined;
+  await page.route(`**${endpoint}`, async (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { enabled: true, provider: 'openai', model: 'synthetic-browser-fixture', boundary: 'Synthetic response fixture; no provider call or customer proof.' } });
+    const { plan } = route.request().postDataJSON() as { plan: WebsitePlan }; sent = plan;
+    const output = { options: plan.options.map((option, index) => ({ ...option, title: `Fixture approach ${index + 1}`, headline: `Fixture whole-page direction ${index + 1}`, sectionCopy: plan.sections.map((section) => ({ sectionId: section.id, copy: `Fixture approach ${index + 1}: ${section.copy}`, action: `Fixture action ${index + 1}` })), sourceQuotes: [plan.snapshot.notes.slice(0, 60)] })) };
+    const proposal = applyWebsiteGeneration(plan, output, { version: 'starlight.websiteGeneration.v1', provider: 'openai', requestedModel: 'fixture-model', returnedModel: 'fixture-model', generatedAt: '2026-10-07T10:00:00Z', inputHash: '1'.repeat(64), outputHash: '2'.repeat(64), promptHash: '3'.repeat(64), authority: 'local_assertion' });
+    if (held) await new Promise<void>((resolve) => { release = resolve; });
+    await route.fulfill({ json: { plan: proposal } });
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' }); await page.goto(`/website/${canvas.id}`);
+  await page.getByRole('button', { name: 'Load authored example' }).click();
+  const region = page.getByRole('heading', { name: 'Explore three complete page directions', exact: true }).locator('..');
+  await region.getByRole('button', { name: 'Send source and generate directions', exact: true }).click();
+  await expect.poll(() => Boolean(release)).toBe(true);
+  await page.getByLabel('Plan title', { exact: true }).fill('Newer draft retained'); release!();
+  await expect(region.getByRole('button', { name: 'Use proposal as draft', exact: true })).toBeDisabled();
+  await expect(region).toContainText('Your draft changed'); await expect(page.getByLabel('Plan title', { exact: true })).toHaveValue('Newer draft retained');
+  await page.reload(); await expect(region).toContainText('Recovered a generated proposal');
+  await expect(page.getByLabel('Plan title', { exact: true })).toHaveValue('Newer draft retained');
+  await region.getByRole('button', { name: 'Dismiss proposal', exact: true }).click(); held = false;
+  await region.getByRole('button', { name: 'Send source and generate directions', exact: true }).click();
+  await expect(region.getByRole('button', { name: 'Use proposal as draft', exact: true })).toBeEnabled();
+  await region.getByRole('button', { name: 'Use proposal as draft', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit Fixture approach 2', exact: true }).click();
+  const sectionId = sent!.sections[0]!.id;
+  await page.getByLabel(`Fixture approach 2: ${sectionId} copy`, { exact: true }).fill('Human-revised full-page section.');
+  await page.reload(); await page.getByRole('button', { name: 'Edit Fixture approach 2', exact: true }).click();
+  await expect(page.getByLabel(`Fixture approach 2: ${sectionId} copy`, { exact: true })).toHaveValue('Human-revised full-page section.');
+  await page.getByRole('button', { name: 'Save website plan', exact: true }).click();
+  await page.getByRole('button', { name: 'Choose Fixture approach 2', exact: true }).click();
+  await expect(page.getByTestId('selected-website-direction')).toContainText('Fixture approach 2');
+  const packet = await (await page.request.get(`/api/canvases/${canvas.id}/website/export`)).json();
+  expect(packet.sections[0].copy).toBe('Human-revised full-page section.'); expect(packet.origin).toBe('edited_model_generated');
+  expect(packet.generation.authority).toBe('local_assertion');
+  for (const width of [375, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await region.getByRole('button', { name: 'Download generated plan' }).scrollIntoViewIfNeeded();
+    const capture = testInfo.outputPath(`website-generation-${width}.png`); await page.screenshot({ path: capture, fullPage: true });
+    const sha256 = createHash('sha256').update(await readFile(capture)).digest('hex');
+    await writeFile(`${capture}.vis.provenance.json`, JSON.stringify({ $schema: 'https://frankx.ai/schemas/vis-provenance-sidecar.schema.json', schema_version: '1.0.0', asset: { id: `website-generation-${testInfo.project.name}-${width}`, version: 1, media_type: 'image/png', sha256, relative_path: `website-generation-${width}.png` }, generation: { provider: 'Playwright browser capture / GitHub Actions', model: null, seed: null, prompt: 'Capture actual website generation review, source-matched synthetic fixture, newer edit preservation, proposal recovery, human section revision and verified chosen export. No live provider generation or customer acceptance.', settings: { revision: process.env.GITHUB_SHA ?? null, project: testInfo.project.name, width, reduced_motion: true }, created_at: new Date().toISOString(), output_paths: [`website-generation-${width}.png`] }, agent: { harness: 'Codex', session: '01a113ec-1c95-70a0-84eb-ae2b8aae03a3' }, evaluation: { visual_inspection: 'Pending', schema_validation: 'Not claimed' }, rights: { source: 'Owned synthetic browser fixture', public_release: false } }, null, 2));
+  }
+});
 
 test('website directions preserve edits, record a choice and export a source-backed brief', async ({ page }, testInfo) => {
   const created = await page.request.post('/api/canvases', { data: { title: `Website ${testInfo.project.name} ${Date.now()}`, template: 'blank' } });

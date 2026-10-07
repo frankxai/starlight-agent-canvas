@@ -3,6 +3,7 @@ import type { CanvasRecord } from './schemas.js';
 import { websiteMediaReportMatches, websiteMediaReportSchema } from './website-media.js';
 export { checkWebsiteMedia, websiteMediaReportMatches, WEBSITE_MEDIA_MAX_BYTES, WEBSITE_MEDIA_RECORD_MAX_BYTES } from './website-media.js';
 export type { WebsiteMediaReport } from './website-media.js';
+export { websiteGenerationInput, applyWebsiteGeneration, websiteGenerationOutputSchema, websiteGenerationJsonSchema, WEBSITE_GENERATION_PROMPT } from './website-generation.js';
 
 const text = z.string().trim().min(1).max(4000);
 const id = z.string().min(1).max(128).regex(/^[a-zA-Z0-9][a-zA-Z0-9_-]*$/);
@@ -25,7 +26,7 @@ const file = z.string().min(1).max(256).refine((value) => !/^[~/\\]|[\\:\u0000-\
 export const websitePlanSchema = z.object({
   version: z.literal('starlight.websitePlan.v1'),
   id, title: text,
-  origin: z.enum(['authored_example', 'edited_authored_example', 'user_supplied', 'model_generated']).optional(),
+  origin: z.enum(['authored_example', 'edited_authored_example', 'user_supplied', 'model_generated', 'edited_model_generated']).optional(),
   snapshot: z.object({
     id,
     source: z.discriminatedUnion('kind', [
@@ -43,7 +44,16 @@ export const websitePlanSchema = z.object({
   brief: z.object({ audience: text, job: text, outcome: text, copyConstraints: text, accessibilityConstraints: text, productConstraints: text }).strict(),
   target: z.object({ repository: repository.optional(), status: z.enum(['resolved', 'unresolved']), issueUrl: publicSiteUrlSchema.optional() }).strict()
     .refine((target) => target.status !== 'resolved' || Boolean(target.repository), 'A resolved target needs its repository.'),
-  options: z.array(z.object({ id, title: text, premise: text, headline: text, body: text, action: text, tradeoff: text }).strict()).min(1).max(3),
+  options: z.array(z.object({ id, title: text, premise: text, headline: text, body: text, action: text, tradeoff: text,
+    sectionCopy: z.array(z.object({ sectionId: id, copy: text, action: text }).strict()).min(1).max(20).optional(),
+    sourceQuotes: z.array(z.string().min(1).max(1000)).min(1).max(3).optional(),
+  }).strict()).min(1).max(3),
+  generation: z.object({
+    version: z.literal('starlight.websiteGeneration.v1'), provider: z.enum(['openai', 'anthropic']),
+    requestedModel: z.string().min(1).max(128), returnedModel: z.string().min(1).max(128), generatedAt: z.string().datetime(),
+    inputHash: z.string().regex(/^[a-f0-9]{64}$/), outputHash: z.string().regex(/^[a-f0-9]{64}$/), promptHash: z.string().regex(/^[a-f0-9]{64}$/),
+    authority: z.literal('local_assertion'),
+  }).strict().optional(),
   sections: z.array(z.object({
     id, label: text, kind: z.enum(['page_section', 'funnel_step', 'product', 'cta']), route: z.string().min(1).max(256).regex(/^\/(?!\/)[^?#\s]*$/),
     productId: id.optional(), action: text, why: text, copy: text, responsive: text,
@@ -63,6 +73,10 @@ export const websitePlanSchema = z.object({
   for (const asset of plan.assets) {
     if (!plan.sections.some((section) => section.id === asset.sectionId)) ctx.addIssue({ code: 'custom', message: 'Asset placement must reference an existing section.', path: ['assets'] });
     if (asset.mediaCheckReport && !websiteMediaReportMatches(asset, asset.mediaCheckReport)) ctx.addIssue({ code: 'custom', message: 'Local media report belongs to a different placement or provenance reference. Recheck the chosen files.', path: ['assets'] });
+  }
+  for (const [index, option] of plan.options.entries()) {
+    if (option.sectionCopy && (option.sectionCopy.length !== plan.sections.length || new Set(option.sectionCopy.map((item) => item.sectionId)).size !== plan.sections.length || option.sectionCopy.some((item) => !plan.sections.some((section) => section.id === item.sectionId)))) ctx.addIssue({ code: 'custom', message: 'Direction copy must cover each existing section exactly once.', path: ['options', index, 'sectionCopy'] });
+    if (option.sourceQuotes?.some((quote) => !plan.snapshot.notes.includes(quote))) ctx.addIssue({ code: 'custom', message: 'Source quotes must match the retained observations exactly.', path: ['options', index, 'sourceQuotes'] });
   }
 });
 
@@ -91,7 +105,7 @@ export function parseWebsiteDraft(raw: unknown): WebsitePlan {
   }
   editable(candidate as unknown as Record<string, unknown>, ['title']);
   editable(candidate.brief, ['audience', 'job', 'outcome', 'copyConstraints', 'accessibilityConstraints', 'productConstraints']);
-  for (const option of candidate.options) editable(option, ['title', 'headline', 'body', 'action', 'premise', 'tradeoff']);
+  for (const option of candidate.options) { editable(option, ['title', 'headline', 'body', 'action', 'premise', 'tradeoff']); for (const section of option.sectionCopy ?? []) editable(section, ['copy', 'action']); }
   for (const section of candidate.sections) { editable(section, ['copy', 'action', 'why', 'responsive']); if (typeof section.route === 'string' && section.route.length <= 4000) section.route = '/draft'; }
   for (const asset of candidate.assets) {
     if (asset.mediaCheckReport && (!websiteMediaReportSchema.safeParse(asset.mediaCheckReport).success || !websiteMediaReportMatches(asset, asset.mediaCheckReport))) throw new Error('Local media report needs reconciliation before draft recovery.');
@@ -117,6 +131,7 @@ export function websitePlanFromCanvas(canvas: CanvasRecord): { nodeId: string; p
 
 export function websitePlanGaps(plan: WebsitePlan): string[] {
   const gaps: string[] = [];
+  if (plan.generation) gaps.push('Generation metadata is a local declaration. Quote matching establishes source presence, not the truth of the proposed claims; review all copy before implementation.');
   if (plan.target.status !== 'resolved') gaps.push('Resolve the owning repository before implementation.');
   else gaps.push('Verify target repository ownership and current revision before implementation.');
   if (!plan.target.issueUrl) gaps.push('Link the source issue before implementation.');
@@ -131,12 +146,19 @@ export function websitePlanGaps(plan: WebsitePlan): string[] {
   return gaps;
 }
 
+export function websiteSectionsForDirection(plan: WebsitePlan, option: WebsitePlan['options'][number]): WebsitePlan['sections'] {
+  return plan.sections.map((section) => {
+    const copy = option.sectionCopy?.find((item) => item.sectionId === section.id);
+    return { ...section, ...(copy ? { copy: copy.copy, action: copy.action } : {}) };
+  });
+}
+
 export function websitePlanMarkdown(plan: WebsitePlan): string {
   const source = plan.snapshot.source.kind === 'public_url' ? plan.snapshot.source.url : `${plan.snapshot.source.repository} @ ${plan.snapshot.source.branch}${plan.snapshot.source.commit ? ` (${plan.snapshot.source.commit})` : ''}`;
   return [
     `# ${plan.title}`, '', `Source: ${source}`, `Observed: ${plan.snapshot.observedAt} (${plan.snapshot.method})`, plan.snapshot.notes,
     '', '## The job', plan.brief.job, `Audience: ${plan.brief.audience}`, `Outcome: ${plan.brief.outcome}`,
-    ...plan.options.flatMap((option) => ['', `## ${option.title}`, option.premise, `Headline: ${option.headline}`, option.body, `Action: ${option.action}`, `Tradeoff: ${option.tradeoff}`]),
+    ...plan.options.flatMap((option) => ['', `## ${option.title}`, option.premise, `Headline: ${option.headline}`, option.body, `Action: ${option.action}`, `Tradeoff: ${option.tradeoff}`, ...(option.sectionCopy ?? []).flatMap((section) => [`Section ${section.sectionId}: ${section.copy}`, `Action: ${section.action}`]), ...(option.sourceQuotes ?? []).map((quote) => `Retained source quote: ${quote}`)]),
     ...plan.sections.flatMap((section) => ['', `## ${section.label} · ${section.route}`, section.copy, `Action: ${section.action}`, `Why: ${section.why}`, `Responsive: ${section.responsive}`, ...section.acceptance.map((item) => `- ${item}`)]),
   ].join('\n');
 }
@@ -144,7 +166,7 @@ export function websitePlanMarkdown(plan: WebsitePlan): string {
 export function websiteProjectionSpecs(plan: WebsitePlan) {
   return [
     { entityId: plan.snapshot.id, entityType: 'site_snapshot', title: 'Source snapshot', body: `${plan.snapshot.notes}\n\nObserved: ${plan.snapshot.observedAt}\n${plan.snapshot.views.map((view) => `${view.viewport}: ${view.status} · ${view.notes}`).join('\n')}` },
-    ...plan.options.map((option) => ({ entityId: option.id, entityType: 'design_option', title: option.title, body: `${option.headline}\n\n${option.body}\n\nAction: ${option.action}\nPremise: ${option.premise}\nTradeoff: ${option.tradeoff}` })),
+    ...plan.options.map((option) => ({ entityId: option.id, entityType: 'design_option', title: option.title, body: `${option.headline}\n\n${option.body}\n\nAction: ${option.action}\nPremise: ${option.premise}\nTradeoff: ${option.tradeoff}\n${(option.sectionCopy ?? []).map((section) => `${section.sectionId}: ${section.copy}\nAction: ${section.action}`).join('\n')}\n${(option.sourceQuotes ?? []).map((quote) => `Retained source quote: ${quote}`).join('\n')}` })),
     ...plan.sections.map((section) => ({ entityId: section.id, entityType: section.kind, title: section.label, body: `${section.route}\n\n${section.copy}\n\nAction: ${section.action}\nWhy: ${section.why}\nResponsive: ${section.responsive}` })),
     ...plan.assets.map((asset) => ({ entityId: asset.id, entityType: 'asset_placement', title: asset.reference, body: `Section: ${asset.sectionId}\n${asset.why}\nResponsive: ${asset.responsive}\n${asset.kind === 'image' ? `Alt: ${asset.alt ?? 'Missing'}` : `Transcript: ${asset.transcript ?? 'Missing'}`}\nProvenance: ${asset.provenance?.sidecar ?? 'Missing'}` })),
   ];
@@ -155,12 +177,14 @@ export type WebsiteImplementationPacket = {
   origin: WebsitePlan['origin'] | 'unspecified';
   target: WebsitePlan['target']; source: WebsitePlan['snapshot']; brief: WebsitePlan['brief']; direction: WebsitePlan['options'][number];
   sections: WebsitePlan['sections']; assets: WebsitePlan['assets']; gaps: string[];
+  generation?: WebsitePlan['generation'];
   boundary: 'Read-only proposal. Selection is a local user assertion, not release authorization. Verify target, provenance and gates before implementing.';
 };
 
 export function websitePacketMarkdown(packet: WebsiteImplementationPacket): string {
   const evidence = [
     `Content origin (declared): ${packet.origin}`,
+    ...(packet.generation ? [`Generation metadata (local declaration): ${JSON.stringify(packet.generation)}`] : []),
     `Canvas: ${packet.canvasId}`, `Selected: ${packet.selected.selectedAt}`, `Checkpoint: ${packet.selected.checkpointId}`, `Checkpoint SHA256: ${packet.selected.checkpointHash}`, `Plan SHA256: ${packet.selected.planHash}`,
     `Repository: ${packet.target.repository ?? 'Unresolved'}`, `Issue: ${packet.target.issueUrl ?? 'Missing'}`,
     '', '## Direction', packet.direction.premise, packet.direction.headline, packet.direction.body, `Action: ${packet.direction.action}`, `Tradeoff: ${packet.direction.tradeoff}`,
