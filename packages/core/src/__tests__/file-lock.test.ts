@@ -5,11 +5,24 @@ import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import { afterEach, expect, it, vi } from 'vitest';
 
-const faults = vi.hoisted(() => ({ writePath: '', removePath: '', removalFailures: 0 }));
+const faults = vi.hoisted(() => ({ writePath: '', removePath: '', removalFailures: 0, unsupportedLinks: false, fallbackWritePath: '' }));
 vi.mock('node:fs/promises', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs/promises')>();
   return {
     ...actual,
+    link: async (...args: Parameters<typeof actual.link>) => {
+      if (faults.unsupportedLinks) throw Object.assign(new Error('Hard links unavailable'), { code: 'EPERM' });
+      return actual.link(...args);
+    },
+    open: async (...args: Parameters<typeof actual.open>) => {
+      const handle = await actual.open(...args);
+      if (args[0] !== faults.fallbackWritePath) return handle;
+      return new Proxy(handle, { get(target, key) {
+        if (key === 'writeFile') return async () => { throw Object.assign(new Error('Disk full during fallback owner write'), { code: 'ENOSPC' }); };
+        const value = Reflect.get(target, key, target);
+        return typeof value === 'function' ? value.bind(target) : value;
+      } });
+    },
     writeFile: async (...args: Parameters<typeof actual.writeFile>) => {
       if (faults.writePath && String(args[0]).startsWith(`${faults.writePath}.`)) {
         await actual.writeFile(args[0], '{partial', args[2]);
@@ -36,6 +49,7 @@ async function filename() {
 }
 afterEach(async () => {
   faults.writePath = ''; faults.removePath = ''; faults.removalFailures = 0;
+  faults.unsupportedLinks = false; faults.fallbackWritePath = '';
   await Promise.all(homes.splice(0).map((home) => rm(home, { recursive: true, force: true })));
 });
 
@@ -90,6 +104,25 @@ it('holds a lock from another host rather than interpreting its PID locally', as
   await writeFile(lock, raw);
   await expect(withFileLock(lock, async () => undefined, { timeoutMs: 30, retryMs: 5 })).rejects.toThrow('Timed out');
   expect(await readFile(lock, 'utf8')).toBe(raw);
+});
+
+it('preserves normal v0.1 writes and mutual exclusion when hard links are unavailable', async () => {
+  const lock = await filename();
+  faults.unsupportedLinks = true;
+  let running = 0; let peak = 0;
+  const work = async () => { running += 1; peak = Math.max(peak, running); await sleep(20); running -= 1; };
+  await Promise.all([withFileLock(lock, work), withFileLock(lock, work)]);
+  expect(peak).toBe(1);
+  await expect(readFile(lock)).rejects.toMatchObject({ code: 'ENOENT' });
+});
+
+it('cleans a failed fallback owner write without deleting another writer', async () => {
+  const lock = await filename();
+  faults.unsupportedLinks = true; faults.fallbackWritePath = lock;
+  await expect(withFileLock(lock, async () => undefined)).rejects.toThrow('Disk full during fallback');
+  await expect(readFile(lock)).rejects.toMatchObject({ code: 'ENOENT' });
+  faults.fallbackWritePath = '';
+  expect(await withFileLock(lock, async () => 'Writable')).toBe('Writable');
 });
 
 it('preserves malformed owner evidence for reconciliation rather than guessing', async () => {

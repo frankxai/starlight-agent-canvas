@@ -1,4 +1,4 @@
-import { link, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { link, mkdir, open, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { hostname } from 'node:os';
 import path from 'node:path';
@@ -15,7 +15,7 @@ const DEFAULT_LOCK_TIMEOUT_MS = 10_000;
 const DEFAULT_RETRY_MS = 35;
 
 function isLockContention(code: string | undefined): boolean {
-  return code === 'EEXIST' || code === 'EPERM' || code === 'EACCES';
+  return code === 'EEXIST';
 }
 
 async function removeLockWithRetry(lockPath: string, expectedRecord?: string): Promise<void> {
@@ -59,7 +59,27 @@ async function createExclusiveLock(lockPath: string, ownerRecord: string): Promi
   const token = `${lockPath}.${randomUUID()}.tmp`;
   try {
     await writeFile(token, ownerRecord, { flag: 'wx' });
-    await link(token, lockPath);
+    try {
+      await link(token, lockPath);
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (!['EPERM', 'EACCES', 'ENOTSUP', 'EOPNOTSUPP'].includes(code ?? '')) throw error;
+      const targetExists = await stat(lockPath).then(() => true).catch((problem: NodeJS.ErrnoException) => {
+        if (problem.code === 'ENOENT') return false;
+        throw problem;
+      });
+      if (targetExists) throw Object.assign(new Error('Canvas writer already holds this lock.'), { code: 'EEXIST', cause: error });
+      // Retain v0.1 homes on filesystems without hard links. Exclusive creation
+      // still prevents concurrent writers; a killed partial owner stays held.
+      const handle = await open(lockPath, 'wx');
+      try { await handle.writeFile(ownerRecord); }
+      catch (problem) {
+        await handle.close().catch(() => undefined);
+        await removeLockWithRetry(lockPath);
+        throw problem;
+      }
+      finally { await handle.close().catch(() => undefined); }
+    }
     return token;
   } catch (error) {
     await removeLockWithRetry(token);

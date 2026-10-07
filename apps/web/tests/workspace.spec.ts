@@ -43,6 +43,10 @@ test('history keeps exact review states and compares agent edits accessibly', as
     headers: { Origin: 'https://untrusted.example' }, data: { label: 'Cross-origin write' },
   });
   expect(crossOrigin.status()).toBe(403);
+  const reboundHost = await page.request.post(`/api/canvases/${canvas.id}/checkpoints`, {
+    headers: { Host: 'rebound.example', Origin: 'http://rebound.example' }, data: { label: 'Rebound host write' },
+  });
+  expect(reboundHost.status()).toBe(403);
   const savedHistory = await page.request.get(`/api/canvases/${canvas.id}/checkpoints`);
   expect((await savedHistory.json()).checkpoints).toHaveLength(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
