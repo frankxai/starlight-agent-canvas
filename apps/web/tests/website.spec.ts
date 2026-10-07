@@ -42,6 +42,8 @@ test('generated proposals preserve newer edits, recover, and export the chosen e
   await page.getByRole('button', { name: 'Save website plan', exact: true }).click();
   await page.getByRole('button', { name: 'Choose Fixture approach 2', exact: true }).click();
   await expect(page.getByTestId('selected-website-direction')).toContainText('Fixture approach 2');
+  await expect(page.getByRole('combobox', { name: 'Page direction', exact: true })).toHaveValue(sent!.options[1]!.id);
+  await expect(page.getByTestId('direction-page-sections')).toContainText('Human-revised full-page section.');
   const packet = await (await page.request.get(`/api/canvases/${canvas.id}/website/export`)).json();
   expect(packet.sections[0].copy).toBe('Human-revised full-page section.'); expect(packet.origin).toBe('edited_model_generated');
   expect(packet.generation.authority).toBe('local_assertion');

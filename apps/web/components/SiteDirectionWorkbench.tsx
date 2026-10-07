@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import type { WebsiteMediaReport, WebsitePlan, WebsiteSelection } from '@starlight-agent-canvas/core';
-import { parseWebsitePlan, parseWebsiteDraft, websiteMediaReportMatches } from '@starlight-agent-canvas/core/website';
+import { parseWebsitePlan, parseWebsiteDraft, websiteMediaReportMatches, websiteSectionsForDirection } from '@starlight-agent-canvas/core/website';
 import WebsiteMediaEvidence from './WebsiteMediaEvidence';
 import WebsiteGeneration from './WebsiteGeneration';
 
@@ -56,6 +56,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
   const [status, setStatus] = useState('Opening your saved work…');
   const [storageWarning, setStorageWarning] = useState('');
   const [expanded, setExpanded] = useState<string>();
+  const directionSelectId = useId();
 
   useEffect(() => {
     let cancelled = false;
@@ -166,7 +167,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     await perform(async () => {
       const result = await request<{ record: PlanRecord }>(`${base}/select`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ optionId, expectedHash: record.planHash }) });
       if (alive.current) {
-        if (draftVersion.current === version) { acceptSaved(result.record); setStatus('Direction selected. Its checkpoint is preserved; the implementation brief is ready to export.'); }
+        if (draftVersion.current === version) { acceptSaved(result.record); setExpanded(optionId); setStatus('Direction selected. Its checkpoint is preserved; the implementation brief is ready to export.'); }
         else { setRecord(result.record); setExpectedHash(result.record.planHash); setStatus('Saved direction selected. Your newer edits remain unsaved and need a new choice after saving.'); }
       }
     });
@@ -196,6 +197,8 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     });
   }
 
+  const pageOption = draft?.options.find((option) => option.id === expanded) ?? draft?.options.find((option) => option.id === record?.selection?.optionId) ?? draft?.options[0];
+  const pageSections = draft && pageOption ? websiteSectionsForDirection(draft, pageOption) : draft?.sections ?? [];
   return <main className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 sm:py-10" data-testid="site-directions">
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-starlight-border pb-6">
       <a href={`/?canvas=${encodeURIComponent(canvasId)}`} className={`${button} gap-2`}>← Return to canvas</a>
@@ -278,9 +281,14 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
         </article>)}</div>
       </section>
       <section className="mt-12 grid gap-8 lg:grid-cols-[1.35fr_1fr]" aria-labelledby="page-heading">
-        <div><h2 id="page-heading" className="text-2xl font-semibold">Give each section a purpose</h2><p className="mt-2 text-sm leading-6 text-starlight-muted">Connect the words to the route, the next action and the evidence a builder will need. Directions with their own section copy use the words in their direction editor; these shared sections retain the implementation constraints.</p>
-          <ol className="mt-6 space-y-4">{draft.sections.map((section, index) => <li key={section.id} className="rounded-lg border border-starlight-border bg-starlight-surface p-5"><div className="flex flex-wrap items-baseline justify-between gap-3"><h3 className="text-lg font-medium">{section.label}</h3><span className="text-sm text-starlight-accent">{section.route}</span></div><p className="mt-3 whitespace-pre-wrap text-sm leading-7">{section.copy}</p><p className="mt-3 text-sm leading-6 text-starlight-muted">Next action: {section.action}</p><p className="mt-2 text-sm leading-6 text-starlight-muted">{section.why}</p>
-            <details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Edit copy and implementation details</summary><div className="mt-3 space-y-4">{(['copy', 'action', 'why', 'responsive', 'route'] as const).map((key) => <Field key={key} label={`${section.label}: ${key}`} multiline={key !== 'route'} value={section[key]} onChange={(value) => edit((next) => { next.sections[index]![key] = value; })} />)}<p className="break-all text-xs leading-6 text-starlight-muted">Proposed files: {section.files.join(', ') || 'Unresolved'}</p><ul className="space-y-2 text-xs leading-6 text-starlight-muted">{[...section.acceptance, ...section.accessibility].map((item, itemIndex) => <li key={itemIndex}>• {item}</li>)}</ul></div></details>
+        <div><h2 id="page-heading" className="text-2xl font-semibold">Give each section a purpose</h2><p className="mt-2 text-sm leading-6 text-starlight-muted">Review the page for the direction below. Copy and actions belong to that direction; routes and implementation constraints are shared.</p>
+          {pageOption && <div className="mt-4 space-y-2"><label htmlFor={directionSelectId} className="block text-sm text-starlight-muted">Page direction</label><select id={directionSelectId} className={control} value={pageOption.id} onChange={(event) => setExpanded(event.target.value)}>{draft.options.map((option) => <option key={option.id} value={option.id}>{option.title}</option>)}</select></div>}
+          <ol className="mt-6 space-y-4" data-testid="direction-page-sections">{pageSections.map((section, index) => <li key={section.id} className="rounded-lg border border-starlight-border bg-starlight-surface p-5"><div className="flex flex-wrap items-baseline justify-between gap-3"><h3 className="text-lg font-medium">{section.label}</h3><span className="text-sm text-starlight-accent">{section.route}</span></div><p className="mt-3 whitespace-pre-wrap text-sm leading-7">{section.copy}</p><p className="mt-3 text-sm leading-6 text-starlight-muted">Next action: {section.action}</p><p className="mt-2 text-sm leading-6 text-starlight-muted">{section.why}</p>
+            <details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Edit copy and implementation details</summary><div className="mt-3 space-y-4">{(['copy', 'action', 'why', 'responsive', 'route'] as const).map((key) => <Field key={key} label={`${section.label}: ${key}`} multiline={key !== 'route'} value={section[key]} onChange={(value) => edit((next) => {
+              const optionCopy = next.options.find((option) => option.id === pageOption?.id)?.sectionCopy?.find((item) => item.sectionId === section.id);
+              if (optionCopy && (key === 'copy' || key === 'action')) optionCopy[key] = value;
+              else next.sections[index]![key] = value;
+            })} />)}<p className="break-all text-xs leading-6 text-starlight-muted">Proposed files: {section.files.join(', ') || 'Unresolved'}</p><ul className="space-y-2 text-xs leading-6 text-starlight-muted">{[...section.acceptance, ...section.accessibility].map((item, itemIndex) => <li key={itemIndex}>• {item}</li>)}</ul></div></details>
           </li>)}</ol>
         </div>
         <div className="space-y-6">
