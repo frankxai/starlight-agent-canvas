@@ -217,7 +217,7 @@ test('stale saved-list entries are revalidated and damaged copies can be removed
   await expect(page.getByRole('heading', { name: packet().entity.label, exact: true })).toBeVisible();
   expect(await page.evaluate((id) => sessionStorage.getItem(`starlight.atlas.context.v1:${id}`), savedSecond)).toBe('{rejected-private-payload');
   await expect(page.getByText('rejected-private-payload', { exact: false })).toHaveCount(0);
-  const forget = page.getByRole('button', { name: `Forget saved context ${savedSecond}`, exact: true });
+  const forget = page.getByRole('button', { name: `Forget saved copy, reference ${savedSecond}`, exact: true });
   page.once('dialog', (dialog) => dialog.dismiss()); await forget.click();
   await expect(forget).toBeVisible();
   page.once('dialog', (dialog) => dialog.accept()); await forget.click();
@@ -268,6 +268,12 @@ test('an interrupted native saved-context navigation keeps the previous view and
   expect(page.url()).toBe(current);
   await expect(page.getByLabel('Import Atlas context', { exact: true })).toBeEnabled();
   await page.unroute(`**/context/${savedSecond}`);
+  // Reload must consume the abandoned focus receipt without replaying it.
+  await page.reload();
+  await expect(page.getByRole('heading', { name: packet().entity.label, exact: true })).not.toBeFocused();
+  await expect(page.getByRole('status')).toContainText('Recovered the local context');
+  expect(await page.evaluate(() => sessionStorage.getItem('starlight.atlas.notice.v1'))).toBeNull();
+  await page.locator('summary').click();
   await selected.click();
   await expect(page).toHaveURL(new RegExp(`/context/${savedSecond}$`));
   await expect(page.getByRole('heading', { name: next.entity.label, exact: true })).toBeFocused();
@@ -298,8 +304,70 @@ test('saved-context reading stays bounded and long labels fit without pruning re
   await page.evaluate(() => { for (let index = 0; index < 2001; index++) sessionStorage.setItem(`unrelated:${index}`, 'retained'); });
   await page.getByRole('button', { name: 'Refresh saved contexts', exact: true }).click();
   await expect(page.getByTestId('atlas-context').getByRole('alert')).toContainText('could not be read');
+  await expect(saved.getByText(/Tab storage has more than 2000 keys/)).toBeVisible();
   expect(await page.evaluate(() => (window as unknown as { atlasPayloadReads: number }).atlasPayloadReads)).toBe(32);
   expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => key.startsWith('starlight.atlas.context.v1:')).length)).toBe(33);
+});
+
+test('cosmetic receipt quota failures do not block packet reads, imports or removal', async ({ page }) => {
+  await page.goto('/context');
+  await page.getByLabel('Import Atlas context', { exact: true }).setInputFiles(fixtureFile(packet()));
+  await expect(page).toHaveURL(/\/context\/[a-f0-9-]{36}$/);
+  const next = packet(); next.entity.label = 'Open without a UI receipt';
+  await page.evaluate(({ id, next }) => sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, JSON.stringify(next)), { id: savedSecond, next });
+  await page.locator('summary').click();
+  await page.getByRole('button', { name: 'Refresh saved contexts', exact: true }).click();
+  const denyNotice = () => {
+    const write = Storage.prototype.setItem;
+    Storage.prototype.setItem = function (key: string, value: string) {
+      if (key === 'starlight.atlas.notice.v1') throw new DOMException('Synthetic cosmetic-receipt quota', 'QuotaExceededError');
+      write.call(this, key, value);
+    };
+  };
+  await page.evaluate(denyNotice);
+  await page.getByRole('link', { name: next.entity.label, exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`/context/${savedSecond}$`));
+  await expect(page.getByRole('heading', { name: next.entity.label, exact: true })).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Recovered the local context');
+  await page.evaluate(denyNotice);
+  await page.getByRole('button', { name: 'Forget this context', exact: true }).click();
+  await expect(page).toHaveURL(/\/context$/);
+  expect(await page.evaluate((id) => sessionStorage.getItem(`starlight.atlas.context.v1:${id}`), savedSecond)).toBeNull();
+  await expect(page.getByText('Retained contexts: 1', { exact: true })).toBeVisible();
+  await page.getByLabel('Import Atlas context', { exact: true }).setInputFiles(fixtureFile(next));
+  await expect(page).toHaveURL(/\/context\/[a-f0-9-]{36}$/);
+  await expect(page.getByRole('heading', { name: next.entity.label, exact: true })).toBeVisible();
+  await expect(page.getByText('Retained contexts: 2', { exact: true })).toBeVisible();
+  await page.locator('summary').click();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Forget all retained contexts', exact: true }).click();
+  await expect(page).toHaveURL(/\/context$/);
+  await expect(page.getByText('Retained contexts: 0', { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => key.startsWith('starlight.atlas.context.v1:')).length)).toBe(0);
+});
+
+test('a repaired packet can reopen at the same reference from an unavailable view', async ({ page }) => {
+  await page.goto('/context');
+  await expect(page.getByRole('button', { name: 'Refresh saved contexts', exact: true })).toBeEnabled();
+  await page.evaluate((id) => sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, '{damaged-original'), savedFirst);
+  await page.goto(`/context/${savedFirst}`);
+  await expect(page.getByTestId('atlas-context').getByRole('alert')).toContainText('original record was retained');
+  await page.evaluate(({ id, value }) => sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, JSON.stringify(value)), { id: savedFirst, value: packet() });
+  await page.locator('summary').click();
+  await page.getByRole('button', { name: 'Refresh saved contexts', exact: true }).click();
+  await page.getByRole('link', { name: packet().entity.label, exact: true }).click();
+  await expect(page.getByRole('heading', { name: packet().entity.label, exact: true })).toBeFocused();
+  await expect(page.getByRole('status')).toContainText('Opened the saved context');
+  await expect(page.getByTestId('atlas-context').getByRole('alert')).toHaveCount(0);
+});
+
+test('an unhydrated saved-context view reports pending access rather than an unattempted failure', async ({ page }) => {
+  await page.route('**/_next/static/**', (route) => new URL(route.request().url()).pathname.endsWith('.js') ? route.abort('aborted') : route.continue());
+  await page.goto('/context');
+  await expect(page.getByText('Opening saved contexts…', { exact: true })).toBeVisible();
+  await expect(page.getByText('Checking this tab for saved contexts…', { exact: true })).toBeVisible();
+  await expect(page.getByText(/The saved list could not be read/)).toHaveCount(0);
+  await expect(page.getByLabel('Import Atlas context', { exact: true })).toBeDisabled();
 });
 
 test('the retention cap holds import and root removal leaves unrelated tab state intact', async ({ page }) => {

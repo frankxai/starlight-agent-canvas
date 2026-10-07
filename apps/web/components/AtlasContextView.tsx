@@ -6,8 +6,27 @@ import { ATLAS_CONTEXT_MAX_BYTES, ATLAS_CONTEXT_MAX_RETAINED, atlasContextEviden
 
 const storageKey = (id: string) => `starlight.atlas.context.v1:${id}`;
 const noticeKey = 'starlight.atlas.notice.v1';
+type UiNotice = { kind: 'imported' | 'opened' | 'removed' | 'removed_all'; id?: string; createdAt: number };
+function writeNotice(kind: UiNotice['kind'], id?: string) {
+  try { sessionStorage.setItem(noticeKey, JSON.stringify({ kind, id, createdAt: Date.now() })); }
+  catch { try { sessionStorage.removeItem(noticeKey); } catch { /* Cosmetic receipts never gate records or navigation. */ } }
+}
+function readNotice(): Partial<UiNotice> {
+  try {
+    const raw = sessionStorage.getItem(noticeKey);
+    // Consume even an interrupted/stale receipt. It never becomes source data.
+    sessionStorage.removeItem(noticeKey);
+    if (!raw || raw.length > 256) return {};
+    const parsed = JSON.parse(raw) as UiNotice;
+    if (!parsed || !['imported', 'opened', 'removed', 'removed_all'].includes(parsed.kind) || !Number.isFinite(parsed.createdAt)) return {};
+    const age = Date.now() - parsed.createdAt;
+    if (age < 0 || age > 30_000 || (parsed.id !== undefined && !atlasContextRefSchema.safeParse(parsed.id).success)) return {};
+    return parsed;
+  } catch { return {}; }
+}
+class InventoryScanLimitError extends Error {}
 function retainedRefs(): string[] {
-  if (sessionStorage.length > 2000) throw new Error('Tab storage inventory exceeds the bounded scan.');
+  if (sessionStorage.length > 2000) throw new InventoryScanLimitError('Tab storage inventory exceeds the bounded scan.');
   const result: string[] = [];
   for (let index = 0; index < sessionStorage.length; index++) {
     const key = sessionStorage.key(index);
@@ -55,6 +74,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
   const [now, setNow] = useState(() => Date.now());
   const [retainedCount, setRetainedCount] = useState<number | null>(null);
   const [retainedContexts, setRetainedContexts] = useState<RetainedContext[]>([]);
+  const [inventoryFailure, setInventoryFailure] = useState<'scan_limit' | 'access' | null>(null);
   const [savedOpen, setSavedOpen] = useState(!contextRef);
   const generation = useRef(0);
   const alive = useRef(false);
@@ -68,8 +88,10 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
   useEffect(() => {
     alive.current = true;
     setOpeningRef(undefined);
-    let notice: { kind?: string; id?: string } = {};
-    try { notice = JSON.parse(sessionStorage.getItem(noticeKey) || '{}') ?? {}; } catch { /* Optional UI receipt never becomes evidence. */ }
+    const notice = readNotice();
+    // A reload/back arrival must not replay a saved-link focus intent left by an
+    // aborted navigation. SPA import/removal receipts remain their own actions.
+    const openedBySelection = notice.kind === 'opened' && notice.id === contextRef && (performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined)?.type === 'navigate';
     refreshRetained();
     if (contextRef) {
       try {
@@ -79,9 +101,9 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
         else {
           try {
             const recovered = parseAtlasContext(saved);
-            focusAfterImport.current = (notice.kind === 'imported' || notice.kind === 'opened') && notice.id === contextRef;
+            focusAfterImport.current = (notice.kind === 'imported' && notice.id === contextRef) || openedBySelection;
             setPacket(recovered);
-            setStatus(notice.kind === 'opened' && notice.id === contextRef ? 'Opened the saved context. Source evidence is unchanged.' : focusAfterImport.current ? 'Context retained in this tab. Only an opaque reference appears in its address.' : 'Recovered the local context. Source evidence is unchanged.');
+            setStatus(openedBySelection ? 'Opened the saved context. Source evidence is unchanged.' : focusAfterImport.current ? 'Context retained in this tab. Only an opaque reference appears in its address.' : 'Recovered the local context. Source evidence is unchanged.');
           } catch { setError('Stored context did not pass validation. Its original record was retained; import a valid packet to continue.'); }
         }
       } catch { setError('Context storage could not be accessed safely. No existing record has been changed.'); }
@@ -99,9 +121,6 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
   useEffect(() => {
     if (ready && focusAfterImport.current) {
       (packet ? heading : pageHeading).current?.focus(); focusAfterImport.current = false;
-      if ((packet && contextRef === activeRef) || (!packet && !contextRef)) {
-        try { sessionStorage.removeItem(noticeKey); } catch { /* A failed UI-receipt cleanup does not change source records. */ }
-      }
     }
   }, [packet, ready, contextRef, activeRef, retainedCount]);
   useEffect(() => { if (!busy && focusAfterCancel.current) { fileInput.current?.focus(); focusAfterCancel.current = false; } }, [busy]);
@@ -110,17 +129,23 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
     try {
       const inventory = readRetainedContexts();
       setRetainedCount(inventory.count); setRetainedContexts(inventory.contexts);
+      setInventoryFailure(null);
       return true;
-    } catch { setRetainedCount(null); setRetainedContexts([]); return false; }
+    } catch (problem) {
+      setRetainedCount(null); setRetainedContexts([]);
+      setInventoryFailure(problem instanceof InventoryScanLimitError ? 'scan_limit' : 'access');
+      return false;
+    }
   }
 
   function openRetained(event: MouseEvent<HTMLAnchorElement>, id: string) {
     if (busy || openingRef) { event.preventDefault(); return; }
+    setStatus('');
     try {
       const saved = sessionStorage.getItem(storageKey(id));
       if (saved === null) {
         event.preventDefault(); refreshRetained();
-        setError('This saved context is no longer in tab storage. The current context remains visible; import its original file to recover it.');
+        setError('This saved context is no longer in tab storage. The current view is unchanged; import its original file to recover it.');
         return;
       }
       try { parseAtlasContext(saved); }
@@ -132,17 +157,15 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
       // Native links keep browser navigation/stop/back behavior and avoid
       // background prefetch. Modified clicks never write a focus receipt.
       if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
-        sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'opened', id }));
-        if (id === activeRef && contextRef === activeRef) {
+        if (packet && id === activeRef && contextRef === activeRef) {
           event.preventDefault(); heading.current?.focus();
-          sessionStorage.removeItem(noticeKey);
           setStatus('This context is already open. Source evidence is unchanged.');
-        }
+        } else writeNotice('opened', id);
       }
       setError('');
     } catch {
       event.preventDefault(); refreshRetained();
-      setError('Saved context could not be opened safely. Tab storage may be unavailable. The current context remains visible and no source record was changed.');
+      setError('Saved context could not be opened safely. Tab storage may be unavailable. The current view is unchanged and no source record was changed.');
     }
   }
 
@@ -152,8 +175,8 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
     const existing = retainedRefs();
     if (existing.length >= ATLAS_CONTEXT_MAX_RETAINED) throw new Error('Retention limit.');
     const id = randomReference();
-    sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'imported', id }));
     sessionStorage.setItem(storageKey(id), JSON.stringify(next));
+    writeNotice('imported', id);
     refreshRetained();
     setOpeningRef(id); setError('');
     setStatus('Context retained. Opening its focused view; the previous context remains available until navigation finishes.');
@@ -200,7 +223,6 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
     if (busy || openingRef || !id) return;
     try {
       const isCurrent = id === activeRef;
-      if (isCurrent) sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'removed', id }));
       sessionStorage.removeItem(storageKey(id));
       if (sessionStorage.getItem(storageKey(id)) !== null) throw new Error('Removal did not persist.');
       refreshRetained();
@@ -209,10 +231,11 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
         refreshButton.current?.focus();
         return;
       }
+      writeNotice('removed', id);
       generation.current++; setPacket(null); setActiveRef(undefined); setError(''); setStatus('This context was removed from tab storage. Other imported contexts remain intact.');
       router.replace('/context');
     } catch {
-      try { sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'failed_remove' })); } catch { /* Storage may be denied. */ }
+      setStatus('');
       setError('Removal could not finish. Inspect tab storage before relying on erasure; the original import file is unchanged.');
     }
   }
@@ -222,17 +245,17 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
     try {
       const refs = retainedRefs();
       if (!refs.length || !window.confirm(`Remove all ${refs.length} retained Atlas contexts from this tab? Keep their original files or downloads for later.`)) return;
-      sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'removed_all' }));
       for (const id of refs) {
         sessionStorage.removeItem(storageKey(id));
         if (sessionStorage.getItem(storageKey(id)) !== null) throw new Error('Removal did not persist.');
       }
+      writeNotice('removed_all');
       generation.current++; setPacket(null); setActiveRef(undefined); setRetainedCount(0); setRetainedContexts([]); setError('');
       setStatus('All retained Atlas contexts were removed from this tab.');
       focusAfterImport.current = true;
       router.replace('/context');
     } catch {
-      try { sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'failed_remove' })); } catch { /* Storage may be denied. */ }
+      setStatus('');
       refreshRetained();
       setError('Could not remove every context. Some records may remain; inspect tab storage before relying on erasure.');
     }
@@ -264,17 +287,17 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
       {error && <p role="alert" className="mt-3 text-sm leading-6 text-starlight-gold">{error}</p>}
     </section>
     <details open={savedOpen} onToggle={(event) => setSavedOpen(event.currentTarget.open)} className="mb-7 border-y border-starlight-border py-3">
-      <summary className="min-h-11 cursor-pointer rounded text-sm font-medium text-starlight-ink outline-starlight-accent focus-visible:outline">Saved in this tab <span className="ml-2 text-starlight-muted">Retained contexts: {retainedCount ?? 'unavailable'}</span></summary>
+      <summary className="min-h-11 cursor-pointer rounded text-sm font-medium text-starlight-ink outline-starlight-accent focus-visible:outline">Saved in this tab <span className="ml-2 text-starlight-muted">{ready ? `Retained contexts: ${retainedCount ?? 'unavailable'}` : 'Opening saved contexts…'}</span></summary>
       <section aria-label="Saved contexts" className="pb-3 pt-2">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-starlight-muted">Up to 32 contexts; no automatic pruning.</p>
           <button ref={refreshButton} type="button" className={button} disabled={busy || Boolean(openingRef) || !ready} onClick={() => {
             if (refreshRetained()) { setError(''); setStatus('Saved context list refreshed. Source evidence is unchanged.'); }
-            else setError('Tab storage could not be read. The current context remains visible; no source record was changed.');
+            else { setStatus(''); setError('Tab storage could not be read within its limits. The current view is unchanged; no source record was changed.'); }
           }}>Refresh saved contexts</button>
         </div>
-        <p className="mt-3 max-w-2xl text-sm leading-6 text-starlight-muted">Choose a retained packet to reopen. Observation age comes from its producer; saving it here does not make its evidence newer.</p>
-        {retainedCount === null ? <p className="mt-4 text-sm leading-6 text-starlight-gold">The saved list could not be read. The current view remains available. Allow tab storage, then refresh the list.</p> : retainedCount === 0 ? <p className="mt-4 text-sm leading-6 text-starlight-muted">Your imported contexts will appear here. Keep their original files or download a brief before forgetting a copy.</p> : <>
+        <p className="mt-3 max-w-2xl text-sm leading-6 text-starlight-muted">Open saved packets in this tab. Observation age comes from their producer; saving a copy does not make its evidence newer. A new tab may not have the packet.</p>
+        {!ready ? <p className="mt-4 text-sm leading-6 text-starlight-muted">Checking this tab for saved contexts…</p> : retainedCount === null ? <p className="mt-4 text-sm leading-6 text-starlight-gold">{inventoryFailure === 'scan_limit' ? 'Tab storage has more than 2000 keys, so list scanning is held. Keep your original files or download the current context. Inspect tab storage before removing unrelated entries, then refresh.' : 'The saved list could not be read. The current view remains available. Allow tab storage, then refresh the list.'}</p> : retainedCount === 0 ? <p className="mt-4 text-sm leading-6 text-starlight-muted">Your imported contexts will appear here. Keep their original files or download a brief before forgetting a copy.</p> : <>
           {retainedCount > ATLAS_CONTEXT_MAX_RETAINED && <p className="mt-4 text-sm leading-6 text-starlight-gold">The inventory exceeds the 32-context limit. Only 32 records are listed; every record remains in storage. Remove a retained copy and refresh to reveal more.</p>}
           <ul className="mt-4 divide-y divide-starlight-border">
             {retainedContexts.map((item) => {
@@ -293,7 +316,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
                   </>}
                   <p className="mt-2 break-all font-mono text-xs leading-5 text-starlight-muted">Tab reference: {item.id}</p>
                 </div>
-                <button type="button" className={button} disabled={busy || Boolean(openingRef)} aria-label={`Forget saved context ${item.id}`} onClick={() => {
+                <button type="button" className={button} disabled={busy || Boolean(openingRef)} aria-label={`Forget saved copy, reference ${item.id}`} onClick={() => {
                   if (window.confirm('Remove only this retained Atlas context from this tab? Keep its original file or download for later.')) forget(item.id);
                 }}>Forget saved copy</button>
               </li>;
