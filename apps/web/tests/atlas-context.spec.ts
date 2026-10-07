@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { expect, test } from '@playwright/test';
+import type { AtlasContext } from '@starlight-agent-canvas/core/atlas-context';
 
-function packet() {
+function packet(): AtlasContext {
   return {
     version: 'starlight.atlasContext.v1', privacy: 'local_context', source: { system: 'starlight-command-center' },
     entity: { id: 'product:synthetic-context', label: 'A more considered creation journey', type: 'product' },
@@ -139,7 +140,8 @@ test('saved contexts reopen by keyboard with distinct references and unchanged s
   const runtime = packet();
   runtime.entity = { id: 'product:agent-canvas', label: 'Starlight Agent Canvas', type: 'product' };
   runtime.sources = ['https://github.com/frankxai/starlight-agent-canvas/pull/42', 'https://github.com/frankxai/starlight-agent-canvas/issues/41'];
-  runtime.claims = [{ id: 'claim:runtime-adoption', property: 'native_adoption', value: 'The pinned Windows package passes file and dependency verification. Native activation remains pending.', evidence: 'record_only' }];
+  runtime.claims = [{ id: 'claim:runtime-adoption', property: 'release_gate', value: 'The pinned Windows package passes file and dependency verification. Native activation remains pending.', evidence: 'record_only' }];
+  runtime.relationships = [{ id: 'edge:native-adoption', targetId: 'issue:canvas-41', relation: 'requires', evidence: 'source', sourceUrl: 'https://github.com/frankxai/starlight-agent-canvas/issues/41' }];
   const earlier = packet(); earlier.entity = { ...runtime.entity }; earlier.observedAt = '2020-01-01T00:00:00Z';
   const transmitted: string[] = [];
   page.on('request', (request) => {
@@ -210,7 +212,7 @@ test('stale saved-list entries are revalidated and damaged copies can be removed
   await expect(selected).toBeVisible();
   await page.evaluate((id) => sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, '{rejected-private-payload'), savedSecond);
   await selected.click();
-  await expect(page.getByRole('alert')).toContainText('no longer passes validation');
+  await expect(page.getByTestId('atlas-context').getByRole('alert')).toContainText('no longer passes validation');
   expect(page.url()).toBe(current);
   await expect(page.getByRole('heading', { name: packet().entity.label, exact: true })).toBeVisible();
   expect(await page.evaluate((id) => sessionStorage.getItem(`starlight.atlas.context.v1:${id}`), savedSecond)).toBe('{rejected-private-payload');
@@ -228,7 +230,7 @@ test('stale saved-list entries are revalidated and damaged copies can be removed
   await refresh.click(); await expect(selected).toBeVisible();
   await page.evaluate((id) => sessionStorage.removeItem(`starlight.atlas.context.v1:${id}`), savedSecond);
   await selected.click();
-  await expect(page.getByRole('alert')).toContainText('no longer in tab storage');
+  await expect(page.getByTestId('atlas-context').getByRole('alert')).toContainText('no longer in tab storage');
   expect(page.url()).toBe(current);
 
   await page.evaluate(({ id, next }) => sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, JSON.stringify(next)), { id: savedSecond, next });
@@ -242,7 +244,7 @@ test('stale saved-list entries are revalidated and damaged copies can be removed
     };
   });
   await selected.click();
-  await expect(page.getByRole('alert')).toContainText('could not be opened safely');
+  await expect(page.getByTestId('atlas-context').getByRole('alert')).toContainText('could not be opened safely');
   expect(page.url()).toBe(current);
   await expect(page.getByRole('heading', { name: packet().entity.label, exact: true })).toBeVisible();
   await expect(page.getByText('Retained contexts: unavailable', { exact: true })).toBeVisible();
@@ -273,6 +275,7 @@ test('an interrupted native saved-context navigation keeps the previous view and
 
 test('saved-context reading stays bounded and long labels fit without pruning records', async ({ page }) => {
   await page.goto('/context');
+  await expect(page.getByRole('button', { name: 'Refresh saved contexts', exact: true })).toBeEnabled();
   const long = packet(); long.entity.label = 'L'.repeat(500); long.entity.id = `product:${'i'.repeat(120)}`;
   await page.evaluate((value) => {
     for (let index = 0; index < 33; index++) sessionStorage.setItem(`starlight.atlas.context.v1:00000000-0000-4000-8000-${String(index).padStart(12, '0')}`, JSON.stringify(value));
@@ -294,7 +297,7 @@ test('saved-context reading stays bounded and long labels fit without pruning re
   // Oversized inventories hold all payload reads and keep the records intact.
   await page.evaluate(() => { for (let index = 0; index < 2001; index++) sessionStorage.setItem(`unrelated:${index}`, 'retained'); });
   await page.getByRole('button', { name: 'Refresh saved contexts', exact: true }).click();
-  await expect(page.getByRole('alert')).toContainText('could not be read');
+  await expect(page.getByTestId('atlas-context').getByRole('alert')).toContainText('could not be read');
   expect(await page.evaluate(() => (window as unknown as { atlasPayloadReads: number }).atlasPayloadReads)).toBe(32);
   expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => key.startsWith('starlight.atlas.context.v1:')).length)).toBe(33);
 });
