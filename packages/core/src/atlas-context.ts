@@ -6,9 +6,10 @@ export const ATLAS_CONTEXT_MAX_RETAINED = 32;
 export const atlasContextRefSchema = z.string().uuid();
 const identity = z.string().min(1).max(128).regex(/^[A-Za-z0-9][A-Za-z0-9:_-]*$/)
   .refine((value) => !/^[a-z]:/i.test(value) && !sensitive.test(value), 'Use a source entity ID without credentials or machine paths.');
-const credentials = /(?:-----BEGIN[\s\S]*PRIVATE KEY|\b(?:gh[pousr]_|github_pat_|sk-(?:proj-|ant-)?)[A-Za-z0-9_-]{12,}|\bAKIA[A-Z0-9]{16}\b|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|(?:password|token|secret|api[_ -]?key)\s*[:=]\s*(?!(?:missing|pending|unknown|redacted|unavailable)\b)\S+)/i;
-const machinePath = /(?:^|[\s/])[a-z]:[\\/]|\\\\|(?:^|\s)~\/|\/(?:Users|home|etc|var|private)\//i;
-const unsafeControls = /[\u0000-\u001f\u007f\u202a-\u202e\u2066-\u2069]/;
+const tokenPattern = /(?:-----BEGIN[\s\S]*PRIVATE KEY|\b(?:gh[pousr]_|github_pat_|sk-(?:proj-|ant-)?|sk_live_|xox[baprs]-|AIza|glpat-|npm_)[A-Za-z0-9_-]{12,}|\bAKIA[A-Z0-9]{16}\b|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+)/i;
+const credentials = { test: (value: string) => tokenPattern.test(value) || [...value.matchAll(/\b(?:password|token|secret|api[_ -]?key)["']?\s*[:=]\s*["']?([^\s"']+)/gi)].some((match) => !['missing', 'pending', 'unknown', 'redacted', 'unavailable'].includes(match[1]!.toLowerCase())) };
+const machinePath = /(?:^|[\s/])[a-z]:[\\/]|\\\\|(?:^|\s)~\/|\/(?:Users|home|etc|var|private|mnt|root|tmp|Volumes)\//i;
+const unsafeControls = /[\u0000-\u001f\u007f\u0085\u061c\u200b-\u200f\u2028-\u202e\u2066-\u2069\u{e0000}-\u{e007f}]/u;
 const sensitive = { test: (value: string) => credentials.test(value) || machinePath.test(value) };
 const text = z.string().trim().min(1).max(500).refine((value) => !sensitive.test(value) && !unsafeControls.test(value), 'Remove credentials, machine paths and control characters.');
 const sourceUrl = publicSiteUrlSchema.refine((value) => {

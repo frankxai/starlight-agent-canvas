@@ -84,7 +84,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
         try { sessionStorage.removeItem(noticeKey); } catch { /* A failed UI-receipt cleanup does not change source records. */ }
       }
     }
-  }, [packet, ready, contextRef, activeRef]);
+  }, [packet, ready, contextRef, activeRef, retainedCount]);
   useEffect(() => { if (!busy && focusAfterCancel.current) { fileInput.current?.focus(); focusAfterCancel.current = false; } }, [busy]);
 
   function accept(next: AtlasContext) {
@@ -129,7 +129,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
   function download(format: 'json' | 'markdown') {
     if (!packet) return;
     try {
-      const blob = new Blob([format === 'json' ? JSON.stringify(packet, null, 2) : atlasContextMarkdown(packet)], { type: format === 'json' ? 'application/json' : 'text/markdown' });
+      const blob = new Blob([format === 'json' ? JSON.stringify(packet) : atlasContextMarkdown(packet)], { type: format === 'json' ? 'application/json' : 'text/markdown' });
       const url = URL.createObjectURL(blob); const link = document.createElement('a');
       link.href = url; link.download = `atlas-context.${format === 'json' ? 'json' : 'md'}`;
       document.body.appendChild(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -142,6 +142,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
     try {
       sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'removed', id: activeRef }));
       sessionStorage.removeItem(storageKey(activeRef));
+      if (sessionStorage.getItem(storageKey(activeRef)) !== null) throw new Error('Removal did not persist.');
       setRetainedCount(retainedRefs().length);
       generation.current++; setPacket(null); setActiveRef(undefined); setError(''); setStatus('This context was removed from tab storage. Other imported contexts remain intact.');
       router.replace('/context');
@@ -157,8 +158,13 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
       const refs = retainedRefs();
       if (!refs.length || !window.confirm(`Remove all ${refs.length} retained Atlas contexts from this tab? Keep their original files or downloads for later.`)) return;
       sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'removed_all' }));
-      for (const id of refs) sessionStorage.removeItem(storageKey(id));
+      for (const id of refs) {
+        sessionStorage.removeItem(storageKey(id));
+        if (sessionStorage.getItem(storageKey(id)) !== null) throw new Error('Removal did not persist.');
+      }
       generation.current++; setPacket(null); setActiveRef(undefined); setRetainedCount(0); setError('');
+      setStatus('All retained Atlas contexts were removed from this tab.');
+      focusAfterImport.current = true;
       router.replace('/context');
     } catch {
       try { sessionStorage.setItem(noticeKey, JSON.stringify({ kind: 'failed_remove' })); setRetainedCount(retainedRefs().length); } catch { setRetainedCount(null); }
@@ -230,7 +236,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
             <p className="mt-2 break-words text-sm leading-6">{claim.value}</p>
             <p className="mt-3 text-xs text-starlight-gold">{evidence.conflictingClaimIds.includes(claim.id) ? 'Conflicting claim · producer evidence: ' : 'Producer evidence: '}{claim.evidence.replaceAll('_', ' ')}</p>
             <p className="mt-2 break-all font-mono text-xs text-starlight-muted">{claim.id}</p>
-            {claim.sourceUrl && <a href={claim.sourceUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={`Open source for ${claim.property} claim ${claim.id} in a new tab`} className={sourceLink}>Claim source <span aria-hidden="true">↗</span></a>}
+            {claim.sourceUrl && <a href={claim.sourceUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={`Claim source for ${claim.property} claim ${claim.id} (opens in a new tab)`} className={sourceLink}>Claim source <span aria-hidden="true">↗</span></a>}
           </li>)}</ul>}
         </section>
         <section aria-labelledby="relationships-heading" className="min-w-0 rounded-xl border border-starlight-border bg-starlight-surface p-5 sm:p-6">
@@ -239,7 +245,7 @@ export default function AtlasContextView({ contextRef }: { contextRef?: string }
           {packet.relationships.length === 0 ? <p className="mt-5 text-sm text-starlight-muted">No relationships supplied.</p> : <ul className="mt-5 space-y-4">{packet.relationships.map((edge) => <li key={edge.id} className="rounded-lg border border-starlight-border p-4">
             <h3 className="text-sm font-medium">{edge.relation.replaceAll('_', ' ')}</h3><p className="mt-2 break-all font-mono text-sm">{edge.targetId}</p>
             <p className="mt-3 text-xs leading-5 text-starlight-gold">{edge.evidence === 'source' ? 'Source-reported relationship' : edge.evidence === 'proposed' ? 'Proposed relationship' : 'Conflicting relationship'} · target unresolved</p>
-            {edge.sourceUrl && <a href={edge.sourceUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={`Open source for ${edge.relation} relationship ${edge.id} in a new tab`} className={sourceLink}>Relationship source <span aria-hidden="true">↗</span></a>}
+            {edge.sourceUrl && <a href={edge.sourceUrl} target="_blank" rel="noopener noreferrer" referrerPolicy="no-referrer" aria-label={`Relationship source for ${edge.relation} relationship ${edge.id} (opens in a new tab)`} className={sourceLink}>Relationship source <span aria-hidden="true">↗</span></a>}
           </li>)}</ul>}
         </section>
       </div>

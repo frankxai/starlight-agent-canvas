@@ -101,12 +101,15 @@ test('storage failure holds the existing context and corrupt recovery never over
 
 test('cancelled reads and back navigation retain earlier imports; explicit clear has a confirmation', async ({ page }) => {
   await page.goto('/context');
-  await page.evaluate(() => { File.prototype.text = () => new Promise<string>(() => {}); });
+  await page.evaluate(() => { File.prototype.text = () => new Promise<string>((resolve) => { (window as unknown as { resolveAtlasRead: (value: string) => void }).resolveAtlasRead = resolve; }); });
   await page.getByLabel('Import Atlas context', { exact: true }).setInputFiles(fixtureFile(packet()));
   await expect(page.getByRole('button', { name: 'Cancel import', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Cancel import', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('cancelled');
   await expect(page.getByLabel('Import Atlas context', { exact: true })).toBeFocused();
+  await page.evaluate(async (value) => { (window as unknown as { resolveAtlasRead: (value: string) => void }).resolveAtlasRead(value); await Promise.resolve(); }, JSON.stringify(packet()));
+  await expect(page).toHaveURL(/\/context$/);
+  await expect(page.getByText('Retained contexts: 0', { exact: true })).toBeVisible();
   await page.reload();
   await page.getByLabel('Import Atlas context', { exact: true }).setInputFiles(fixtureFile(packet()));
   await expect(page).toHaveURL(/\/context\/[a-f0-9-]{36}$/);
@@ -121,4 +124,22 @@ test('cancelled reads and back navigation retain earlier imports; explicit clear
   await expect(page).toHaveURL(/\/context$/);
   await expect(page.getByRole('status')).toContainText('All retained Atlas contexts were removed');
   await expect(page.getByText('Retained contexts: 0', { exact: true })).toBeVisible();
+});
+
+test('the retention cap holds import and root removal leaves unrelated tab state intact', async ({ page }) => {
+  await page.goto('/context');
+  await page.evaluate((value) => {
+    sessionStorage.setItem('starlight.website.draft.v1:unrelated', 'retained-other-work');
+    for (let index = 0; index < 32; index++) sessionStorage.setItem(`starlight.atlas.context.v1:00000000-0000-4000-8000-${String(index).padStart(12, '0')}`, JSON.stringify(value));
+  }, packet());
+  await page.reload();
+  await expect(page.getByText('Retained contexts: 32', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: 'Open public-source example', exact: true }).click();
+  await expect(page.getByTestId('atlas-context').getByRole('alert')).toContainText('32-context limit');
+  expect(new URL(page.url()).pathname).toBe('/context');
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'Forget all retained contexts', exact: true }).click();
+  await expect(page.getByRole('status')).toContainText('All retained Atlas contexts were removed');
+  await expect(page.getByRole('heading', { level: 1 })).toBeFocused();
+  expect(await page.evaluate(() => sessionStorage.getItem('starlight.website.draft.v1:unrelated'))).toBe('retained-other-work');
 });
