@@ -19,8 +19,8 @@ test('provider adapters enforce source scope, completion, bounded replies and on
       if (mode === 'chunked-oversized') return new Response(new ReadableStream<Uint8Array>({ start(controller) { for (let index = 0; index < 6; index += 1) controller.enqueue(new Uint8Array(32_000).fill(120)); controller.close(); } }));
       if (mode === 'invalid-utf8') return new Response(new Uint8Array([0xc3, 0x28]));
       if (mode === 'stream-hold') return new Response(new ReadableStream<Uint8Array>({ start(controller) { controller.enqueue(new TextEncoder().encode('{"model":')); } }));
-      if (process.env.AGENT_CANVAS_WEBSITE_PROVIDER === 'anthropic') return Response.json({ model: 'fixture-returned', stop_reason: mode === 'refused' ? 'refusal' : mode === 'incomplete' ? 'max_tokens' : 'end_turn', content: [{ type: 'text', text: JSON.stringify(output) }] });
-      return Response.json({ model: 'fixture-returned', status: mode === 'incomplete' ? 'incomplete' : 'completed', output: [{ type: 'message', status: 'completed', content: mode === 'refused' ? [{ type: 'refusal', refusal: 'Fixture refusal' }] : [{ type: 'output_text', text: JSON.stringify(mode === 'invalid' ? { ...output, options: [] } : output) }] }] });
+      if (process.env.AGENT_CANVAS_WEBSITE_PROVIDER === 'anthropic') return Response.json({ model: 'fixture-returned', stop_reason: mode === 'refused' ? 'refusal' : mode === 'incomplete' ? 'max_tokens' : 'end_turn', content: [...(mode === 'thinking' ? [{ type: 'thinking', thinking: 'Synthetic reasoning excluded from the plan.', signature: 'opaque-fixture' }, { type: 'redacted_thinking', data: 'opaque-redacted-fixture' }] : mode === 'tool' ? [{ type: 'tool_use', name: 'forbidden', input: {} }] : []), { type: 'text', text: JSON.stringify(output) }] });
+      return Response.json({ model: 'fixture-returned', status: mode === 'incomplete' ? 'incomplete' : 'completed', output: [...(mode === 'thinking' ? [{ type: 'reasoning', summary: 'Synthetic reasoning excluded from the plan.' }] : mode === 'tool' ? [{ type: 'function_call', name: 'forbidden', arguments: '{}' }] : []), { type: 'message', status: 'completed', content: mode === 'refused' ? [{ type: 'refusal', refusal: 'Fixture refusal' }] : [{ type: 'output_text', text: JSON.stringify(mode === 'invalid' ? { ...output, options: [] } : output) }] }] });
     };
     const generated = await generateWebsiteDirections(plan, new AbortController().signal);
     expect(generated.generation?.provider).toBe('openai'); expect(generated.generation?.returnedModel).toBe('fixture-returned');
@@ -28,14 +28,17 @@ test('provider adapters enforce source scope, completion, bounded replies and on
     expect(captured?.body.store).toBe(false); expect(captured?.body.max_output_tokens).toBe(6000);
     const payload = JSON.parse(captured!.body.input[1].content); expect(Object.keys(payload)).toEqual(['snapshot', 'brief', 'sections']);
     expect(payload.sections[0]).not.toHaveProperty('files'); expect(payload).not.toHaveProperty('assets');
-    for (const failure of ['refused', 'incomplete', 'invalid', 'oversized', 'chunked-oversized', 'invalid-utf8', 'rejected']) {
+    mode = 'thinking'; expect(JSON.stringify(await generateWebsiteDirections(plan, new AbortController().signal))).not.toContain('Synthetic reasoning');
+    for (const failure of ['refused', 'incomplete', 'invalid', 'oversized', 'chunked-oversized', 'invalid-utf8', 'rejected', 'tool']) {
       mode = failure; const before = calls;
       await expect(generateWebsiteDirections(plan, new AbortController().signal)).rejects.toThrow('billable tokens'); expect(calls).toBe(before + 1);
     }
     process.env.AGENT_CANVAS_WEBSITE_PROVIDER = 'anthropic'; mode = 'success';
     expect((await generateWebsiteDirections(plan, new AbortController().signal)).generation?.provider).toBe('anthropic');
     expect(captured?.url).toBe('https://api.anthropic.com/v1/messages'); expect(captured?.body.output_config.format.type).toBe('json_schema');
-    for (const failure of ['refused', 'incomplete']) { mode = failure; await expect(generateWebsiteDirections(plan, new AbortController().signal)).rejects.toThrow('incomplete or refused'); }
+    mode = 'thinking'; const thought = JSON.stringify(await generateWebsiteDirections(plan, new AbortController().signal));
+    expect(thought).not.toContain('Synthetic reasoning'); expect(thought).not.toContain('opaque-fixture'); expect(thought).not.toContain('opaque-redacted-fixture');
+    for (const failure of ['refused', 'incomplete', 'tool']) { mode = failure; await expect(generateWebsiteDirections(plan, new AbortController().signal)).rejects.toThrow('incomplete or refused'); }
     mode = 'hold'; const controller = new AbortController(); const pending = generateWebsiteDirections(plan, controller.signal);
     await expect(generateWebsiteDirections(plan, new AbortController().signal)).rejects.toThrow('in progress');
     controller.abort(); await expect(pending).rejects.toThrow('Stopped');

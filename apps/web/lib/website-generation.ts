@@ -67,13 +67,17 @@ export async function generateWebsiteDirections(plan: WebsitePlan, signal: Abort
     if (typeof envelope.model !== 'string' || !envelope.model || envelope.model.length > 128) throw new WebsiteGenerationError('Generation did not report a usable model identity. Your draft is unchanged.');
     let output: string;
     if (provider === 'openai') {
-      if (envelope.status !== 'completed' || !Array.isArray(envelope.output)) throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
+      if (envelope.status !== 'completed' || !Array.isArray(envelope.output) || envelope.output.some((item) => !item || !['message', 'reasoning'].includes(item.type))) throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
       const messages = envelope.output.filter((item) => item && item.type === 'message');
       if (messages.length !== 1 || messages[0].status !== 'completed' || !Array.isArray(messages[0].content) || messages[0].content.length !== 1 || messages[0].content[0].type !== 'output_text' || typeof messages[0].content[0].text !== 'string') throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
       output = messages[0].content[0].text;
     } else {
-      if (envelope.stop_reason !== 'end_turn' || !Array.isArray(envelope.content) || envelope.content.length !== 1 || envelope.content[0]?.type !== 'text' || typeof envelope.content[0]?.text !== 'string') throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
-      output = envelope.content[0].text;
+      if (envelope.stop_reason !== 'end_turn' || !Array.isArray(envelope.content) || envelope.content.some((block) => !block || !['text', 'thinking', 'redacted_thinking'].includes(block.type))) throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
+      const texts = envelope.content.filter((block) => block.type === 'text');
+      if (texts.length !== 1 || typeof texts[0].text !== 'string') throw new WebsiteGenerationError('Generation was incomplete or refused. Your draft is unchanged.');
+      // This is a single-turn request, with no tool loop or continuation. Opaque
+      // reasoning blocks are not surfaced, parsed, stored or round-tripped.
+      output = texts[0].text;
     }
     signal.throwIfAborted();
     try {
