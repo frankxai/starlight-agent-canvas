@@ -99,7 +99,7 @@ export default function WebsiteMediaEvidence({ asset, disabled, begin, end, atta
         setError(timedOut ? 'The local read timed out. Your previous report is retained; choose the files again when available.'
           : code === 'media_read_cancelled' ? 'Check cancelled. Your previous report and plan are retained.'
           : code === 'media_placement_changed' ? 'The placement changed while checking. Your current plan is retained; check the new placement.'
-          : messages[code] ?? 'These files could not be checked. Your previous report and plan are retained.');
+          : Object.hasOwn(messages, code) ? messages[code]! : 'These files could not be checked. Your previous report and plan are retained.');
         setStatus('');
       }
     } finally {

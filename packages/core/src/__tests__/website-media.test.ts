@@ -28,6 +28,7 @@ it('compares an actual owned PNG and records raw-byte evidence without readiness
   expect(report.scope).toBe('reported_local_match');
   expect(report.formatCheck).toBe('signature_only');
   expect(websiteMediaReportMatches(source.asset, report)).toBe(true);
+  expect(websiteMediaReportMatches(source.asset, { ...report, fileName: 'inconsistent.png' })).toBe(false);
   expect(JSON.stringify(report)).not.toContain('must-not-export');
   expect(JSON.stringify(report)).not.toContain('prompt');
   expect(report).not.toHaveProperty('ready');

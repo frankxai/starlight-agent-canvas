@@ -31,17 +31,20 @@ export type WebsiteMediaPlacement = {
 
 /** Binds a reported comparison to its placement. This does not authenticate it. */
 export function websiteMediaReportMatches(asset: WebsiteMediaPlacement, report: WebsiteMediaReport): boolean {
-  return report.assetId === asset.id && report.reference === asset.reference && Boolean(asset.provenance)
+  try { return report.assetId === asset.id && report.reference === asset.reference && report.fileName === leaf(asset.reference) && Boolean(asset.provenance)
     && report.sidecarReference === asset.provenance?.sidecar
     && report.generationLedgerReference === asset.provenance?.generationLedger
     && report.tasteLedgerReference === asset.provenance?.tasteLedger
-    && report.mediaType.startsWith(`${asset.kind}/`);
+    && report.mediaType.startsWith(`${asset.kind}/`); }
+  catch { return false; }
 }
 
 function leaf(value: string, code = 'media_reference_unresolved'): string {
   try {
-    const path = value.startsWith('https:') ? decodeURIComponent(new URL(value).pathname) : value;
-    return name.parse(path.split('/').at(-1));
+    const isUrl = value.startsWith('https:');
+    const path = isUrl ? new URL(value).pathname : value;
+    const segment = path.split('/').at(-1) ?? '';
+    return name.parse(isUrl ? decodeURIComponent(segment) : segment);
   } catch { throw new Error(code); }
 }
 

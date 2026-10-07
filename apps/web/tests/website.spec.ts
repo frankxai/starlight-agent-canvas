@@ -88,7 +88,7 @@ async function mediaFixture(page: Page, testInfo: TestInfo) {
 test('local media reports preserve edits, reject mismatches and travel through saved choice and export', async ({ page }, testInfo) => {
   const { canvas, section, files, sidecar } = await mediaFixture(page, testInfo);
   await section.getByText('Edit placement text and references', { exact: true }).click();
-  await section.getByLabel('browser-media: image alternative', { exact: true }).fill('The source list beside an editable artifact.');
+  await section.getByRole('textbox', { name: 'browser-media: image alternative', exact: true }).fill('The source list beside an editable artifact.');
   await section.getByRole('button', { name: 'Check selected files', exact: true }).click();
   await expect(section.getByTestId('local-media-report')).toContainText(sidecar.asset.sha256);
   await expect(section.getByTestId('local-media-report')).toContainText('publication remain unverified');
