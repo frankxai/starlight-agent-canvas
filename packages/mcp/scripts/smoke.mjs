@@ -7,7 +7,7 @@ import { FileCanvasStore, websiteDirectionDemo } from '@starlight-agent-canvas/c
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '..', '..', '..');
-const cliPath = path.join(repoRoot, 'packages', 'mcp', 'dist', 'cli.js');
+const cliPath = process.env.CANVAS_SMOKE_CLI ?? path.join(repoRoot, 'packages', 'mcp', 'dist', 'cli.js');
 const home = process.env.AGENT_CANVAS_HOME ?? path.join(repoRoot, '.agent-canvas', 'mcp-smoke');
 
 const expectedTools = [
@@ -42,7 +42,7 @@ const expectedTools = [
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [cliPath],
-  cwd: repoRoot,
+  cwd: process.env.CANVAS_SMOKE_CWD ?? repoRoot,
   env: {
     ...getDefaultEnvironment(),
     AGENT_CANVAS_HOME: home,
@@ -54,6 +54,14 @@ const client = new Client({ name: 'starlight-agent-canvas-smoke', version: '0.1.
 
 try {
   await client.connect(transport);
+  const resources = await client.listResources();
+  if (resources.resources.length !== 11) throw new Error('Packaged guide resource count changed.');
+  for (const resource of resources.resources) {
+    const guide = await client.readResource({ uri: resource.uri });
+    if (!guide.contents.some(item => typeof item.text === 'string' && item.text.length > 100)) {
+      throw new Error(`Guide cannot be read: ${resource.uri}`);
+    }
+  }
   const listed = await client.listTools();
   const names = listed.tools.map((tool) => tool.name).sort();
   const missing = expectedTools.filter((tool) => !names.includes(tool));
@@ -405,6 +413,7 @@ try {
     node: process.version,
     platform: `${os.platform()} ${os.release()}`,
     toolCount: names.length,
+    guideCount: resources.resources.length,
     canvasId,
     videoNodeId,
     imageNodeId,
