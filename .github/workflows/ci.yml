@@ -26,7 +26,6 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm test:portable-mcp
-      - run: pnpm mcp:build
       - name: Deploy and verify production MCP outside the source checkout
         id: package
         run: pnpm mcp:package "${{ runner.temp }}/canvas-runtime"

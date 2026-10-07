@@ -16,7 +16,6 @@ clean, committed source checkout, pinned pnpm 11.7.0 and Node 24:
 
 ```text
 pnpm install --frozen-lockfile
-pnpm mcp:build
 pnpm mcp:package <new absolute output directory outside this checkout>
 ```
 
@@ -24,13 +23,22 @@ The parent directory must exist. The command refuses an existing output. Failed
 outputs and their private temporary diagnostics are preserved for inspection;
 choose a new output for a retry. Do not use an incomplete output as a runtime.
 
-The package uses production-only, offline, script-free `pnpm deploy --legacy`
-with the hoisted linker. This reuses pnpm's dependency layout and creates regular
+The command rebuilds MCP/core from the committed source. It refuses stale or
+unexpected output filenames and compares each built guide with its source.
+The package uses production-only, offline, script-free `pnpm deploy` with its
+shared-lock path, an invocation-scoped injection flag and the hoisted linker.
+This reuses pnpm's dependency layout and creates regular
 files suitable for Windows artifact delivery. Manager state and bin shims are
 excluded; launch the explicit Node entry point. There is no new bundler or
-dependency. The pinned legacy deploy can resolve ranges differently, so actual
+dependency. Actual
 package versions, dependency/peer edges and optional availability must match the
-frozen source graph. A mismatch fails packaging.
+frozen source graph. A mismatch fails packaging. The first attempted legacy rail
+failed because it selected a newer uncached Zod release; that failure is retained.
+The production manifest omits temporary deploy lock/config files and uses exact
+dependency versions without absolute workspace paths. Dependency content
+integrity relies on pnpm's frozen/offline store verification. File hashes bind
+the resulting artifact; they do not independently rebuild third-party tarballs,
+validate publisher signatures or prove lifecycle-generated native files.
 
 The server reads eleven guide resources inside its own built package. Compiled
 MCP/core bytes are compared with the source build. The command copies its output
@@ -88,6 +96,13 @@ Verification is a point-in-time check, not a filesystem lock or hostile-writer
 defense. Normal completion removes only this invocation's verified private
 temporary directory; failures retain evidence. Dependency licenses remain in
 the production tree, with the Canvas MIT notices included in both packages.
+Missing manifests mark incomplete outputs; any failed verification disqualifies
+the output. A busy private-directory cleanup is reported separately after
+successful runtime verification. Only that exact retained directory is eligible
+for later owner cleanup. Node/pnpm versions are recorded build evidence;
+verification checks platform/architecture, without asserting Linux libc,
+arbitrary Node version, extractor MAX_PATH or successful optional-native-module
+compatibility. The verified receiving matrix is Windows/Linux with Node 24.
 
 Official references: [pnpm deploy](https://pnpm.io/cli/deploy),
 [hoisted linker](https://pnpm.io/settings/node-modules#nodelinker), and

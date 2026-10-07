@@ -23,6 +23,14 @@ export function portablePath(value) {
   return value.split('/').every(part => part && part !== '.' && part !== '..' && !/[. ]$/.test(part) && !/^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/i.test(part));
 }
 
+export async function outsideOutput(sourceRoot, requested) {
+  const root = await realpath(sourceRoot);
+  const parent = await realpath(path.dirname(requested));
+  const output = path.join(parent, path.basename(requested));
+  if (contained(root, output)) throw new Error('Production output must be outside the source checkout.');
+  return output;
+}
+
 export async function hashFile(file) {
   const digest = createHash('sha256');
   for await (const chunk of createReadStream(file)) digest.update(chunk);

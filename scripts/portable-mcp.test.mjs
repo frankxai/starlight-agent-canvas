@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, readFile, rename, rm, symlink, writeFile } from 'node:f
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { MANIFEST, assertGraphParity, hashFile, inventory, portablePath, productionGraph, verifyRuntime } from './runtime-integrity.mjs';
+import { MANIFEST, assertGraphParity, hashFile, inventory, outsideOutput, portablePath, productionGraph, verifyRuntime } from './runtime-integrity.mjs';
 
 const source = 'a'.repeat(40);
 async function fixture(t) {
@@ -69,6 +69,13 @@ test('links cannot provide undeclared files or another repository at runtime', a
   const linkedRoot = path.join(temporary, 'root-link');
   await symlink(root, linkedRoot, process.platform === 'win32' ? 'junction' : 'dir');
   await assert.rejects(verifyRuntime(linkedRoot, source, hash), /regular directory/);
+});
+test('an output parent junction cannot hide a directory inside the source checkout', async t => {
+  const { root, temporary } = await fixture(t);
+  const alias = path.join(temporary, 'source-alias');
+  await symlink(root, alias, process.platform === 'win32' ? 'junction' : 'dir');
+  await assert.rejects(outsideOutput(root, path.join(alias, 'new-runtime')), /outside the source checkout/);
+  assert.equal(await outsideOutput(root, path.join(temporary, 'new-runtime')), path.join(temporary, 'new-runtime'));
 });
 test('rejects nonportable and ambiguous paths', () => {
   for (const value of ['../outside', '/absolute', 'C:/data', 'a\\b', 'a//b', 'a/../b', 'a/CON.txt', 'a/file.']) assert.equal(portablePath(value), false, value);
