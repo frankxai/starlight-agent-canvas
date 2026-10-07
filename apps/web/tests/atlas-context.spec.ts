@@ -120,11 +120,183 @@ test('cancelled reads and back navigation retain earlier imports; explicit clear
   await page.goBack(); await expect(page).toHaveURL(first);
   await expect(page.getByRole('heading', { name: packet().entity.label, exact: true })).toBeVisible();
   await expect(page.getByText('Retained contexts: 2', { exact: true })).toBeVisible();
+  await page.locator('summary').click();
   page.once('dialog', (dialog) => dialog.accept());
   await page.getByRole('button', { name: 'Forget all retained contexts', exact: true }).click();
   await expect(page).toHaveURL(/\/context$/);
   await expect(page.getByRole('status')).toContainText('All retained Atlas contexts were removed');
   await expect(page.getByText('Retained contexts: 0', { exact: true })).toBeVisible();
+});
+
+const savedFirst = '00000000-0000-4000-8000-000000000101';
+const savedSecond = '00000000-0000-4000-8000-000000000102';
+const savedInvalid = '00000000-0000-4000-8000-000000000103';
+const savedKey = (id: string) => `starlight.atlas.context.v1:${id}`;
+
+test('saved contexts reopen by keyboard with distinct references and unchanged source claims', async ({ page }, testInfo) => {
+  // Manually assembled from the reviewed public PR/issue, not a live Command
+  // export or customer workflow. The schema's producer literal is declarative.
+  const runtime = packet();
+  runtime.entity = { id: 'product:agent-canvas', label: 'Starlight Agent Canvas', type: 'product' };
+  runtime.sources = ['https://github.com/frankxai/starlight-agent-canvas/pull/42', 'https://github.com/frankxai/starlight-agent-canvas/issues/41'];
+  runtime.claims = [{ id: 'claim:runtime-adoption', property: 'native_adoption', value: 'The pinned Windows package passes file and dependency verification. Native activation remains pending.', evidence: 'record_only' }];
+  const earlier = packet(); earlier.entity = { ...runtime.entity }; earlier.observedAt = '2020-01-01T00:00:00Z';
+  const transmitted: string[] = [];
+  page.on('request', (request) => {
+    if (`${request.url()} ${request.postData() || ''}`.includes(runtime.claims[0]!.value) || request.url().startsWith('https://github.com/')) transmitted.push(request.url());
+  });
+  await page.goto('/context');
+  await page.evaluate(({ first, second, invalid, runtime, earlier }) => {
+    sessionStorage.setItem(`starlight.atlas.context.v1:${first}`, JSON.stringify(runtime));
+    sessionStorage.setItem(`starlight.atlas.context.v1:${second}`, JSON.stringify(earlier));
+    sessionStorage.setItem(`starlight.atlas.context.v1:${invalid}`, '{untrusted-private-original');
+  }, { first: savedFirst, second: savedSecond, invalid: savedInvalid, runtime, earlier });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.reload();
+  const saved = page.getByRole('region', { name: 'Saved contexts', exact: true });
+  await expect(saved.getByRole('link', { name: runtime.entity.label, exact: true })).toHaveCount(2);
+  await expect(saved.getByText('product · Observation fresh', { exact: true })).toBeVisible();
+  await expect(saved.getByText('product · Observation stale', { exact: true })).toBeVisible();
+  await expect(saved.getByText('2 conflicting claims retained', { exact: true })).toBeVisible();
+  await expect(saved.getByText('Saved context unavailable', { exact: true })).toBeVisible();
+  await expect(page.getByText('untrusted-private-original', { exact: false })).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+
+  const capture = testInfo.outputPath('atlas-saved-contexts.png');
+  await page.screenshot({ path: capture, fullPage: true });
+  const bytes = await readFile(capture);
+  await writeFile(`${capture}.vis.provenance.json`, JSON.stringify({
+    $schema: 'https://frankx.ai/schemas/vis-provenance-sidecar.schema.json', schema_version: '1.0.0',
+    asset: { id: `atlas-saved-contexts-${testInfo.project.name}`, version: 1, media_type: 'image/png', sha256: createHash('sha256').update(bytes).digest('hex'), relative_path: 'atlas-saved-contexts.png' },
+    generation: { provider: 'Playwright browser capture / GitHub Actions', model: null, seed: null, prompt: 'Capture the actual reduced-motion saved-context list. One manually assembled public-source packet describes the reviewed Canvas PR42 and open native-adoption issue41; a synthetic older packet retains conflicting claims under the same entity label, and an invalid record stays opaque. This is receiving-side fixture QA, not a live Command export, customer result or model-generated visual.', settings: { revision: process.env.GITHUB_SHA ?? null, project: testInfo.project.name, reduced_motion: true }, created_at: new Date().toISOString(), output_paths: ['atlas-saved-contexts.png'] },
+    agent: { harness: 'GitHub Actions / Playwright', session: process.env.GITHUB_RUN_ID ? `github-actions:${process.env.GITHUB_RUN_ID}` : 'local-browser-test:unknown' },
+    evaluation: { schema_validation: 'Schema endpoint unavailable locally; validation not claimed.', visual_inspection: 'Pending inspection of actual capture.' },
+    rights: { source: 'Manually assembled reviewed public-source fixture plus explicitly synthetic recovery fixtures', public_release: false },
+  }, null, 2));
+  await testInfo.attach('atlas-saved-contexts', { path: capture, contentType: 'image/png' });
+
+  const selected = saved.locator(`a[href="/context/${savedFirst}"]`);
+  await selected.focus(); await page.keyboard.press('Enter');
+  await expect(page).toHaveURL(new RegExp(`/context/${savedFirst}$`));
+  await expect(page.getByRole('heading', { name: runtime.entity.label, exact: true })).toBeFocused();
+  await expect(page.getByRole('status')).toContainText('Opened the saved context');
+  await expect(page.getByText(runtime.claims[0]!.value, { exact: true })).toBeVisible();
+  await page.locator('summary').click();
+  await expect(saved.locator(`a[href="/context/${savedFirst}"]`)).toHaveAttribute('aria-current', 'page');
+  await saved.locator(`a[href="/context/${savedSecond}"]`).click();
+  await expect(page).toHaveURL(new RegExp(`/context/${savedSecond}$`));
+  await expect(page.getByRole('heading', { name: /Freshness: stale/ })).toBeVisible();
+  await expect(page.getByText(/Conflicting claim · producer evidence:/)).toHaveCount(2);
+  await page.goBack();
+  await expect(page).toHaveURL(new RegExp(`/context/${savedFirst}$`));
+  await expect(page.getByText(runtime.claims[0]!.value, { exact: true })).toBeVisible();
+  expect(await page.evaluate((id) => sessionStorage.getItem(`starlight.atlas.context.v1:${id}`), savedInvalid)).toBe('{untrusted-private-original');
+  expect(transmitted).toEqual([]);
+});
+
+test('stale saved-list entries are revalidated and damaged copies can be removed separately', async ({ page }) => {
+  await page.goto('/context');
+  await page.getByLabel('Import Atlas context', { exact: true }).setInputFiles(fixtureFile(packet()));
+  await expect(page).toHaveURL(/\/context\/[a-f0-9-]{36}$/);
+  const current = page.url(); const next = packet(); next.entity.label = 'Another saved context';
+  await page.evaluate(({ id, next }) => {
+    sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, JSON.stringify(next));
+    sessionStorage.setItem('starlight.website.draft.v1:unrelated', 'retained-other-work');
+  }, { id: savedSecond, next });
+  await page.locator('summary').click();
+  const refresh = page.getByRole('button', { name: 'Refresh saved contexts', exact: true });
+  await refresh.click();
+  const selected = page.getByRole('region', { name: 'Saved contexts', exact: true }).locator(`a[href="/context/${savedSecond}"]`);
+  await expect(selected).toBeVisible();
+  await page.evaluate((id) => sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, '{rejected-private-payload'), savedSecond);
+  await selected.click();
+  await expect(page.getByRole('alert')).toContainText('no longer passes validation');
+  expect(page.url()).toBe(current);
+  await expect(page.getByRole('heading', { name: packet().entity.label, exact: true })).toBeVisible();
+  expect(await page.evaluate((id) => sessionStorage.getItem(`starlight.atlas.context.v1:${id}`), savedSecond)).toBe('{rejected-private-payload');
+  await expect(page.getByText('rejected-private-payload', { exact: false })).toHaveCount(0);
+  const forget = page.getByRole('button', { name: `Forget saved context ${savedSecond}`, exact: true });
+  page.once('dialog', (dialog) => dialog.dismiss()); await forget.click();
+  await expect(forget).toBeVisible();
+  page.once('dialog', (dialog) => dialog.accept()); await forget.click();
+  await expect(refresh).toBeFocused();
+  await expect(page.getByRole('status')).toContainText('current view is unchanged');
+  expect(await page.evaluate((id) => sessionStorage.getItem(`starlight.atlas.context.v1:${id}`), savedSecond)).toBeNull();
+  expect(await page.evaluate(() => sessionStorage.getItem('starlight.website.draft.v1:unrelated'))).toBe('retained-other-work');
+
+  await page.evaluate(({ id, next }) => sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, JSON.stringify(next)), { id: savedSecond, next });
+  await refresh.click(); await expect(selected).toBeVisible();
+  await page.evaluate((id) => sessionStorage.removeItem(`starlight.atlas.context.v1:${id}`), savedSecond);
+  await selected.click();
+  await expect(page.getByRole('alert')).toContainText('no longer in tab storage');
+  expect(page.url()).toBe(current);
+
+  await page.evaluate(({ id, next }) => sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, JSON.stringify(next)), { id: savedSecond, next });
+  await refresh.click(); await expect(selected).toBeVisible();
+  await page.evaluate(() => {
+    const read = Storage.prototype.getItem;
+    Object.assign(window, { restoreAtlasRead: () => { Storage.prototype.getItem = read; } });
+    Storage.prototype.getItem = function (key: string) {
+      if (key.startsWith('starlight.atlas.context.v1:')) throw new DOMException('Synthetic denied storage', 'SecurityError');
+      return read.call(this, key);
+    };
+  });
+  await selected.click();
+  await expect(page.getByRole('alert')).toContainText('could not be opened safely');
+  expect(page.url()).toBe(current);
+  await expect(page.getByRole('heading', { name: packet().entity.label, exact: true })).toBeVisible();
+  await expect(page.getByText('Retained contexts: unavailable', { exact: true })).toBeVisible();
+  await page.evaluate(() => (window as unknown as { restoreAtlasRead: () => void }).restoreAtlasRead());
+  await refresh.click(); await expect(selected).toBeVisible();
+  await expect(page.getByText('Retained contexts: 2', { exact: true })).toBeVisible();
+});
+
+test('an interrupted native saved-context navigation keeps the previous view and supports retry', async ({ page }) => {
+  await page.goto('/context');
+  await page.getByLabel('Import Atlas context', { exact: true }).setInputFiles(fixtureFile(packet()));
+  await expect(page).toHaveURL(/\/context\/[a-f0-9-]{36}$/);
+  const current = page.url(); const next = packet(); next.entity.label = 'Retry this saved context';
+  await page.evaluate(({ id, next }) => sessionStorage.setItem(`starlight.atlas.context.v1:${id}`, JSON.stringify(next)), { id: savedSecond, next });
+  await page.locator('summary').click();
+  await page.getByRole('button', { name: 'Refresh saved contexts', exact: true }).click();
+  const selected = page.getByRole('link', { name: next.entity.label, exact: true });
+  await page.route(`**/context/${savedSecond}`, (route) => route.abort('aborted'));
+  await selected.click({ noWaitAfter: true });
+  await expect(page.getByRole('heading', { name: packet().entity.label, exact: true })).toBeVisible();
+  expect(page.url()).toBe(current);
+  await expect(page.getByLabel('Import Atlas context', { exact: true })).toBeEnabled();
+  await page.unroute(`**/context/${savedSecond}`);
+  await selected.click();
+  await expect(page).toHaveURL(new RegExp(`/context/${savedSecond}$`));
+  await expect(page.getByRole('heading', { name: next.entity.label, exact: true })).toBeFocused();
+});
+
+test('saved-context reading stays bounded and long labels fit without pruning records', async ({ page }) => {
+  await page.goto('/context');
+  const long = packet(); long.entity.label = 'L'.repeat(500); long.entity.id = `product:${'i'.repeat(120)}`;
+  await page.evaluate((value) => {
+    for (let index = 0; index < 33; index++) sessionStorage.setItem(`starlight.atlas.context.v1:00000000-0000-4000-8000-${String(index).padStart(12, '0')}`, JSON.stringify(value));
+    const read = Storage.prototype.getItem;
+    Object.assign(window, { atlasPayloadReads: 0 });
+    Storage.prototype.getItem = function (key: string) {
+      if (key.startsWith('starlight.atlas.context.v1:')) (window as unknown as { atlasPayloadReads: number }).atlasPayloadReads++;
+      return read.call(this, key);
+    };
+  }, long);
+  // A client-side refresh preserves the instrumented Storage prototype.
+  await page.getByRole('button', { name: 'Refresh saved contexts', exact: true }).click();
+  const saved = page.getByRole('region', { name: 'Saved contexts', exact: true });
+  await expect(saved.getByRole('listitem')).toHaveCount(32);
+  expect(await page.evaluate(() => (window as unknown as { atlasPayloadReads: number }).atlasPayloadReads)).toBe(32);
+  await expect(saved.getByText(/Only 32 records are listed/)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => key.startsWith('starlight.atlas.context.v1:')).length)).toBe(33);
+  // Oversized inventories hold all payload reads and keep the records intact.
+  await page.evaluate(() => { for (let index = 0; index < 2001; index++) sessionStorage.setItem(`unrelated:${index}`, 'retained'); });
+  await page.getByRole('button', { name: 'Refresh saved contexts', exact: true }).click();
+  await expect(page.getByRole('alert')).toContainText('could not be read');
+  expect(await page.evaluate(() => (window as unknown as { atlasPayloadReads: number }).atlasPayloadReads)).toBe(32);
+  expect(await page.evaluate(() => Object.keys(sessionStorage).filter((key) => key.startsWith('starlight.atlas.context.v1:')).length)).toBe(33);
 });
 
 test('the retention cap holds import and root removal leaves unrelated tab state intact', async ({ page }) => {
