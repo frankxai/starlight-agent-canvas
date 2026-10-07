@@ -49,7 +49,7 @@ export function validateCheckpoint(raw: unknown, canvasId: string, checkpointId:
 export function checkpointReviewView<T>(value: T): T {
   function project(item: unknown): unknown {
     if (typeof item === 'string') {
-      if (item.startsWith('data:')) return `[Embedded media: ${Math.ceil(item.length / 1024)} KiB encoded; retained in the local snapshot]`;
+      if (/^data:[\w.+-]+\/[\w.+-]+;base64,/.test(item)) return `[Embedded media: ${Math.ceil(item.length / 1024)} KiB encoded; retained in the local snapshot]`;
       return item.length > 8_000 ? `${item.slice(0, 8_000)}\n[Review excerpt; full text retained in the local snapshot]` : item;
     }
     if (Array.isArray(item)) return item.map(project);
@@ -109,7 +109,7 @@ function compareRecords(before: RecordValue[], after: RecordValue[]): RecordChan
 
 export function compareCanvasSnapshots(
   before: CanvasCheckpoint,
-  after: { id: string; label: string; snapshot: CanvasRecord },
+  after: { id: string; label: string; snapshot: CanvasRecord; contentHash?: string },
 ): CanvasComparison {
   if (before.canvasId !== after.snapshot.id) throw new Error('Comparison snapshots belong to different canvases.');
   const collections = {
@@ -124,7 +124,7 @@ export function compareCanvasSnapshots(
   return {
     canvasId: before.canvasId,
     before: { id: before.id, label: before.label, contentHash: before.contentHash },
-    after: { id: after.id, label: after.label, contentHash: canvasContentHash(after.snapshot) },
+    after: { id: after.id, label: after.label, contentHash: after.contentHash ?? canvasContentHash(after.snapshot) },
     unchanged: !canvasFields.length && Object.values(collections).every((changes) => !changes.length),
     canvasFields, collections,
   };

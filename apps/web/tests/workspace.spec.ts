@@ -29,7 +29,9 @@ test('history keeps exact review states and compares agent edits accessibly', as
   await diff.getByText('Campaign direction: changed').click();
   await expect(diff).toContainText('Original direction');
   await expect(diff).toContainText('Agent revised the campaign.');
-  await testInfo.attach('checkpoint-comparison', { body: await history.screenshot(), contentType: 'image/png' });
+  const comparisonCapture = testInfo.outputPath('checkpoint-comparison.png');
+  await history.screenshot({ path: comparisonCapture });
+  await testInfo.attach('checkpoint-comparison', { path: comparisonCapture, contentType: 'image/png' });
   await history.getByRole('button', { name: 'Open checkpoint' }).click();
   await expect(history.locator('pre')).toContainText('Original direction');
   await expect(history.locator('pre')).not.toContainText('Agent revised the campaign.');

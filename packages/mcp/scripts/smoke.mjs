@@ -29,6 +29,10 @@ const expectedTools = [
   'run_node_action',
   'search_artifacts',
   'export_canvas',
+  'create_canvas_checkpoint',
+  'list_canvas_checkpoints',
+  'get_canvas_checkpoint',
+  'compare_canvas_checkpoints',
 ];
 
 const transport = new StdioClientTransport({
@@ -370,6 +374,16 @@ try {
     throw new Error('import_canvas did not return an imported canvas id.');
   }
 
+  const checkpointResult = await client.callTool({ name: 'create_canvas_checkpoint', arguments: { canvasId, label: 'MCP reviewed state' } });
+  const checkpoint = checkpointResult.structuredContent?.checkpoint;
+  if (typeof checkpoint?.id !== 'string' || typeof checkpoint.contentHash !== 'string') throw new Error('Checkpoint creation did not identify an exact snapshot.');
+  const checkpointList = await client.callTool({ name: 'list_canvas_checkpoints', arguments: { canvasId } });
+  if (!checkpointList.structuredContent?.checkpoints?.some((item) => item.id === checkpoint.id)) throw new Error('MCP history did not include the saved checkpoint.');
+  const checkpointRead = await client.callTool({ name: 'get_canvas_checkpoint', arguments: { canvasId, checkpointId: checkpoint.id } });
+  if (checkpointRead.structuredContent?.checkpoint?.contentHash !== checkpoint.contentHash) throw new Error('MCP checkpoint read changed input identity.');
+  const checkpointDiff = await client.callTool({ name: 'compare_canvas_checkpoints', arguments: { canvasId, beforeId: checkpoint.id } });
+  if (checkpointDiff.structuredContent?.comparison?.unchanged !== true) throw new Error('MCP unchanged comparison failed.');
+
   console.log(JSON.stringify({
     ok: true,
     home,
@@ -381,6 +395,7 @@ try {
     imageNodeId,
     urlNodeId,
     importedCanvasId,
+    checkpointId: checkpoint.id,
   }, null, 2));
 } finally {
   await client.close();

@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 export function checkpointErrorResponse(error: unknown) {
   const message = error instanceof Error ? error.message : '';
   const code = (error as NodeJS.ErrnoException | undefined)?.code;
+  if (message.startsWith('Timed out waiting for canvas lock') || message.startsWith('Canvas lock ownership changed')) {
+    return NextResponse.json({ error: 'Canvas is locked by another writer or needs owner reconciliation. Keep your edits, wait for that writer, then refresh history.' }, { status: 503 });
+  }
   if (code === 'ENOENT' || message === 'Checkpoint was not found.') {
     return NextResponse.json({ error: 'Canvas or checkpoint was not found. Refresh history and choose an available checkpoint.' }, { status: 404 });
   }

@@ -139,6 +139,8 @@ describe('local checkpoints', () => {
     expect(review.body).toContain('Review excerpt');
     expect(original.media).toHaveLength(10_022);
     expect(original.body).toHaveLength(10_000);
+    expect(checkpointReviewView({ body: 'data: Q3 up' })).toEqual({ body: 'data: Q3 up' });
+    expect(checkpointReviewView({ body: 'data: Q3 down' })).toEqual({ body: 'data: Q3 down' });
   });
 
   it('reports canvas title changes and ignores canvas save timestamps as graph changes', async () => {
