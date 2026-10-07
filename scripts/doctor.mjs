@@ -217,7 +217,7 @@ status(codex.hasServer && codex.hasEnv, 'Codex MCP block', codex.hasServer && co
 status(codex.pointsAtCurrentCli, 'Codex MCP CLI path', codex.cliPath || 'missing');
 status(codex.usesExpectedHome, 'Codex canvas home env', codex.home || 'missing');
 status(codex.exists && !codex.invalid, 'Codex TOML syntax', codex.invalid ? 'invalid or unsupported; no values logged' : codex.exists ? 'parsed' : 'config absent; syntax not checked');
-status(codex.enabled, 'Codex base MCP activation', codex.enabled ? 'enabled in this file; task discovery is still required' : 'disabled or absent; activate only the selected task with -c mcp_servers.starlight-agent-canvas.enabled=true');
+status(Boolean(codex.enabled), 'Codex base MCP activation', codex.enabled ? 'enabled in this file; task discovery is still required' : 'disabled or absent; activate only the selected task with -c mcp_servers.starlight-agent-canvas.enabled=true');
 
 const summary = {
   pass: checks.filter((check) => check.level === 'pass').length,
@@ -239,7 +239,7 @@ if (jsonOutput) {
       'pnpm mcp:build && pnpm mcp:smoke',
       'pnpm mcp:codex:smoke',
       'pnpm seed:starlight',
-      'pnpm mcp:install:codex -- --write   # optional, then restart Codex',
+      'pnpm mcp:install:codex -- --write   # optional; enable Canvas only for the selected task',
       'pnpm dev',
     ],
   }, null, 2));
@@ -250,7 +250,7 @@ if (jsonOutput) {
   console.log('2. pnpm mcp:build && pnpm mcp:smoke');
   console.log('3. pnpm mcp:codex:smoke');
   console.log('4. pnpm seed:starlight');
-  console.log('5. pnpm mcp:install:codex -- --write   # optional, then restart Codex');
+  console.log('5. pnpm mcp:install:codex -- --write   # optional; enable Canvas only for the selected task');
   console.log('6. pnpm dev');
 }
 

@@ -10,6 +10,7 @@ export class ConfigHold extends Error {}
 
 export function parseCodexConfig(raw) {
   if (Buffer.byteLength(raw, 'utf8') > configLimit) throw new ConfigHold('Config exceeds the 1 MiB edit limit.');
+  if (raw.startsWith('\uFEFF')) throw new ConfigHold('Config BOM requires a manual edit.');
   try { return parse(raw, parseOptions); }
   catch { throw new ConfigHold('Config is invalid or unsupported TOML; no values have been logged.'); }
 }
@@ -35,6 +36,7 @@ export function codexBlock({ command, cliPath, home }) {
 
 export function planCodexConfig(raw, options) {
   const expected = parseCodexConfig(raw);
+  if (raw.includes('\r\n') && /(?:^|[^\r])\n/.test(raw)) throw new ConfigHold('Mixed line endings require a manual edit.');
   if (expected.mcp_servers !== undefined && !table(expected.mcp_servers)) throw new ConfigHold('mcp_servers must be a table.');
   const current = expected.mcp_servers?.[serverId];
   if (current !== undefined && !table(current)) throw new ConfigHold('Canvas MCP entry must be a table.');
@@ -88,7 +90,6 @@ export function planCodexConfig(raw, options) {
   } else {
     update(serverTable, 'command', JSON.stringify(options.command), Object.hasOwn(server, 'command'));
     update(serverTable, 'args', `[${JSON.stringify(options.cliPath)}]`, Object.hasOwn(server, 'args'));
-    if (!Object.hasOwn(server, 'enabled')) update(serverTable, 'enabled', 'false', false);
     if (!Object.hasOwn(server, 'startup_timeout_sec') && !Object.hasOwn(server, 'startup_timeout_ms')) {
       update(serverTable, 'startup_timeout_sec', '60', false);
     }
@@ -100,12 +101,12 @@ export function planCodexConfig(raw, options) {
   }
   server.command = options.command;
   server.args = [options.cliPath];
-  server.enabled ??= false;
+  if (!existed) server.enabled = false;
   if (server.startup_timeout_sec === undefined && server.startup_timeout_ms === undefined) server.startup_timeout_sec = 60n;
   server.env ??= parseCodexConfig('[env]').env;
   server.env.AGENT_CANVAS_HOME ??= options.home;
   const next = lines.join(lineEnding);
   // A real parser catches table-like text in multiline strings, aliases and misplaced edits.
   if (!isDeepStrictEqual(parseCodexConfig(next), expected)) throw new ConfigHold('Proposed edit changes unexpected configuration; use a manual edit.');
-  return { next, enabled: server.enabled, home: server.env.AGENT_CANVAS_HOME };
+  return { next, enabled: server.enabled !== false, activation: Object.hasOwn(server, 'enabled') ? 'explicit' : 'default', home: server.env.AGENT_CANVAS_HOME };
 }

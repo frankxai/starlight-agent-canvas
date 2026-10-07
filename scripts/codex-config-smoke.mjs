@@ -42,7 +42,7 @@ async function callConfiguredMcp(configPathForLaunch) {
   const server = parseCodexConfig(raw).mcp_servers?.['starlight-agent-canvas'];
   const { command, args, env } = server ?? {};
   if (server?.enabled !== false) throw new Error('New Codex registration must remain disabled by default.');
-  if (!command || !args.length || !env.AGENT_CANVAS_HOME) {
+  if (typeof command !== 'string' || !Array.isArray(args) || !args.length || !env?.AGENT_CANVAS_HOME) {
     throw new Error('Could not parse command, args, or AGENT_CANVAS_HOME from generated Codex config.');
   }
 
@@ -56,6 +56,7 @@ async function callConfiguredMcp(configPathForLaunch) {
     windowsHide: true,
   });
 
+  const closed = new Promise(resolve => child.once('close', resolve));
   let nextId = 1;
   let stdoutBuffer = '';
   let stderr = '';
@@ -166,6 +167,9 @@ async function callConfiguredMcp(configPathForLaunch) {
   } finally {
     child.stdin.end();
     child.kill();
+    let timer;
+    await Promise.race([closed, new Promise(resolve => { timer = setTimeout(resolve, 5000); })]);
+    clearTimeout(timer);
   }
 }
 
@@ -199,6 +203,6 @@ try {
   }, null, 2));
 } finally {
   if (!keepTemp) {
-    await rm(tempRoot, { recursive: true, force: true });
+    await rm(tempRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 200 });
   }
 }

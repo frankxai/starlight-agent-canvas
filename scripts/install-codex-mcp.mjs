@@ -1,4 +1,4 @@
-import { lstat, mkdir, open, readFile, rename, link, unlink } from 'node:fs/promises';
+import { lstat, mkdir, open, readFile, rename, link, unlink, access, constants } from 'node:fs/promises';
 import { createHash, randomUUID } from 'node:crypto';
 import os from 'node:os';
 import path from 'node:path';
@@ -28,30 +28,36 @@ async function exclusiveFile(file, content, mode) {
   const handle = await open(file, 'wx', mode);
   try { await handle.writeFile(content); await handle.sync(); }
   catch (error) {
-    await handle.close();
+    await handle.close().catch(() => {});
     await unlink(file).catch(() => {});
     throw error;
   }
   await handle.close();
 }
 
-export async function installConfig(configPath, options, { expectedSha, beforePublish } = {}) {
+export async function installConfig(configPath, options, { expectedSha, beforePublish, removeOwnedFile = unlink } = {}) {
   await mkdir(path.dirname(configPath), { recursive: true });
   const lockPath = `${configPath}.canvas-install.lock`;
   const nonce = randomUUID();
   const owner = JSON.stringify({ nonce, pid: process.pid, host: os.hostname() });
   try { await exclusiveFile(lockPath, owner, 0o600); }
   catch (error) {
-    if (error.code === 'EEXIST') throw new ConfigHold('Another installer or interrupted install owns the lock. Inspect it; no age-based removal is performed.');
+    if (error.code === 'EEXIST') throw new ConfigHold(`Another installer or interrupted install owns ${lockPath}. Inspect it; no age-based removal is performed.`);
     throw error;
   }
   const tempPath = `${configPath}.canvas-install-${nonce}.tmp`;
   let tempCreated = false;
+  const cleanupWarnings = [];
+  let primaryError;
   try {
     const original = await snapshot(configPath);
     if (expectedSha && expectedSha !== original.sha) throw new ConfigHold('Config changed since the reviewed hash.');
     const plan = planCodexConfig(original.raw, options);
-    if (plan.next === original.raw) return { ...plan, changed: false, sha: original.sha };
+    if (plan.next === original.raw) return { ...plan, changed: false, sha: original.sha, cleanupWarnings };
+    if (original.bytes !== null) {
+      if ((original.mode & 0o222) === 0) throw new ConfigHold('Read-only config requires a manual edit.');
+      await access(configPath, constants.W_OK);
+    }
     await exclusiveFile(tempPath, plan.next, original.mode);
     tempCreated = true;
     const backupPath = original.bytes ? `${configPath}.bak-${new Date().toISOString().replace(/[^0-9A-Za-z_-]/g, '-')}-${nonce}` : null;
@@ -69,10 +75,18 @@ export async function installConfig(configPath, options, { expectedSha, beforePu
     tempCreated = false;
     const published = await snapshot(configPath);
     if (published.sha !== hash(Buffer.from(plan.next))) throw new ConfigHold('Config changed after publication; inspect the current file and backup.');
-    return { ...plan, changed: true, sha: published.sha, backupPath };
+    return { ...plan, changed: true, sha: published.sha, backupPath, cleanupWarnings };
+  } catch (error) {
+    primaryError = error;
+    throw error;
   } finally {
-    if (tempCreated) await unlink(tempPath).catch(() => {});
-    if (await readFile(lockPath, 'utf8').catch(() => '') === owner) await unlink(lockPath);
+    if (tempCreated) await removeOwnedFile(tempPath).catch(error => cleanupWarnings.push(`Temporary file cleanup failed (${error.code || 'unknown'}): ${tempPath}`));
+    if (await readFile(lockPath, 'utf8').catch(() => '') === owner) {
+      await removeOwnedFile(lockPath).catch(error => cleanupWarnings.push(`Installer lock cleanup failed (${error.code || 'unknown'}): ${lockPath}`));
+    } else {
+      cleanupWarnings.push(`Installer lock owner changed; preserved: ${lockPath}`);
+    }
+    if (primaryError) primaryError.cleanupWarnings = cleanupWarnings;
   }
 }
 
@@ -100,6 +114,7 @@ async function main() {
   const options = { command: process.execPath, cliPath, home: process.env.AGENT_CANVAS_HOME || path.join(os.homedir(), '.starlight', 'agent-canvas') };
   if (!args.includes('--write')) {
     const original = await snapshot(configPath);
+    if (expectedSha && expectedSha !== original.sha) throw new ConfigHold('Config changed since the reviewed hash.');
     const plan = planCodexConfig(original.raw, options);
     console.log(`[dry-run] Target: ${configPath}\n[dry-run] Expected SHA256: ${original.sha}\n[dry-run] Managed launcher: ${JSON.stringify(options.command)} ${JSON.stringify(options.cliPath)}\n[dry-run] Base activation: enabled=${plan.enabled}\n[dry-run] Data home: ${JSON.stringify(plan.home)}\n[dry-run] Other settings/environment values are preserved and omitted from output.\nUse --write to publish with a backup. --expected-sha binds the write to this inspected config.`);
     return;
@@ -113,12 +128,14 @@ async function main() {
   const result = await installConfig(configPath, options, { expectedSha });
   console.log(`[ok] ${result.changed ? 'Installed' : 'Already configured'}: ${configPath}\n[ok] SHA256: ${result.sha}\n[ok] Base activation: enabled=${result.enabled}`);
   if (result.backupPath) console.log(`[ok] Backup: ${result.backupPath}`);
+  for (const warning of result.cleanupWarnings) console.warn(`[warn] Config publication succeeded. ${warning}`);
   console.log('For this task: codex -c mcp_servers.starlight-agent-canvas.enabled=true\nVerify tool discovery/calls in that task. Configuration and transport smoke alone do not prove native activation.');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
   main().catch(error => {
     console.error(error instanceof ConfigHold ? `[hold] ${error.message}` : `[hold] Installation failed (${error.code || 'unknown'}); inspect config/backup and installer lock.`);
+    for (const warning of error.cleanupWarnings ?? []) console.warn(`[warn] ${warning}`);
     process.exitCode = 2;
   });
 }

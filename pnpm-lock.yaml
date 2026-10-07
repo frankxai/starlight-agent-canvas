@@ -19,13 +19,14 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      smol-toml:
+        specifier: 1.9.0
+        version: 1.9.0
     devDependencies:
       '@types/node':
         specifier: ^22.20.1
         version: 22.20.1
-      smol-toml:
-        specifier: 1.9.0
-        version: 1.9.0
       typescript:
         specifier: ^7.0.2
         version: 7.0.2

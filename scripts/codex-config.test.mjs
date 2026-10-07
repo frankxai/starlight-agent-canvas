@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtemp, readFile, writeFile, readdir, rm, lstat, symlink } from 'node:fs/promises';
+import { mkdtemp, readFile, writeFile, readdir, rm, lstat, symlink, link, unlink, chmod } from 'node:fs/promises';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import os from 'node:os';
@@ -35,11 +35,14 @@ test('preserves activation, tool restrictions, custom env, data identity and unr
   assert.equal(planCodexConfig(plan.next, options).next, plan.next);
 });
 
-test('preserves explicit true, adds false for omitted activation and retains timeout alias', () => {
+test('preserves explicit and implicit activation and retains timeout alias', () => {
   assert.equal(planCodexConfig(fixture.replace('enabled = false', 'enabled = true'), options).enabled, true);
   const raw = fixture.replace('enabled = false # Deliberately task scoped\n', '').replace('startup_timeout_sec = 75', 'startup_timeout_ms = 75000');
-  const after = server(planCodexConfig(raw, options).next);
-  assert.equal(after.enabled, false);
+  const plan = planCodexConfig(raw, options);
+  const after = server(plan.next);
+  assert.equal(after.enabled, undefined);
+  assert.equal(plan.enabled, true);
+  assert.equal(plan.activation, 'default');
   assert.equal(after.startup_timeout_ms, 75000n);
   assert.equal(after.startup_timeout_sec, undefined);
 });
@@ -70,6 +73,10 @@ test('refuses invalid, duplicate, HTTP, custom launcher and unsupported managed 
     '[mcp_servers.starlight-agent-canvas]\nurl = "https://example.com/mcp"',
     '[mcp_servers.starlight-agent-canvas]\nenabled = "false"',
     '[mcp_servers.starlight-agent-canvas.env]\nCUSTOM = 12',
+    '__proto__.x = 1',
+    'constructor.x = 1',
+    '\uFEFF' + fixture,
+    fixture.replace('\n', '\r\n'),
     'x = "' + 'x'.repeat(1024 * 1024) + '"',
   ];
   for (const raw of bad) {
@@ -79,6 +86,11 @@ test('refuses invalid, duplicate, HTTP, custom launcher and unsupported managed 
 
 test('table-like text in multiline strings cannot redirect an edit', () => {
   const raw = fixture.replace('A multiline note', '[mcp_servers.starlight-agent-canvas]\ncommand = "fake"');
+  assert.throws(() => planCodexConfig(raw, options), ConfigHold);
+});
+
+test('array table managed-key lookalikes cause a hold instead of an unexpected edit', () => {
+  const raw = "[mcp_servers.starlight-agent-canvas]\ncommand = 'old'\nargs = ['old.js']\n[[other]]\nargs = ['preserve']\n";
   assert.throws(() => planCodexConfig(raw, options), ConfigHold);
 });
 
@@ -139,6 +151,37 @@ test('interrupted publish keeps original config/backup and a retry succeeds', as
   assert.equal(await readFile(file, 'utf8'), fixture);
   assert.ok(!(await readdir(root)).some(name => name.includes('.lock') || name.endsWith('.tmp')));
   assert.equal((await installConfig(file, options)).changed, true);
+}));
+
+test('failed lock cleanup reports successful publication and preserves the lock for inspection', async () => temporary(async file => {
+  await writeFile(file, fixture);
+  const result = await installConfig(file, options, { removeOwnedFile: async name => {
+    if (name.endsWith('.lock')) throw Object.assign(new Error('simulated busy'), { code: 'EBUSY' });
+    await unlink(name);
+  } });
+  assert.equal(result.changed, true);
+  assert.equal(server(await readFile(file, 'utf8')).command, options.command);
+  assert.equal(result.cleanupWarnings.length, 1);
+  assert.ok(result.cleanupWarnings[0].includes('EBUSY'));
+  await assert.rejects(installConfig(file, options), ConfigHold);
+}));
+
+test('hardlinked config is held without changing either name', async () => temporary(async (file, root) => {
+  await writeFile(file, fixture);
+  const other = path.join(root, 'linked.toml');
+  await link(file, other);
+  await assert.rejects(installConfig(file, options), ConfigHold);
+  assert.equal(await readFile(file, 'utf8'), fixture);
+  assert.equal(await readFile(other, 'utf8'), fixture);
+}));
+
+test('read-only config is held without bypassing its mode', async () => temporary(async file => {
+  await writeFile(file, fixture);
+  await chmod(file, 0o444);
+  try {
+    await assert.rejects(installConfig(file, options), ConfigHold);
+    assert.equal(await readFile(file, 'utf8'), fixture);
+  } finally { await chmod(file, 0o600); }
 }));
 
 test('symlink config cannot change its target', async t => temporary(async (file, root) => {
