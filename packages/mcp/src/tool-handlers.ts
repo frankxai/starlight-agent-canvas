@@ -454,6 +454,26 @@ export function createToolHandlers(store = new FileCanvasStore(), readContinuity
       const body = await store.exportCanvas(args.canvasId, format, { nodeIds });
       return ok(body, { canvasId: args.canvasId, format, nodeIds, body });
     },
+
+    async create_canvas_checkpoint(args: { canvasId: string; label: string }): Promise<ToolResult> {
+      const checkpoint = await store.createCheckpoint(args.canvasId, { label: args.label });
+      return ok(`Checkpoint saved: ${checkpoint.label}`, { checkpoint });
+    },
+
+    async list_canvas_checkpoints(args: { canvasId: string }): Promise<ToolResult> {
+      const checkpoints = await store.listCheckpoints(args.canvasId);
+      return ok(jsonText(checkpoints), { checkpoints });
+    },
+
+    async get_canvas_checkpoint(args: { canvasId: string; checkpointId: string }): Promise<ToolResult> {
+      const checkpoint = await store.getCheckpoint(args.canvasId, args.checkpointId);
+      return ok(jsonText(checkpoint), { checkpoint });
+    },
+
+    async compare_canvas_checkpoints(args: { canvasId: string; beforeId: string; afterId?: string }): Promise<ToolResult> {
+      const comparison = await store.compareCheckpoints(args.canvasId, args.beforeId, args.afterId);
+      return ok(jsonText(comparison), { comparison });
+    },
   };
 }
 

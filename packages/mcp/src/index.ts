@@ -485,5 +485,27 @@ export function createAgentCanvasMcpServer() {
     async (args) => handlers.export_canvas(args),
   );
 
+  server.registerTool('create_canvas_checkpoint', {
+    title: 'Save Canvas Checkpoint',
+    description: 'Keep a named, immutable local snapshot of the current canvas with its exact content hash. Does not change the current graph or publish history.',
+    inputSchema: { canvasId: canvasIdSchema, label: z.string().trim().min(1).max(120) },
+    annotations: SAFE_LOCAL_WRITE,
+  }, async (args) => handlers.create_canvas_checkpoint(args));
+
+  server.registerTool('list_canvas_checkpoints', {
+    title: 'List Canvas Checkpoints', description: 'List local checkpoint names, timestamps, graph counts and content hashes.',
+    inputSchema: { canvasId: canvasIdSchema }, annotations: READ_ONLY_LOCAL,
+  }, async (args) => handlers.list_canvas_checkpoints(args));
+
+  server.registerTool('get_canvas_checkpoint', {
+    title: 'Read Canvas Checkpoint', description: 'Inspect a validated local checkpoint without restoring or changing the current graph.',
+    inputSchema: { canvasId: canvasIdSchema, checkpointId: canvasIdSchema }, annotations: READ_ONLY_LOCAL,
+  }, async (args) => handlers.get_canvas_checkpoint(args));
+
+  server.registerTool('compare_canvas_checkpoints', {
+    title: 'Compare Canvas Checkpoints', description: 'Compare stable records and changed fields between a checkpoint and the current canvas, or two checkpoints. Position-only changes are identified separately.',
+    inputSchema: { canvasId: canvasIdSchema, beforeId: canvasIdSchema, afterId: canvasIdSchema.optional() }, annotations: READ_ONLY_LOCAL,
+  }, async (args) => handlers.compare_canvas_checkpoints(args));
+
   return server;
 }

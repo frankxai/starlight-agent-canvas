@@ -1,5 +1,6 @@
 export * from './actions.js';
 export * from './chunks.js';
+export * from './checkpoints.js';
 export * from './continuity.js';
 export * from './exporters.js';
 export * from './file-lock.js';
