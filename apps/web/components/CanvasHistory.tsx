@@ -14,6 +14,13 @@ async function historyRequest<T>(url: string, init?: RequestInit): Promise<T> {
 
 const control = 'min-h-11 w-full rounded-md border border-starlight-border bg-starlight-surface px-3 py-2 text-sm text-starlight-ink disabled:opacity-50';
 
+function fieldValue(value: unknown): string {
+  if (value === undefined) return 'Not present';
+  return typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+}
+
+const fieldLabels: Record<string, string> = { body: 'Content', title: 'Title', position: 'Position', metadata: 'Source details', summary: 'Summary', source: 'Source', kind: 'Type' };
+
 export default function CanvasHistory({ canvasId, disabled }: { canvasId: string; disabled: boolean }) {
   const fieldId = useId();
   const alive = useRef(true);
@@ -106,7 +113,7 @@ export default function CanvasHistory({ canvasId, disabled }: { canvasId: string
             {checkpoints.map((item) => <option key={item.id} value={item.id}>{item.label} ({new Date(item.createdAt).toLocaleString()})</option>)}
           </select>
           {checkpoints.find((item) => item.id === before) && <p className="text-xs leading-5 text-starlight-muted">
-            {checkpoints.find((item) => item.id === before)!.counts.nodes} nodes, {checkpoints.find((item) => item.id === before)!.counts.artifacts} sources
+            {checkpoints.find((item) => item.id === before)!.counts.nodes} {checkpoints.find((item) => item.id === before)!.counts.nodes === 1 ? 'node' : 'nodes'}, {checkpoints.find((item) => item.id === before)!.counts.artifacts} sources
           </p>}
           <label htmlFor={`${fieldId}-after`} className="block text-xs text-starlight-muted">Compare to</label>
           <select id={`${fieldId}-after`} className={control} value={after} disabled={busy}
@@ -137,8 +144,27 @@ export default function CanvasHistory({ canvasId, disabled }: { canvasId: string
             <h3 className="text-xs text-starlight-muted">{collection === 'artifacts' ? 'Sources' : collection}: {changes.length} {changes.length === 1 ? 'change' : 'changes'}</h3>
             {changes.map((change) => <details key={change.id} className="border-b border-starlight-border py-2">
               <summary className="min-h-11 cursor-pointer text-sm leading-6">{change.title}: {change.positionOnly ? 'position changed' : change.kind}</summary>
-              {!!change.fields.length && <p className="text-xs leading-5 text-starlight-muted">Changed fields: {change.fields.join(', ')}</p>}
-              <pre tabIndex={0} role="region" aria-label={`${change.title} record changes`} className="max-h-72 overflow-auto whitespace-pre-wrap break-all pt-2 text-xs leading-5">{JSON.stringify({ before: change.before, after: change.after }, null, 2)}</pre>
+              {(change.fields.length ? change.fields.filter((field) => field !== 'updatedAt' && field !== 'createdAt') : ['title', 'body', 'summary', 'source'].filter((field) => (change.before ?? change.after)?.[field] !== undefined)).map((field) => {
+                const previous = fieldValue(change.before?.[field]);
+                const next = fieldValue(change.after?.[field]);
+                return <div key={field} className="space-y-3 pb-4">
+                  <p className="text-xs font-semibold text-starlight-muted">{fieldLabels[field] ?? field}</p>
+                  <div className="border-l-2 border-starlight-gold/60 pl-3">
+                    <p className="text-xs text-starlight-gold">Before</p>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6">{previous}</p>
+                  </div>
+                  <div className="border-l-2 border-starlight-mint/60 pl-3">
+                    <p className="text-xs text-starlight-mint">After</p>
+                    <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-6">{next}</p>
+                  </div>
+                  {change.kind === 'changed' && previous === next && /Review excerpt|Embedded media/.test(previous) &&
+                    <p className="text-sm leading-6 text-starlight-gold">This field changed beyond its review view. Inspect the original local snapshot before deciding.</p>}
+                </div>;
+              })}
+              <details>
+                <summary className="min-h-11 cursor-pointer text-xs text-starlight-muted">Inspect record details</summary>
+                <pre tabIndex={0} role="region" aria-label={`${change.title} record changes`} className="max-h-72 overflow-auto whitespace-pre-wrap break-all pt-2 text-xs leading-5">{JSON.stringify({ before: change.before, after: change.after }, null, 2)}</pre>
+              </details>
             </details>)}
           </div>)}
           <details><summary className="min-h-11 cursor-pointer text-xs text-starlight-muted">Exact input hashes</summary>

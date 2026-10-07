@@ -1,5 +1,6 @@
-import { mkdir, open, readFile, rm } from 'node:fs/promises';
+import { link, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
+import { hostname } from 'node:os';
 import path from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 
@@ -40,35 +41,55 @@ async function removeLockWithRetry(lockPath: string, expectedRecord?: string): P
 
 function ownerIsDead(raw: string): boolean {
   try {
-    const owner = JSON.parse(raw) as { pid?: unknown };
+    const owner = JSON.parse(raw) as { pid?: unknown; hostname?: unknown; platform?: unknown };
+    if (owner.hostname !== hostname() || owner.platform !== process.platform) return false;
     if (typeof owner.pid !== 'number' || !Number.isSafeInteger(owner.pid) || owner.pid <= 0) return false;
     try { process.kill(owner.pid, 0); return false; }
     catch (error) { return (error as NodeJS.ErrnoException).code === 'ESRCH'; }
   } catch { return false; }
 }
 
+function newOwnerRecord(): string {
+  return JSON.stringify({ pid: process.pid, ownerId: randomUUID(), hostname: hostname(), platform: process.platform, createdAt: new Date().toISOString() });
+}
+
+// A fully written private token is linked into place atomically. A process crash
+// between creation and writing can never expose an empty lock to another writer.
+async function createExclusiveLock(lockPath: string, ownerRecord: string): Promise<string> {
+  const token = `${lockPath}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(token, ownerRecord, { flag: 'wx' });
+    await link(token, lockPath);
+    return token;
+  } catch (error) {
+    await removeLockWithRetry(token);
+    throw error;
+  }
+}
+
 // Recovery contenders serialize separately and re-read the owner under that gate.
 // Ordinary writers still acquire the original exclusive lock. No age-based deletion.
-async function recoverDeadOwner(lockPath: string): Promise<void> {
+async function recoverDeadOwner(lockPath: string, depth = 0): Promise<void> {
+  if (depth >= 8) return; // Preserve unusually deep crash evidence for reconciliation.
   const initial = await readFile(lockPath, 'utf8').catch(() => undefined);
   if (!initial || !ownerIsDead(initial)) return;
   const recoveryPath = `${lockPath}.recovery`;
-  let gate: Awaited<ReturnType<typeof open>>;
-  try { gate = await open(recoveryPath, 'wx'); }
+  const gateRecord = newOwnerRecord();
+  let gateToken: string;
+  try { gateToken = await createExclusiveLock(recoveryPath, gateRecord); }
   catch (error) {
-    if (isLockContention((error as NodeJS.ErrnoException).code)) return;
+    if (isLockContention((error as NodeJS.ErrnoException).code)) {
+      await recoverDeadOwner(recoveryPath, depth + 1);
+      return;
+    }
     throw error;
   }
-  const gateRecord = JSON.stringify({ pid: process.pid, ownerId: randomUUID(), createdAt: new Date().toISOString() });
   try {
-    await gate.writeFile(gateRecord);
-    await gate.close();
     const current = await readFile(lockPath, 'utf8').catch(() => undefined);
     if (current === initial && ownerIsDead(current)) await removeLockWithRetry(lockPath, current);
   } finally {
-    await gate.close().catch(() => undefined);
-    // Only this exclusive creator can own an unwritten recovery record.
-    await removeLockWithRetry(recoveryPath);
+    await removeLockWithRetry(recoveryPath, gateRecord);
+    await removeLockWithRetry(gateToken, gateRecord);
   }
 }
 
@@ -80,22 +101,16 @@ export async function withFileLock<T>(
   const timeoutMs = options.timeoutMs ?? DEFAULT_LOCK_TIMEOUT_MS;
   const retryMs = options.retryMs ?? DEFAULT_RETRY_MS;
   const startedAt = Date.now();
-  const ownerRecord = JSON.stringify({ pid: process.pid, ownerId: randomUUID(), createdAt: new Date().toISOString() });
+  const ownerRecord = newOwnerRecord();
+  let ownerToken = '';
 
   await mkdir(path.dirname(lockPath), { recursive: true });
 
   while (true) {
-    let handle: Awaited<ReturnType<typeof open>> | undefined;
     try {
-      handle = await open(lockPath, 'wx');
-      await handle.writeFile(ownerRecord);
+      ownerToken = await createExclusiveLock(lockPath, ownerRecord);
       break;
     } catch (error) {
-      if (handle) {
-        await handle.close().catch(() => undefined);
-        await removeLockWithRetry(lockPath);
-        throw error;
-      }
       const code = (error as NodeJS.ErrnoException).code;
       if (!isLockContention(code)) throw error;
 
@@ -105,8 +120,6 @@ export async function withFileLock<T>(
         throw new Error(`Timed out waiting for canvas lock: ${path.basename(lockPath)}`);
       }
       await sleep(retryMs);
-    } finally {
-      await handle?.close().catch(() => undefined);
     }
   }
 
@@ -114,5 +127,6 @@ export async function withFileLock<T>(
     return await work();
   } finally {
     await removeLockWithRetry(lockPath, ownerRecord);
+    await removeLockWithRetry(ownerToken, ownerRecord);
   }
 }

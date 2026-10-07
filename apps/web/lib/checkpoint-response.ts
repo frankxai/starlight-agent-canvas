@@ -12,7 +12,7 @@ export function checkpointErrorResponse(error: unknown) {
   if (message.startsWith('Checkpoint could not')) {
     return NextResponse.json({ error: 'Checkpoint could not be verified. The current canvas is unchanged; choose another checkpoint.' }, { status: 409 });
   }
-  if (code === 'EACCES' || code === 'EPERM' || code === 'ENOSPC') {
+  if (code === 'EACCES' || code === 'EPERM' || code === 'EBUSY' || code === 'ENOSPC') {
     return NextResponse.json({ error: 'Local history storage is unavailable. Check disk space and access to the Canvas home before retrying.' }, { status: 503 });
   }
   return NextResponse.json({ error: 'History request could not be completed. Check the canvas, checkpoint and checkpoint name, then refresh history.' }, { status: 400 });
