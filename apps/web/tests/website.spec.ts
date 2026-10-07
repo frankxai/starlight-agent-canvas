@@ -51,9 +51,18 @@ test('generated proposals preserve newer edits, recover, and export the chosen e
     await page.setViewportSize({ width, height: 900 });
     await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     await region.getByRole('button', { name: 'Download generated plan' }).scrollIntoViewIfNeeded();
-    const capture = testInfo.outputPath(`website-generation-${width}.png`); await page.screenshot({ path: capture, fullPage: true });
+    const capture = testInfo.outputPath(`website-generation-${width}.png`); await region.screenshot({ path: capture });
     const sha256 = createHash('sha256').update(await readFile(capture)).digest('hex');
     await writeFile(`${capture}.vis.provenance.json`, JSON.stringify({ $schema: 'https://frankx.ai/schemas/vis-provenance-sidecar.schema.json', schema_version: '1.0.0', asset: { id: `website-generation-${testInfo.project.name}-${width}`, version: 1, media_type: 'image/png', sha256, relative_path: `website-generation-${width}.png` }, generation: { provider: 'Playwright browser capture / GitHub Actions', model: null, seed: null, prompt: 'Capture actual website generation review, source-matched synthetic fixture, newer edit preservation, proposal recovery, human section revision and verified chosen export. No live provider generation or customer acceptance.', settings: { revision: process.env.GITHUB_SHA ?? null, project: testInfo.project.name, width, reduced_motion: true }, created_at: new Date().toISOString(), output_paths: [`website-generation-${width}.png`] }, agent: { harness: 'Codex', session: '01a113ec-1c95-70a0-84eb-ae2b8aae03a3' }, evaluation: { visual_inspection: 'Pending', schema_validation: 'Not claimed' }, rights: { source: 'Owned synthetic browser fixture', public_release: false } }, null, 2));
+    const selectedPage = testInfo.outputPath(`website-selected-page-${width}.png`);
+    await page.getByTestId('direction-page-sections').locator('..').screenshot({ path: selectedPage });
+    const pageSidecar = JSON.parse(await readFile(`${capture}.vis.provenance.json`, 'utf8'));
+    pageSidecar.asset.id = `website-selected-page-${testInfo.project.name}-${width}`;
+    pageSidecar.asset.sha256 = createHash('sha256').update(await readFile(selectedPage)).digest('hex');
+    pageSidecar.asset.relative_path = `website-selected-page-${width}.png`;
+    pageSidecar.generation.prompt = 'Capture the actual selected-direction page editor after human copy revision, saved choice and canonical export; preserved route/files/constraints. Source-matched synthetic provider fixture, no live API or customer acceptance.';
+    pageSidecar.generation.created_at = new Date().toISOString(); pageSidecar.generation.output_paths = [`website-selected-page-${width}.png`];
+    await writeFile(`${selectedPage}.vis.provenance.json`, JSON.stringify(pageSidecar, null, 2));
   }
 });
 
