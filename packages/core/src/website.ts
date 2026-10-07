@@ -122,9 +122,12 @@ export function websitePlanGaps(plan: WebsitePlan): string[] {
   if (!plan.target.issueUrl) gaps.push('Link the source issue before implementation.');
   for (const section of plan.sections) if (!section.files.length) gaps.push(`${section.label}: resolve proposed repository files.`);
   for (const viewport of ['desktop', 'mobile']) if (!plan.snapshot.views.some((view) => view.viewport === viewport && view.status === 'captured')) gaps.push(`Attach a verified ${viewport} capture; source observations are available.`);
-  for (const asset of plan.assets) gaps.push(asset.mediaCheckReport
+  for (const asset of plan.assets) {
+    if (!(asset.kind === 'image' ? asset.alt : asset.transcript)) gaps.push(`${asset.reference}: supply ${asset.kind === 'image' ? 'alt text' : 'transcript'} before use.`);
+    gaps.push(asset.mediaCheckReport
     ? `${asset.reference}: local file match reported ${asset.mediaCheckReport.checkedAt}. Verify source location, generator, licensing, playback and publication; this report and readiness remain local declarations.`
-    : `${asset.reference}: verify the actual asset and its provenance references${asset.status === 'ready' ? ' (declared ready)' : `, and supply ${asset.kind === 'image' ? 'alt text' : 'transcript'}`} before use.`);
+    : `${asset.reference}: verify the actual asset and its provenance references${asset.status === 'ready' ? ' (declared ready)' : ''} before use.`);
+  }
   return gaps;
 }
 

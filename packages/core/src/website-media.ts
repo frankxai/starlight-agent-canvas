@@ -38,11 +38,11 @@ export function websiteMediaReportMatches(asset: WebsiteMediaPlacement, report: 
     && report.mediaType.startsWith(`${asset.kind}/`);
 }
 
-function leaf(value: string): string {
+function leaf(value: string, code = 'media_reference_unresolved'): string {
   try {
     const path = value.startsWith('https:') ? decodeURIComponent(new URL(value).pathname) : value;
     return name.parse(path.split('/').at(-1));
-  } catch { throw new Error('media_reference_unresolved'); }
+  } catch { throw new Error(code); }
 }
 
 function parseRecord<T>(bytes: Uint8Array, schema: z.ZodType<T>, code: string): T {
@@ -94,7 +94,7 @@ export async function checkWebsiteMedia(input: {
   const format = signature(media);
   if (!format || !format.startsWith(`${kind}/`)) throw new Error('media_format_unsupported');
   const assetSha256 = await digest(media);
-  if (recorded.asset.sha256 !== assetSha256 || recorded.asset.media_type !== format || leaf(recorded.asset.relative_path) !== fileName.data) throw new Error('media_sidecar_mismatch');
+  if (recorded.asset.sha256 !== assetSha256 || recorded.asset.media_type !== format || leaf(recorded.asset.relative_path, 'media_sidecar_mismatch') !== fileName.data) throw new Error('media_sidecar_mismatch');
   if (generated.asset.sha256 !== assetSha256 || JSON.stringify(generated.asset) !== JSON.stringify(recorded.asset)
     || JSON.stringify(generated.generation) !== JSON.stringify(recorded.generation)
     || JSON.stringify(generated.agent) !== JSON.stringify(recorded.agent)) throw new Error('media_generation_mismatch');

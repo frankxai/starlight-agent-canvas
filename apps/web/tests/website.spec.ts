@@ -170,6 +170,8 @@ test('cancelled and late media checks retain the latest draft and discard change
   await section.getByText('Edit placement text and references', { exact: true }).click();
   await section.getByLabel('browser-media: media reference', { exact: true }).fill(''); await release();
   await expect(section.getByTestId('local-media-report')).toHaveCount(0);
+  await expect(section.getByLabel('Existing image or video', { exact: true })).toBeVisible();
+  expect(await section.getByLabel('Existing image or video', { exact: true }).evaluate((input: HTMLInputElement) => input.files?.length)).toBe(0);
   await expect.poll(() => page.evaluate((id) => sessionStorage.getItem(`starlight.website.draft.v1:${id}`), canvas.id)).toContain('Copy edited while hashing');
   await page.reload();
   await expect(page.getByRole('status').first()).toContainText('Recovered an unsaved draft');

@@ -60,10 +60,19 @@ export default function WebsiteMediaEvidence({ asset, disabled, begin, end, atta
   const mounted = useRef(true);
   const latestAttach = useRef(attach);
   latestAttach.current = attach;
+  const binding = JSON.stringify([asset.kind, asset.reference, asset.provenance]);
+  const priorBinding = useRef(binding);
   useEffect(() => {
     mounted.current = true;
     return () => { mounted.current = false; operation.current += 1; controller.current?.abort(); };
   }, []);
+  useEffect(() => {
+    if (priorBinding.current === binding) return;
+    priorBinding.current = binding;
+    operation.current += 1; controller.current?.abort();
+    setBusy(false); setFiles({}); setError('');
+    setStatus('Placement references changed. Choose the files again to compare the updated placement.');
+  }, [binding]);
 
   async function check() {
     if (busy || disabled) return;
@@ -110,7 +119,7 @@ export default function WebsiteMediaEvidence({ asset, disabled, begin, end, atta
     <details>
       <summary className="min-h-11 cursor-pointer text-sm font-medium text-starlight-accent">Check local media evidence</summary>
       <p className="mt-2 text-xs leading-6 text-starlight-muted">Choose the existing media and one matching record from each ledger. Files stay in this browser; only the hash report is saved with your plan. A recorded match remains a local declaration.</p>
-      <fieldset className="mt-4 space-y-4" disabled={busy || disabled}>
+      <fieldset key={binding} className="mt-4 space-y-4" disabled={busy || disabled}>
         <legend className="sr-only">Evidence files for {asset.reference}</legend>
         {parts.map((part) => <label key={part.key} htmlFor={`${fieldId}-${part.key}`} className="block space-y-2 text-xs text-starlight-muted">{part.label}
           <input id={`${fieldId}-${part.key}`} type="file" accept={part.accept} className="block min-h-11 w-full min-w-0 rounded-md border border-starlight-border bg-starlight-bg px-2 py-2 text-xs text-starlight-ink file:mr-2 file:rounded file:border-0 file:bg-starlight-panel file:px-2 file:py-1 file:text-starlight-ink" onChange={(event) => { const file = event.target.files?.[0]; setFiles((current) => ({ ...current, [part.key]: file })); setStatus(''); setError(''); }} />

@@ -81,6 +81,10 @@ it('keeps declaration, missing rights and location explicit in plans and recover
   expect(parseWebsitePlan(plan).assets[0]!.status).toBe('reference');
   expect(websitePlanGaps(plan).join(' ')).toContain('licensing');
   expect(websitePlanGaps(plan).join(' ')).toContain('local declarations');
+  const withoutAlternative = structuredClone(plan); delete withoutAlternative.assets[0]!.alt;
+  expect(websitePlanGaps(withoutAlternative).join(' ')).toContain('supply alt text');
+  const transcriptPlan = structuredClone(plan); transcriptPlan.assets[0]!.kind = 'video'; delete transcriptPlan.assets[0]!.alt; delete transcriptPlan.assets[0]!.mediaCheckReport;
+  expect(websitePlanGaps(transcriptPlan).join(' ')).toContain('supply transcript');
   const changed = structuredClone(plan); changed.assets[0]!.reference = 'changed/file.png';
   expect(() => parseWebsitePlan(changed)).toThrow();
   expect(() => parseWebsiteDraft(changed)).toThrow('needs reconciliation');
