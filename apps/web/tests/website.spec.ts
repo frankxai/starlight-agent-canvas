@@ -75,13 +75,13 @@ test('website directions preserve edits, record a choice and export a source-bac
   await expect(page.getByRole('status')).toContainText('Authored example');
   await expect(page.getByRole('button', { name: 'Choose The open workshop', exact: true })).toHaveAttribute('aria-disabled', 'true');
   const pageDirection = page.getByRole('combobox', { name: 'Page direction', exact: true });
-  const heroCopy = page.getByTestId('direction-page-sections').getByRole('textbox', { name: 'A useful first promise: copy', exact: true });
+  const heroCopy = page.getByTestId('direction-page-sections').locator('li').first().locator('p').first();
   await pageDirection.selectOption('constellation');
-  await expect(heroCopy).toHaveValue(/See the sources behind a direction/);
+  await expect(heroCopy).toHaveText(/See the sources behind a direction/);
   await pageDirection.selectOption('field-notes');
-  await expect(heroCopy).toHaveValue(/Pick up the direction you saved/);
+  await expect(heroCopy).toHaveText(/Pick up the direction you saved/);
   await page.getByRole('button', { name: 'Edit The open workshop', exact: true }).click();
-  await expect(heroCopy).toHaveValue(/Edit a direction with the sources beside it/);
+  await expect(heroCopy).toHaveText(/Edit a direction with the sources beside it/);
   await page.getByLabel('The open workshop: headline', { exact: true }).fill('Make the next version worth keeping.');
   await expect.poll(async () => page.evaluate((id) => sessionStorage.getItem(`starlight.website.draft.v1:${id}`), canvas.id)).toContain('Make the next version worth keeping.');
   await page.reload();
