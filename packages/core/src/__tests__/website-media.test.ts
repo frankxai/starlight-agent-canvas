@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { expect, it } from 'vitest';
-import { CanvasStore } from '../store.js';
+import { FileCanvasStore } from '../store.js';
 import { websiteDirectionDemo } from '../website-demo.js';
 import { parseWebsiteDraft, parseWebsitePlan, websitePlanGaps } from '../website.js';
 import { checkWebsiteMedia, WEBSITE_MEDIA_MAX_BYTES, WEBSITE_MEDIA_RECORD_MAX_BYTES, websiteMediaReportMatches } from '../website-media.js';
@@ -93,7 +93,7 @@ it('keeps declaration, missing rights and location explicit in plans and recover
 it('persists the report through actual save, checkpoint choice and export without moving media or granting readiness', async () => {
   const home = await mkdtemp(path.join(tmpdir(), 'canvas-media-report-'));
   try {
-    const store = new CanvasStore(home), canvas = await store.createCanvas({ title: 'Media report', template: 'blank' });
+    const store = new FileCanvasStore(home), canvas = await store.createCanvas({ title: 'Media report', template: 'blank' });
     const source = input(), plan = websiteDirectionDemo();
     plan.assets = [{ ...source.asset, mediaCheckReport: await checkWebsiteMedia(source) }];
     const saved = await store.saveWebsitePlan(canvas.id, plan);
