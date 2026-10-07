@@ -188,7 +188,7 @@ export function websitePacketMarkdown(packet: WebsiteImplementationPacket): stri
     `Canvas: ${packet.canvasId}`, `Selected: ${packet.selected.selectedAt}`, `Checkpoint: ${packet.selected.checkpointId}`, `Checkpoint SHA256: ${packet.selected.checkpointHash}`, `Plan SHA256: ${packet.selected.planHash}`,
     `Repository: ${packet.target.repository ?? 'Unresolved'}`, `Issue: ${packet.target.issueUrl ?? 'Missing'}`,
     '', '## Direction', packet.direction.premise, packet.direction.headline, packet.direction.body, `Action: ${packet.direction.action}`, `Tradeoff: ${packet.direction.tradeoff}`,
-    ...(packet.direction.sourceQuotes?.length ? ['', '## Retained source quotes', ...packet.direction.sourceQuotes] : []),
+    ...(packet.direction.sourceQuotes?.length ? ['', '## Retained source quotes', ...packet.direction.sourceQuotes.map((quote) => quote.split('\n').map((line) => `> ${line}`).join('\n'))] : []),
     '', '## Source and constraints', JSON.stringify({ source: packet.source, brief: packet.brief }, null, 2),
     ...packet.sections.flatMap((section) => ['', `## ${section.label} · ${section.route}`, section.copy, `User action: ${section.action}`, `Why: ${section.why}`, `Responsive: ${section.responsive}`, `Proposed files: ${section.files.join(', ') || 'Unresolved'}`, ...section.acceptance.map((item) => `- Acceptance: ${item}`), ...section.accessibility.map((item) => `- Accessibility: ${item}`)]),
     '', '## Asset placements', packet.assets.length ? JSON.stringify(packet.assets, null, 2) : 'No media proposed.',

@@ -287,7 +287,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
             <details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Edit copy and implementation details</summary><div className="mt-3 space-y-4">{(['copy', 'action', 'why', 'responsive', 'route'] as const).map((key) => <Field key={key} label={`${section.label}: ${key}`} multiline={key !== 'route'} value={section[key]} onChange={(value) => edit((next) => {
               const optionCopy = next.options.find((option) => option.id === pageOption?.id)?.sectionCopy?.find((item) => item.sectionId === section.id);
               if (optionCopy && (key === 'copy' || key === 'action')) optionCopy[key] = value;
-              else next.sections[index]![key] = value;
+              else next.sections.find((item) => item.id === section.id)![key] = value;
             })} />)}<p className="break-all text-xs leading-6 text-starlight-muted">Proposed files: {section.files.join(', ') || 'Unresolved'}</p><ul className="space-y-2 text-xs leading-6 text-starlight-muted">{[...section.acceptance, ...section.accessibility].map((item, itemIndex) => <li key={itemIndex}>• {item}</li>)}</ul></div></details>
           </li>)}</ol>
         </div>

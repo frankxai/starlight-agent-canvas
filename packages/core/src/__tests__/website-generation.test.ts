@@ -60,6 +60,7 @@ it('exports chosen page copy and generation declaration through the existing sto
     const packet = await new FileCanvasStore(home).exportWebsiteImplementation(canvas.id);
     expect(packet.sections[0]!.copy).toBe(output.options[1]!.sectionCopy[0]!.copy);
     expect(packet.sections[0]!.files).toEqual(plan.sections[0]!.files); expect(packet.generation).toEqual(receipt);
+    expect(packet.direction.sourceQuotes).toEqual(output.options[1]!.sourceQuotes);
     expect(websitePacketMarkdown(packet)).toContain('local declaration');
     expect(websitePacketMarkdown(packet)).toContain(output.options[1]!.sourceQuotes[0]);
     expect(JSON.stringify(packet)).not.toContain('Never send this unrelated node');
