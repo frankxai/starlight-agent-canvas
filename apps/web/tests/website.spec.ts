@@ -122,6 +122,8 @@ test('website directions preserve edits, record a choice and export a source-bac
   expect(html).toContain('Pick up the direction you saved.');
   expect(html).toContain('Keep a reviewed state you can refer to.');
   expect(html).toContain('default-src'); expect(html).not.toContain('<script');
+  expect(html).toContain(packet.selected.planHash);
+  expect(html).toContain('Viewed direction; not the saved choice.');
   expect((await (await page.request.get(`/api/canvases/${canvas.id}/website/export`)).json()).selected.optionId).toBe('workshop');
   await studio.getByRole('button', { name: 'Preview The open workshop', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
@@ -148,6 +150,7 @@ test('website directions preserve edits, record a choice and export a source-bac
       await expect(pageDirection).toHaveValue(direction);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
       await expect(studio.locator('article')).toContainText(direction === 'workshop' ? 'Make the next version worth keeping.' : direction === 'constellation' ? 'See the sources behind a direction.' : 'Pick up the direction you saved.');
+      expect(await studio.locator('.study-headline,.study-copy,.study-action,.study-section h3').evaluateAll((elements) => elements.every((element) => element.scrollWidth <= element.clientWidth + 1))).toBe(true);
       const name = `website-authored-page-${direction}-${width}.png`;
       const authoredCapture = testInfo.outputPath(name);
       await studio.screenshot({ path: authoredCapture });
@@ -182,6 +185,12 @@ test('page study editing updates the projection and treats imported markup as te
   await studio.getByRole('button', { name: 'Edit section: A useful first promise', exact: true }).click();
   const copy = page.getByLabel('A useful first promise: copy', { exact: true });
   await expect(copy).toBeFocused();
+  await page.getByRole('button', { name: 'Edit The connected studio', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit The connected studio', exact: true }).click();
+  await expect(studio.locator('article')).toHaveAttribute('data-layout', 'connected');
+  await studio.getByRole('button', { name: 'Preview The open workshop', exact: true }).click();
+  await studio.getByRole('button', { name: 'Edit section: A useful first promise', exact: true }).click();
+  await expect(copy).toBeFocused();
   const hostile = '<img src="https://untrusted.example/pixel" onerror="window.stolen=true">\n</style><script>window.stolen=true</script>';
   await copy.fill(hostile);
   await expect(studio.locator('.study-copy').first()).toHaveText(hostile);
@@ -194,6 +203,10 @@ test('page study editing updates the projection and treats imported markup as te
   expect(html).not.toContain('<img'); expect(html).not.toContain('<script');
   expect(() => pagePreviewHtml(raw.plan, 'workshop', '" onclick="bad' as PageLayout)).toThrow('supported');
   expect(() => pagePreviewHtml(raw.plan, 'removed', 'workshop')).toThrow('no longer');
+  await page.setContent(html);
+  await expect(page.locator('.study-copy').first()).toHaveText(hostile);
+  expect(await page.locator('img,script,iframe,a').count()).toBe(0);
+  expect(await page.evaluate(() => 'stolen' in window)).toBe(false);
 });
 
 async function mediaFixture(page: Page, testInfo: TestInfo) {

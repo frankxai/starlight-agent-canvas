@@ -29,7 +29,7 @@ function downloadDraft(plan: WebsitePlan) {
 function Field({ label, value, onChange, multiline = false, maxLength = 4000 }: { label: string; value: string; onChange: (value: string) => void; multiline?: boolean; maxLength?: number }) {
   const fieldId = useId();
   return <label className="block space-y-2 text-sm text-starlight-muted" htmlFor={fieldId}>{label}
-    {multiline ? <textarea id={fieldId} className={`${control} min-h-24 resize-y leading-6`} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} /> : <input id={fieldId} className={control} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} />}
+    {multiline ? <textarea id={fieldId} aria-label={label} className={`${control} min-h-24 resize-y leading-6`} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} /> : <input id={fieldId} aria-label={label} className={control} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} />}
   </label>;
 }
 
@@ -57,6 +57,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
   const [status, setStatus] = useState('Opening your saved work…');
   const [storageWarning, setStorageWarning] = useState('');
   const [expanded, setExpanded] = useState<string>();
+  const [viewed, setViewed] = useState<string>();
   const directionSelectId = useId();
   const sectionEditors = useRef(new Map<string, HTMLLIElement>());
 
@@ -169,7 +170,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     await perform(async () => {
       const result = await request<{ record: PlanRecord }>(`${base}/select`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ optionId, expectedHash: record.planHash }) });
       if (alive.current) {
-        if (draftVersion.current === version) { acceptSaved(result.record); setExpanded(optionId); setStatus('Direction selected. Its checkpoint is preserved; the implementation brief is ready to export.'); }
+        if (draftVersion.current === version) { acceptSaved(result.record); setViewed(optionId); setStatus('Direction selected. Its checkpoint is preserved; the implementation brief is ready to export.'); }
         else { setRecord(result.record); setExpectedHash(result.record.planHash); setStatus('Saved direction selected. Your newer edits remain unsaved and need a new choice after saving.'); }
       }
     });
@@ -199,7 +200,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     });
   }
 
-  const pageOption = draft?.options.find((option) => option.id === expanded) ?? draft?.options.find((option) => option.id === record?.selection?.optionId) ?? draft?.options[0];
+  const pageOption = draft?.options.find((option) => option.id === viewed) ?? draft?.options.find((option) => option.id === record?.selection?.optionId) ?? draft?.options[0];
   const pageSections = draft && pageOption ? websiteSectionsForDirection(draft, pageOption) : draft?.sections ?? [];
   return <main className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 sm:py-10" data-testid="site-directions">
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-starlight-border pb-6">
@@ -241,7 +242,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     </details>}
     {!!backups.length && <details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Previous drafts retained in this tab ({backups.length})</summary><div className="mt-2 flex flex-wrap gap-3">{backups.map((item, index) => <button key={index} type="button" className={button} onClick={() => downloadDraft(item)}>Download draft {index + 1}: {item.title}</button>)}</div></details>}
     {draft && <>
-      {pageOption && <WebsitePagePreview plan={draft} optionId={pageOption.id} view={setExpanded} editSection={(id) => {
+      {pageOption && <WebsitePagePreview plan={draft} optionId={pageOption.id} saved={!dirty && record ? { planHash: record.planHash, selectedOptionId: record.selectionVerified ? record.selection?.optionId : undefined } : undefined} view={setViewed} editSection={(id) => {
         const editor = sectionEditors.current.get(id);
         const details = editor?.querySelector('details');
         if (details) details.open = true;
@@ -273,7 +274,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
       <section className="mt-10" aria-labelledby="directions-heading">
         <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="directions-heading" className="text-2xl font-semibold">Ways the story could begin</h2><p className="mt-2 text-sm leading-6 text-starlight-muted">These are editable concepts. Make a choice after saving the version you reviewed.</p></div><p className="text-xs text-starlight-muted">{dirty ? 'Unsaved changes' : 'Saved locally'}</p></div>
         <div className="mt-6 grid gap-5 lg:grid-cols-3" data-testid="direction-options">{draft.options.map((option, index) => <article key={option.id} className={`flex min-w-0 flex-col rounded-xl border bg-starlight-surface p-6 ${accents[index % accents.length]}`}>
-          <DirectionThumbnail option={option} index={index} />
+          <DirectionThumbnail option={option} />
           <p className="text-sm font-medium">0{index + 1} · {option.title}</p>
           <h3 className="mt-7 text-2xl font-semibold leading-snug tracking-tight text-starlight-ink">{option.headline}</h3>
           <p className="mt-4 text-sm leading-7 text-starlight-muted">{option.body}</p>
@@ -281,7 +282,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
           <p className="mt-5 text-sm leading-6 text-starlight-muted">{option.premise}</p>
           <p className="mt-4 text-xs leading-6 text-starlight-muted">Tradeoff: {option.tradeoff}</p>
           <div className="mt-auto flex flex-wrap gap-2 pt-6">
-            <button type="button" className={button} aria-expanded={expanded === option.id} onClick={() => setExpanded(expanded === option.id ? undefined : option.id)}>Edit {option.title}</button>
+            <button type="button" className={button} aria-expanded={expanded === option.id} onClick={() => { setViewed(option.id); setExpanded(expanded === option.id ? undefined : option.id); }}>Edit {option.title}</button>
             <button type="button" className={`${button} border-current`} aria-disabled={busy || dirty || !record} aria-pressed={!dirty && record?.selectionVerified && record?.selection?.optionId === option.id || false} onClick={() => void choose(option.id)}>Choose {option.title}</button>
           </div>
           {!dirty && record?.selectionVerified && record.selection?.optionId === option.id && <p className="mt-3 text-sm text-starlight-mint">Selected direction</p>}
@@ -293,7 +294,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
       </section>
       <section className="mt-12 grid gap-8 lg:grid-cols-[1.35fr_1fr]" aria-labelledby="page-heading">
         <div><h2 id="page-heading" className="text-2xl font-semibold">Give each section a purpose</h2><p className="mt-2 text-sm leading-6 text-starlight-muted">Review the page for the direction below. Copy and actions belong to that direction; routes and implementation constraints are shared.</p>
-          {pageOption && <div className="mt-4 space-y-2"><label htmlFor={directionSelectId} className="block text-sm text-starlight-muted">Page direction</label><select id={directionSelectId} className={control} value={pageOption.id} onChange={(event) => setExpanded(event.target.value)}>{draft.options.map((option) => <option key={option.id} value={option.id}>{option.title}</option>)}</select></div>}
+          {pageOption && <div className="mt-4 space-y-2"><label htmlFor={directionSelectId} className="block text-sm text-starlight-muted">Page direction</label><select id={directionSelectId} className={control} value={pageOption.id} onChange={(event) => setViewed(event.target.value)}>{draft.options.map((option) => <option key={option.id} value={option.id}>{option.title}</option>)}</select></div>}
           <ol className="mt-6 space-y-4" data-testid="direction-page-sections">{pageSections.map((section) => <li key={section.id} ref={(element) => { if (element) sectionEditors.current.set(section.id, element); else sectionEditors.current.delete(section.id); }} className="rounded-lg border border-starlight-border bg-starlight-surface p-5"><div className="flex flex-wrap items-baseline justify-between gap-3"><h3 className="text-lg font-medium">{section.label}</h3><span className="text-sm text-starlight-accent">{section.route}</span></div><p className="mt-3 whitespace-pre-wrap text-sm leading-7">{section.copy}</p><p className="mt-3 text-sm leading-6 text-starlight-muted">Next action: {section.action}</p><p className="mt-2 text-sm leading-6 text-starlight-muted">{section.why}</p>
             <details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Edit copy and implementation details</summary><div className="mt-3 space-y-4">{(['copy', 'action', 'why', 'responsive', 'route'] as const).map((key) => <Field key={key} label={`${section.label}: ${key}`} multiline={key !== 'route'} value={section[key]} onChange={(value) => edit((next) => {
               const optionCopy = next.options.find((option) => option.id === pageOption?.id)?.sectionCopy?.find((item) => item.sectionId === section.id);

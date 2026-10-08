@@ -56,7 +56,7 @@ test('provider adapters enforce source scope, completion, bounded replies and on
     expect(websiteGenerationConfiguration().enabled).toBe(false);
     await expect(generateWebsiteDirections(plan, new AbortController().signal)).rejects.toThrow('disabled'); expect(calls).toBe(beforeConfiguration);
     process.env.OPENROUTER_API_KEY = 'synthetic-openrouter-key';
-    for (const invalidModel of ['fixture-model', 'openrouter/auto', 'openrouter/free', 'https://example.com/model', 'qwen/model/extra']) {
+    for (const invalidModel of ['fixture-model', 'openrouter/auto', 'openrouter/free', 'OpenRouter/auto', 'qwen/model:online', 'qwen/model:free:online', 'qwen/model:nitro', 'qwen/model:floor', 'https://example.com/model', 'qwen/model/extra']) {
       process.env.AGENT_CANVAS_WEBSITE_MODEL = invalidModel; expect(websiteGenerationConfiguration().enabled).toBe(false);
     }
     process.env.AGENT_CANVAS_WEBSITE_MODEL = 'qwen/qwen3.8-flash'; mode = 'success';
@@ -64,7 +64,8 @@ test('provider adapters enforce source scope, completion, bounded replies and on
     expect(routed.generation?.provider).toBe('openrouter'); expect(routed.generation?.requestedModel).toBe('qwen/qwen3.8-flash'); expect(routed.generation?.returnedModel).toBe('qwen/fixture-returned');
     expect(captured?.url).toBe('https://openrouter.ai/api/v1/chat/completions'); expect(captured?.redirect).toBe('error');
     expect(captured?.body.max_tokens).toBe(6000); expect(captured?.body.stream).toBe(false);
-    expect(captured?.body.provider).toEqual({ require_parameters: true, allow_fallbacks: false });
+    expect(captured?.body.provider).toEqual({ require_parameters: true, allow_fallbacks: false, data_collection: 'deny' });
+    expect(websiteGenerationConfiguration().boundary).toContain('upstream model endpoint');
     expect(captured?.body.response_format.json_schema.strict).toBe(true); expect(captured?.body.response_format.type).toBe('json_schema');
     expect(captured?.body.messages.map((message: { role: string }) => message.role)).toEqual(['system', 'user']);
     expect(JSON.parse(captured!.body.messages[1].content)).toEqual(payload);

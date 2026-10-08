@@ -8,12 +8,12 @@ export function websiteGenerationConfiguration() {
   const model = process.env.AGENT_CANVAS_WEBSITE_MODEL;
   const key = provider === 'openai' ? process.env.OPENAI_API_KEY : provider === 'anthropic' ? process.env.ANTHROPIC_API_KEY : provider === 'openrouter' ? process.env.OPENROUTER_API_KEY : undefined;
   const validModel = model && model.length <= 128 && (provider === 'openrouter'
-    ? /^[a-zA-Z0-9._:-]+\/[a-zA-Z0-9._:-]+$/.test(model) && !model.startsWith('openrouter/')
+    ? /^[a-zA-Z0-9._-]+\/[a-zA-Z0-9._-]+$/.test(model) && !model.toLowerCase().startsWith('openrouter/')
     : /^[a-zA-Z0-9._:-]{1,128}$/.test(model));
   const enabled = process.env.AGENT_CANVAS_WEBSITE_GENERATION === '1' && process.env.AGENT_CANVAS_ALLOW_REMOTE !== '1'
     && (provider === 'openai' || provider === 'anthropic' || provider === 'openrouter') && Boolean(validModel) && Boolean(key);
   return { enabled, provider: enabled ? provider as Provider : null, model: enabled ? model! : null,
-    boundary: 'Only the displayed source observations, brief and section text are sent. Generation uses your configured provider account. No media files, provenance records or other canvas nodes are sent. No automatic retry.' };
+    boundary: `Only the displayed source observations, brief and section text are sent. ${provider === 'openrouter' ? 'OpenRouter forwards the text to an eligible upstream model endpoint; it is not pinned to one operator. Requests exclude providers OpenRouter identifies as collecting data; this is not independently verified retention.' : 'Generation uses your configured provider account.'} No media files, provenance records or other canvas nodes are sent. No automatic retry.` };
 }
 
 export class WebsiteGenerationError extends Error {
@@ -59,7 +59,7 @@ export async function generateWebsiteDirections(plan: WebsitePlan, signal: Abort
     ? { model, store: false, max_output_tokens: 6000, input: [{ role: 'developer', content: WEBSITE_GENERATION_PROMPT }, { role: 'user', content: input }], text: { format: { type: 'json_schema', name: 'website_directions', strict: true, schema } } }
     : provider === 'anthropic'
       ? { model, max_tokens: 6000, system: WEBSITE_GENERATION_PROMPT, messages: [{ role: 'user', content: input }], output_config: { format: { type: 'json_schema', schema } } }
-      : { model, max_tokens: 6000, stream: false, messages: [{ role: 'system', content: WEBSITE_GENERATION_PROMPT }, { role: 'user', content: input }], response_format: { type: 'json_schema', json_schema: { name: 'website_directions', strict: true, schema } }, provider: { require_parameters: true, allow_fallbacks: false } };
+      : { model, max_tokens: 6000, stream: false, messages: [{ role: 'system', content: WEBSITE_GENERATION_PROMPT }, { role: 'user', content: input }], response_format: { type: 'json_schema', json_schema: { name: 'website_directions', strict: true, schema } }, provider: { require_parameters: true, allow_fallbacks: false, data_collection: 'deny' } };
   active = true;
   try {
     const response = await fetch(provider === 'openai' ? 'https://api.openai.com/v1/responses' : provider === 'anthropic' ? 'https://api.anthropic.com/v1/messages' : 'https://openrouter.ai/api/v1/chat/completions', {
