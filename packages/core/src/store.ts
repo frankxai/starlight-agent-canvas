@@ -13,7 +13,7 @@ import { withFileLock } from './file-lock.js';
 import { createIntakeTraceForNodes } from './source-intake.js';
 import type { SourceReadiness } from './readiness.js';
 import { canvasContentHash, canonicalJson, checkpointInputSchema, compareCanvasSnapshots, summarizeCheckpoint, validateCheckpoint, type CanvasCheckpoint, type CanvasComparison, type CheckpointSummary } from './checkpoints.js';
-import { parseWebsitePlan, websitePlanFromCanvas, websitePlanGaps, websitePlanMarkdown, websiteProjectionSpecs, WEBSITE_ROLE, type WebsiteSelection, type WebsiteImplementationPacket } from './website.js';
+import { parseWebsitePlan, websitePlanFromCanvas, websitePlanGaps, websitePlanMarkdown, websiteProjectionSpecs, websiteSectionsForDirection, WEBSITE_ROLE, type WebsiteSelection, type WebsiteImplementationPacket } from './website.js';
 
 function websitePlanHash(plan: unknown): string {
   return createHash('sha256').update(canonicalJson(plan)).digest('hex');
@@ -321,7 +321,7 @@ export class FileCanvasStore {
       if (!original || checkpoint.contentHash !== record.selection.checkpointHash || websitePlanHash(original.plan) !== record.selection.planHash || websitePlanHash(record.plan) !== record.selection.planHash) throw new Error('Selected website plan could not be verified. Save and select the current direction again.');
       const direction = original.plan.options.find((item) => item.id === record.selection!.optionId);
       if (!direction) throw new Error('Website direction was not found.');
-      return { version: 'starlight.websiteImplementation.v1', canvasId: safeId, origin: original.plan.origin ?? 'unspecified', selected: record.selection, target: original.plan.target, source: original.plan.snapshot, brief: original.plan.brief, direction, sections: original.plan.sections, assets: original.plan.assets, gaps: websitePlanGaps(original.plan), boundary: 'Read-only proposal. Selection is a local user assertion, not release authorization. Verify target, provenance and gates before implementing.' };
+      return { version: 'starlight.websiteImplementation.v1', canvasId: safeId, origin: original.plan.origin ?? 'unspecified', ...(original.plan.generation ? { generation: original.plan.generation } : {}), selected: record.selection, target: original.plan.target, source: original.plan.snapshot, brief: original.plan.brief, direction, sections: websiteSectionsForDirection(original.plan, direction), assets: original.plan.assets, gaps: websitePlanGaps(original.plan), boundary: 'Read-only proposal. Selection is a local user assertion, not release authorization. Verify target, provenance and gates before implementing.' };
     });
   }
 

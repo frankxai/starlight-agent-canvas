@@ -2,8 +2,10 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import type { WebsiteMediaReport, WebsitePlan, WebsiteSelection } from '@starlight-agent-canvas/core';
-import { parseWebsitePlan, parseWebsiteDraft, websiteMediaReportMatches } from '@starlight-agent-canvas/core/website';
+import { parseWebsitePlan, parseWebsiteDraft, websiteMediaReportMatches, websiteSectionsForDirection } from '@starlight-agent-canvas/core/website';
 import WebsiteMediaEvidence from './WebsiteMediaEvidence';
+import WebsiteGeneration from './WebsiteGeneration';
+import WebsitePagePreview, { DirectionThumbnail } from './WebsitePagePreview';
 
 type PlanRecord = { plan: WebsitePlan; planHash: string; nodeId: string; selection?: WebsiteSelection; selectionVerified: boolean; gaps: string[] };
 type PlanState = { record: PlanRecord | null; unavailable?: { canvasHash: string; reason: string } | null };
@@ -27,7 +29,7 @@ function downloadDraft(plan: WebsitePlan) {
 function Field({ label, value, onChange, multiline = false, maxLength = 4000 }: { label: string; value: string; onChange: (value: string) => void; multiline?: boolean; maxLength?: number }) {
   const fieldId = useId();
   return <label className="block space-y-2 text-sm text-starlight-muted" htmlFor={fieldId}>{label}
-    {multiline ? <textarea id={fieldId} className={`${control} min-h-24 resize-y leading-6`} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} /> : <input id={fieldId} className={control} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} />}
+    {multiline ? <textarea id={fieldId} aria-label={label} className={`${control} min-h-24 resize-y leading-6`} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} /> : <input id={fieldId} aria-label={label} className={control} value={value} maxLength={maxLength} onChange={(event) => onChange(event.target.value)} />}
   </label>;
 }
 
@@ -55,6 +57,9 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
   const [status, setStatus] = useState('Opening your saved work…');
   const [storageWarning, setStorageWarning] = useState('');
   const [expanded, setExpanded] = useState<string>();
+  const [viewed, setViewed] = useState<string>();
+  const directionSelectId = useId();
+  const sectionEditors = useRef(new Map<string, HTMLLIElement>());
 
   useEffect(() => {
     let cancelled = false;
@@ -108,7 +113,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
 
   function edit(change: (next: WebsitePlan) => void) {
     if (!draft) return;
-    const next = structuredClone(draft); change(next); if (next.origin === 'authored_example') next.origin = 'edited_authored_example'; draftVersion.current += 1; setDraft(next); setDirty(true); setError('');
+    const next = structuredClone(draft); change(next); if (next.origin === 'authored_example') next.origin = 'edited_authored_example'; if (next.origin === 'model_generated') next.origin = 'edited_model_generated'; draftVersion.current += 1; setDraft(next); setDirty(true); setError('');
   }
   function beginMediaCheck(token: string): boolean {
     if (mediaCheckOwner.current !== null) return false;
@@ -123,6 +128,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     if (!alive.current || !current || !asset || !websiteMediaReportMatches(asset, report)) return false;
     const next = structuredClone(current);
     if (next.origin === 'authored_example') next.origin = 'edited_authored_example';
+    if (next.origin === 'model_generated') next.origin = 'edited_model_generated';
     next.assets.find((item) => item.id === report.assetId)!.mediaCheckReport = report;
     draftVersion.current += 1; setDraft(next); setDirty(true); setError('');
     setStatus('Local media match added to the draft. Save and choose the updated plan before exporting.');
@@ -164,7 +170,7 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     await perform(async () => {
       const result = await request<{ record: PlanRecord }>(`${base}/select`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ optionId, expectedHash: record.planHash }) });
       if (alive.current) {
-        if (draftVersion.current === version) { acceptSaved(result.record); setStatus('Direction selected. Its checkpoint is preserved; the implementation brief is ready to export.'); }
+        if (draftVersion.current === version) { acceptSaved(result.record); setViewed(optionId); setStatus('Direction selected. Its checkpoint is preserved; the implementation brief is ready to export.'); }
         else { setRecord(result.record); setExpectedHash(result.record.planHash); setStatus('Saved direction selected. Your newer edits remain unsaved and need a new choice after saving.'); }
       }
     });
@@ -194,15 +200,17 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     });
   }
 
+  const pageOption = draft?.options.find((option) => option.id === viewed) ?? draft?.options.find((option) => option.id === record?.selection?.optionId) ?? draft?.options[0];
+  const pageSections = draft && pageOption ? websiteSectionsForDirection(draft, pageOption) : draft?.sections ?? [];
   return <main className="mx-auto max-w-[1440px] px-5 py-6 sm:px-8 sm:py-10" data-testid="site-directions">
     <header className="flex flex-wrap items-center justify-between gap-4 border-b border-starlight-border pb-6">
       <a href={`/?canvas=${encodeURIComponent(canvasId)}`} className={`${button} gap-2`}>← Return to canvas</a>
       <p className="text-sm text-starlight-muted">Starlight Agent Canvas <span className="text-starlight-gold">/ Website directions</span></p>
     </header>
-    <div className="mt-10 max-w-3xl">
+    <div className={`${draft ? 'mt-6' : 'mt-10'} max-w-3xl`}>
       <p className="text-sm font-medium text-starlight-gold">The work between an idea and a build</p>
-      <h1 className="mt-3 text-3xl font-semibold leading-tight tracking-tight sm:text-5xl">Give the next version<br className="hidden sm:block" /> a direction worth building.</h1>
-      <p className="mt-5 max-w-2xl text-base leading-7 text-starlight-muted">Keep the source in view. Explore the promise, the page and the tradeoffs. Choose a direction you can carry into the build with its evidence attached.</p>
+      <h1 className={`mt-3 font-semibold leading-tight tracking-tight ${draft ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-5xl'}`}>{draft ? 'Website studio' : <>Give the next version<br className="hidden sm:block" /> a direction worth building.</>}</h1>
+      {!draft && <p className="mt-5 max-w-2xl text-base leading-7 text-starlight-muted">Keep the source in view. Explore the promise, the page and the tradeoffs. Choose a direction you can carry into the build with its evidence attached.</p>}
     </div>
     <div className="mt-8 flex flex-wrap gap-3">
       <button type="button" className={button} disabled={busy} onClick={() => void perform(async () => { const version = draftVersion.current; const result = await request<{ plan: WebsitePlan }>(`${base}/demo`); if (alive.current && version === draftVersion.current) { if (!preserveDraftBeforeReplacement()) return; draftVersion.current += 1; setDraft(result.plan); setDirty(true); setStatus('Authored example loaded as a draft. No model was called, no site was captured and no direction is selected.'); } else if (alive.current) setStatus('Example loading finished while you edited. Your newer draft is retained.'); })}>Load authored example</button>
@@ -234,6 +242,14 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
     </details>}
     {!!backups.length && <details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Previous drafts retained in this tab ({backups.length})</summary><div className="mt-2 flex flex-wrap gap-3">{backups.map((item, index) => <button key={index} type="button" className={button} onClick={() => downloadDraft(item)}>Download draft {index + 1}: {item.title}</button>)}</div></details>}
     {draft && <>
+      {pageOption && <WebsitePagePreview plan={draft} optionId={pageOption.id} saved={!dirty && record ? { planHash: record.planHash, selectedOptionId: record.selectionVerified ? record.selection?.optionId : undefined } : undefined} view={setViewed} editSection={(id) => {
+        const editor = sectionEditors.current.get(id);
+        const details = editor?.querySelector('details');
+        if (details) details.open = true;
+        const field = editor?.querySelector('textarea');
+        field?.focus();
+        field?.scrollIntoView({ block: 'center', behavior: 'instant' });
+      }} />}
       <section className="mt-10 grid gap-8 border-y border-starlight-border py-7 lg:grid-cols-[1fr_1.15fr]" aria-labelledby="source-heading">
         <div>
           <h2 id="source-heading" className="text-xl font-semibold">Start with what is real</h2>
@@ -250,9 +266,15 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
           <details><summary className="min-h-11 cursor-pointer text-sm text-starlight-muted">Copy, accessibility and product constraints</summary><div className="mt-3 space-y-5">{(['copyConstraints', 'accessibilityConstraints', 'productConstraints'] as const).map((key) => <Field key={key} label={key.replace('Constraints', ' constraints')} multiline value={draft.brief[key]} onChange={(value) => edit((next) => { next.brief[key] = value; })} />)}</div></details>
         </div>
       </section>
+      <WebsiteGeneration canvasId={canvasId} draft={draft} disabled={busy || mediaBusy} apply={(proposal, baseState) => {
+        if (busy || mediaBusy || !latestDraft.current || JSON.stringify(latestDraft.current) !== baseState || !preserveDraftBeforeReplacement()) return false;
+        draftVersion.current += 1; setDraft(proposal); setDirty(true); setError('');
+        setStatus('Generated directions added as a draft. The previous draft is retained; save and choose after reviewing.'); return true;
+      }} />
       <section className="mt-10" aria-labelledby="directions-heading">
         <div className="flex flex-wrap items-end justify-between gap-3"><div><h2 id="directions-heading" className="text-2xl font-semibold">Ways the story could begin</h2><p className="mt-2 text-sm leading-6 text-starlight-muted">These are editable concepts. Make a choice after saving the version you reviewed.</p></div><p className="text-xs text-starlight-muted">{dirty ? 'Unsaved changes' : 'Saved locally'}</p></div>
         <div className="mt-6 grid gap-5 lg:grid-cols-3" data-testid="direction-options">{draft.options.map((option, index) => <article key={option.id} className={`flex min-w-0 flex-col rounded-xl border bg-starlight-surface p-6 ${accents[index % accents.length]}`}>
+          <DirectionThumbnail option={option} />
           <p className="text-sm font-medium">0{index + 1} · {option.title}</p>
           <h3 className="mt-7 text-2xl font-semibold leading-snug tracking-tight text-starlight-ink">{option.headline}</h3>
           <p className="mt-4 text-sm leading-7 text-starlight-muted">{option.body}</p>
@@ -260,17 +282,25 @@ export default function SiteDirectionWorkbench({ canvasId }: { canvasId: string 
           <p className="mt-5 text-sm leading-6 text-starlight-muted">{option.premise}</p>
           <p className="mt-4 text-xs leading-6 text-starlight-muted">Tradeoff: {option.tradeoff}</p>
           <div className="mt-auto flex flex-wrap gap-2 pt-6">
-            <button type="button" className={button} aria-expanded={expanded === option.id} onClick={() => setExpanded(expanded === option.id ? undefined : option.id)}>Edit {option.title}</button>
+            <button type="button" className={button} aria-expanded={expanded === option.id} onClick={() => { setViewed(option.id); setExpanded(expanded === option.id ? undefined : option.id); }}>Edit {option.title}</button>
             <button type="button" className={`${button} border-current`} aria-disabled={busy || dirty || !record} aria-pressed={!dirty && record?.selectionVerified && record?.selection?.optionId === option.id || false} onClick={() => void choose(option.id)}>Choose {option.title}</button>
           </div>
           {!dirty && record?.selectionVerified && record.selection?.optionId === option.id && <p className="mt-3 text-sm text-starlight-mint">Selected direction</p>}
-          {expanded === option.id && <div className="mt-5 space-y-4 border-t border-starlight-border pt-5">{(['title', 'headline', 'body', 'action', 'premise', 'tradeoff'] as const).map((key) => <Field key={key} label={`${option.title}: ${key}`} multiline={['body', 'premise', 'tradeoff'].includes(key)} value={option[key]} onChange={(value) => edit((next) => { next.options[index]![key] = value; })} />)}</div>}
+          {expanded === option.id && <div className="mt-5 space-y-4 border-t border-starlight-border pt-5">{(['title', 'headline', 'body', 'action', 'premise', 'tradeoff'] as const).map((key) => <Field key={key} label={`${option.title}: ${key}`} multiline={['body', 'premise', 'tradeoff'].includes(key)} value={option[key]} onChange={(value) => edit((next) => { next.options[index]![key] = value; })} />)}
+            {option.sectionCopy?.map((section, sectionIndex) => <div key={section.sectionId} className="space-y-3 border-t border-starlight-border pt-4"><p className="text-sm font-medium">{draft.sections.find((item) => item.id === section.sectionId)?.label}</p>{(['copy', 'action'] as const).map((key) => <Field key={key} label={`${option.title}: ${section.sectionId} ${key}`} multiline value={section[key]} onChange={(value) => edit((next) => { next.options[index]!.sectionCopy![sectionIndex]![key] = value; })} />)}</div>)}
+            {option.sourceQuotes?.map((quote, quoteIndex) => <blockquote key={quoteIndex} className="border-l border-starlight-border pl-3 text-xs leading-6 text-starlight-muted">Retained source: {quote}</blockquote>)}
+          </div>}
         </article>)}</div>
       </section>
       <section className="mt-12 grid gap-8 lg:grid-cols-[1.35fr_1fr]" aria-labelledby="page-heading">
-        <div><h2 id="page-heading" className="text-2xl font-semibold">Give each section a purpose</h2><p className="mt-2 text-sm leading-6 text-starlight-muted">Connect the words to the route, the next action and the evidence a builder will need.</p>
-          <ol className="mt-6 space-y-4">{draft.sections.map((section, index) => <li key={section.id} className="rounded-lg border border-starlight-border bg-starlight-surface p-5"><div className="flex flex-wrap items-baseline justify-between gap-3"><h3 className="text-lg font-medium">{section.label}</h3><span className="text-sm text-starlight-accent">{section.route}</span></div><p className="mt-3 whitespace-pre-wrap text-sm leading-7">{section.copy}</p><p className="mt-3 text-sm leading-6 text-starlight-muted">Next action: {section.action}</p><p className="mt-2 text-sm leading-6 text-starlight-muted">{section.why}</p>
-            <details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Edit copy and implementation details</summary><div className="mt-3 space-y-4">{(['copy', 'action', 'why', 'responsive', 'route'] as const).map((key) => <Field key={key} label={`${section.label}: ${key}`} multiline={key !== 'route'} value={section[key]} onChange={(value) => edit((next) => { next.sections[index]![key] = value; })} />)}<p className="break-all text-xs leading-6 text-starlight-muted">Proposed files: {section.files.join(', ') || 'Unresolved'}</p><ul className="space-y-2 text-xs leading-6 text-starlight-muted">{[...section.acceptance, ...section.accessibility].map((item, itemIndex) => <li key={itemIndex}>• {item}</li>)}</ul></div></details>
+        <div><h2 id="page-heading" className="text-2xl font-semibold">Give each section a purpose</h2><p className="mt-2 text-sm leading-6 text-starlight-muted">Review the page for the direction below. Copy and actions belong to that direction; routes and implementation constraints are shared.</p>
+          {pageOption && <div className="mt-4 space-y-2"><label htmlFor={directionSelectId} className="block text-sm text-starlight-muted">Page direction</label><select id={directionSelectId} className={control} value={pageOption.id} onChange={(event) => setViewed(event.target.value)}>{draft.options.map((option) => <option key={option.id} value={option.id}>{option.title}</option>)}</select></div>}
+          <ol className="mt-6 space-y-4" data-testid="direction-page-sections">{pageSections.map((section) => <li key={section.id} ref={(element) => { if (element) sectionEditors.current.set(section.id, element); else sectionEditors.current.delete(section.id); }} className="rounded-lg border border-starlight-border bg-starlight-surface p-5"><div className="flex flex-wrap items-baseline justify-between gap-3"><h3 className="text-lg font-medium">{section.label}</h3><span className="text-sm text-starlight-accent">{section.route}</span></div><p className="mt-3 whitespace-pre-wrap text-sm leading-7">{section.copy}</p><p className="mt-3 text-sm leading-6 text-starlight-muted">Next action: {section.action}</p><p className="mt-2 text-sm leading-6 text-starlight-muted">{section.why}</p>
+            <details className="mt-4"><summary className="min-h-11 cursor-pointer text-sm text-starlight-gold">Edit copy and implementation details</summary><div className="mt-3 space-y-4">{(['copy', 'action', 'why', 'responsive', 'route'] as const).map((key) => <Field key={key} label={`${section.label}: ${key}`} multiline={key !== 'route'} value={section[key]} onChange={(value) => edit((next) => {
+              const optionCopy = next.options.find((option) => option.id === pageOption?.id)?.sectionCopy?.find((item) => item.sectionId === section.id);
+              if (optionCopy && (key === 'copy' || key === 'action')) optionCopy[key] = value;
+              else next.sections.find((item) => item.id === section.id)![key] = value;
+            })} />)}<p className="break-all text-xs leading-6 text-starlight-muted">Proposed files: {section.files.join(', ') || 'Unresolved'}</p><ul className="space-y-2 text-xs leading-6 text-starlight-muted">{[...section.acceptance, ...section.accessibility].map((item, itemIndex) => <li key={itemIndex}>• {item}</li>)}</ul></div></details>
           </li>)}</ol>
         </div>
         <div className="space-y-6">
