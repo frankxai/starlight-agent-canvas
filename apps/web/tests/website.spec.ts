@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 import { applyWebsiteGeneration, type WebsitePlan } from '@starlight-agent-canvas/core';
+import { pagePreviewHtml, type PageLayout } from '../lib/website-page-preview';
 
 test('generated proposals preserve newer edits, recover, and export the chosen editable page', async ({ page }, testInfo) => {
   const created = await page.request.post('/api/canvases', { data: { title: `Generation fixture ${testInfo.project.name} ${Date.now()}`, template: 'blank' } });
@@ -74,6 +75,13 @@ test('website directions preserve edits, record a choice and export a source-bac
   await page.getByRole('button', { name: 'Load authored example' }).click();
   await expect(page.getByRole('status')).toContainText('Authored example');
   await expect(page.getByRole('button', { name: 'Choose The open workshop', exact: true })).toHaveAttribute('aria-disabled', 'true');
+  const studio = page.getByTestId('website-page-preview');
+  await studio.getByRole('button', { name: 'Preview The connected studio', exact: true }).click();
+  await expect(studio.locator('article')).toHaveAttribute('data-layout', 'connected');
+  await expect(studio.locator('article')).toContainText('See the sources behind a direction');
+  await expect(page.getByTestId('selected-website-direction')).toHaveCount(0);
+  await studio.getByRole('button', { name: 'Narrow view', exact: true }).click();
+  await expect(studio.locator('article')).toHaveAttribute('data-size', 'narrow');
   const pageDirection = page.getByRole('combobox', { name: 'Page direction', exact: true });
   const heroCopy = page.getByTestId('direction-page-sections').locator('li').first().locator('p').first();
   await pageDirection.selectOption('constellation');
@@ -86,7 +94,7 @@ test('website directions preserve edits, record a choice and export a source-bac
   await expect.poll(async () => page.evaluate((id) => sessionStorage.getItem(`starlight.website.draft.v1:${id}`), canvas.id)).toContain('Make the next version worth keeping.');
   await page.reload();
   await expect(page.getByRole('status')).toContainText('Recovered an unsaved draft');
-  await expect(page.getByRole('heading', { name: 'Make the next version worth keeping.', exact: true })).toBeVisible();
+  await expect(page.getByTestId('direction-options').getByRole('heading', { name: 'Make the next version worth keeping.', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Save website plan', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Plan saved locally');
   const choose = page.getByRole('button', { name: 'Choose The open workshop', exact: true });
@@ -104,6 +112,18 @@ test('website directions preserve edits, record a choice and export a source-bac
   expect(packet.gaps.join(' ')).toContain('mobile');
   const markdown = await page.request.get(`/api/canvases/${canvas.id}/website/export?format=markdown`);
   expect(await markdown.text()).toContain(packet.selected.checkpointId);
+  await studio.getByRole('button', { name: 'Preview The founder’s field notes', exact: true }).click();
+  await expect(studio.locator('article')).toHaveAttribute('data-layout', 'editorial');
+  await expect(page.getByTestId('selected-website-direction')).toContainText('The open workshop');
+  const studyDownload = page.waitForEvent('download');
+  await studio.getByRole('button', { name: 'Download page study HTML', exact: true }).click();
+  const downloadedStudy = await studyDownload;
+  const html = await readFile((await downloadedStudy.path())!, 'utf8');
+  expect(html).toContain('Pick up the direction you saved.');
+  expect(html).toContain('Keep a reviewed state you can refer to.');
+  expect(html).toContain('default-src'); expect(html).not.toContain('<script');
+  expect((await (await page.request.get(`/api/canvases/${canvas.id}/website/export`)).json()).selected.optionId).toBe('workshop');
+  await studio.getByRole('button', { name: 'Preview The open workshop', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
   const capture = testInfo.outputPath('website-directions.png');
@@ -127,9 +147,10 @@ test('website directions preserve edits, record a choice and export a source-bac
       await pageDirection.selectOption(direction);
       await expect(pageDirection).toHaveValue(direction);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      await expect(studio.locator('article')).toContainText(direction === 'workshop' ? 'Make the next version worth keeping.' : direction === 'constellation' ? 'See the sources behind a direction.' : 'Pick up the direction you saved.');
       const name = `website-authored-page-${direction}-${width}.png`;
       const authoredCapture = testInfo.outputPath(name);
-      await page.getByTestId('direction-page-sections').locator('..').screenshot({ path: authoredCapture });
+      await studio.screenshot({ path: authoredCapture });
       const authoredSidecar = structuredClone(sidecar);
       authoredSidecar.asset.id = `website-authored-page-${direction}-${width}-${testInfo.project.name}`;
       authoredSidecar.asset.relative_path = name;
@@ -150,6 +171,29 @@ test('website directions preserve edits, record a choice and export a source-bac
   const storedCanvas = await page.request.get(`/api/canvases/${canvas.id}`);
   const stored = (await storedCanvas.json()).canvas;
   expect(stored.nodes.filter((node: { metadata: { entityType?: string } }) => node.metadata.entityType === 'design_option')).toHaveLength(3);
+});
+
+test('page study editing updates the projection and treats imported markup as text', async ({ page }, testInfo) => {
+  const created = await page.request.post('/api/canvases', { data: { title: `Page study ${testInfo.project.name} ${Date.now()}`, template: 'blank' } });
+  const { canvas } = await created.json();
+  await page.goto(`/website/${canvas.id}`);
+  await page.getByRole('button', { name: 'Load authored example', exact: true }).click();
+  const studio = page.getByTestId('website-page-preview');
+  await studio.getByRole('button', { name: 'Edit section: A useful first promise', exact: true }).click();
+  const copy = page.getByLabel('A useful first promise: copy', { exact: true });
+  await expect(copy).toBeFocused();
+  const hostile = '<img src="https://untrusted.example/pixel" onerror="window.stolen=true">\n</style><script>window.stolen=true</script>';
+  await copy.fill(hostile);
+  await expect(studio.locator('.study-copy').first()).toHaveText(hostile);
+  expect(await studio.locator('img,script,iframe').count()).toBe(0);
+  await page.reload();
+  await expect(studio.locator('.study-copy').first()).toHaveText(hostile);
+  const raw = JSON.parse((await page.evaluate((id) => sessionStorage.getItem(`starlight.website.draft.v1:${id}`), canvas.id))!);
+  const html = pagePreviewHtml(raw.plan, 'workshop', 'workshop');
+  expect(html).toContain('&lt;img'); expect(html).toContain('&lt;/style&gt;&lt;script&gt;');
+  expect(html).not.toContain('<img'); expect(html).not.toContain('<script');
+  expect(() => pagePreviewHtml(raw.plan, 'workshop', '" onclick="bad' as PageLayout)).toThrow('supported');
+  expect(() => pagePreviewHtml(raw.plan, 'removed', 'workshop')).toThrow('no longer');
 });
 
 async function mediaFixture(page: Page, testInfo: TestInfo) {
