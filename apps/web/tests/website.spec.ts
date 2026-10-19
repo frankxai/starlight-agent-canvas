@@ -1,6 +1,71 @@
 import { createHash } from 'node:crypto';
 import { readFile, writeFile } from 'node:fs/promises';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
+import { applyWebsiteGeneration, type WebsitePlan } from '@starlight-agent-canvas/core';
+import { pagePreviewHtml, type PageLayout } from '../lib/website-page-preview';
+
+test('generated proposals preserve newer edits, recover, and export the chosen editable page', async ({ page }, testInfo) => {
+  const created = await page.request.post('/api/canvases', { data: { title: `Generation fixture ${testInfo.project.name} ${Date.now()}`, template: 'blank' } });
+  const { canvas } = await created.json();
+  const endpoint = `/api/canvases/${canvas.id}/website/generate`;
+  expect((await page.request.post(endpoint, { data: { plan: {} } })).status()).toBe(503);
+  expect((await page.request.post(endpoint, { headers: { Origin: 'https://untrusted.example' }, data: { plan: {} } })).status()).toBe(403);
+  expect((await page.request.post(endpoint, { headers: { 'Content-Type': 'text/plain' }, data: '{}' })).status()).toBe(415);
+  let release: (() => void) | undefined; let held = true; let sent: WebsitePlan | undefined;
+  await page.route(`**${endpoint}`, async (route) => {
+    if (route.request().method() === 'GET') return route.fulfill({ json: { enabled: true, provider: 'openai', model: 'synthetic-browser-fixture', boundary: 'Synthetic response fixture; no provider call or customer proof.' } });
+    const { plan } = route.request().postDataJSON() as { plan: WebsitePlan }; sent = plan;
+    const output = { options: plan.options.map((option, index) => ({ ...option, title: `Fixture approach ${index + 1}`, headline: `Fixture whole-page direction ${index + 1}`, sectionCopy: plan.sections.map((section) => ({ sectionId: section.id, copy: `Fixture approach ${index + 1}: ${section.copy}`, action: `Fixture action ${index + 1}` })), sourceQuotes: [plan.snapshot.notes.slice(0, 60)] })) };
+    const proposal = applyWebsiteGeneration(plan, output, { version: 'starlight.websiteGeneration.v1', provider: 'openai', requestedModel: 'fixture-model', returnedModel: 'fixture-model', generatedAt: '2026-10-07T10:00:00Z', inputHash: '1'.repeat(64), outputHash: '2'.repeat(64), promptHash: '3'.repeat(64), authority: 'local_assertion' });
+    if (held) await new Promise<void>((resolve) => { release = resolve; });
+    await route.fulfill({ json: { plan: proposal } });
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' }); await page.goto(`/website/${canvas.id}`);
+  await page.getByRole('button', { name: 'Load authored example' }).click();
+  const region = page.getByRole('heading', { name: 'Explore three complete page directions', exact: true }).locator('..');
+  await region.getByRole('button', { name: 'Send source and generate directions', exact: true }).click();
+  await expect.poll(() => Boolean(release)).toBe(true);
+  await page.getByLabel('Plan title', { exact: true }).fill('Newer draft retained'); release!();
+  await expect(region.getByRole('button', { name: 'Use proposal as draft', exact: true })).toBeDisabled();
+  await expect(region).toContainText('Your draft changed'); await expect(page.getByLabel('Plan title', { exact: true })).toHaveValue('Newer draft retained');
+  await page.reload(); await expect(region).toContainText('Recovered a generated proposal');
+  await expect(page.getByLabel('Plan title', { exact: true })).toHaveValue('Newer draft retained');
+  await region.getByRole('button', { name: 'Dismiss proposal', exact: true }).click(); held = false;
+  await page.getByLabel('Plan title', { exact: true }).fill('  Whitespace remains my draft  ');
+  await region.getByRole('button', { name: 'Send source and generate directions', exact: true }).click();
+  await expect(region.getByRole('button', { name: 'Use proposal as draft', exact: true })).toBeEnabled();
+  await region.getByRole('button', { name: 'Use proposal as draft', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit Fixture approach 2', exact: true }).click();
+  const sectionId = sent!.sections[0]!.id;
+  await page.getByRole('textbox', { name: `Fixture approach 2: ${sectionId} copy`, exact: true }).fill('Human-revised full-page section.');
+  await page.reload(); await page.getByRole('button', { name: 'Edit Fixture approach 2', exact: true }).click();
+  await expect(page.getByRole('textbox', { name: `Fixture approach 2: ${sectionId} copy`, exact: true })).toHaveValue('Human-revised full-page section.');
+  await page.getByRole('button', { name: 'Save website plan', exact: true }).click();
+  await page.getByRole('button', { name: 'Choose Fixture approach 2', exact: true }).click();
+  await expect(page.getByTestId('selected-website-direction')).toContainText('Fixture approach 2');
+  await expect(page.getByRole('combobox', { name: 'Page direction', exact: true })).toHaveValue(sent!.options[1]!.id);
+  await expect(page.getByTestId('direction-page-sections')).toContainText('Human-revised full-page section.');
+  const packet = await (await page.request.get(`/api/canvases/${canvas.id}/website/export`)).json();
+  expect(packet.sections[0].copy).toBe('Human-revised full-page section.'); expect(packet.origin).toBe('edited_model_generated');
+  expect(packet.generation.authority).toBe('local_assertion');
+  for (const width of [375, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await region.getByRole('button', { name: 'Download generated plan' }).scrollIntoViewIfNeeded();
+    const capture = testInfo.outputPath(`website-generation-${width}.png`); await region.screenshot({ path: capture });
+    const sha256 = createHash('sha256').update(await readFile(capture)).digest('hex');
+    await writeFile(`${capture}.vis.provenance.json`, JSON.stringify({ $schema: 'https://frankx.ai/schemas/vis-provenance-sidecar.schema.json', schema_version: '1.0.0', asset: { id: `website-generation-${testInfo.project.name}-${width}`, version: 1, media_type: 'image/png', sha256, relative_path: `website-generation-${width}.png` }, generation: { provider: 'Playwright browser capture / GitHub Actions', model: null, seed: null, prompt: 'Capture actual website generation review, source-matched synthetic fixture, newer edit preservation, proposal recovery, human section revision and verified chosen export. No live provider generation or customer acceptance.', settings: { revision: process.env.GITHUB_SHA ?? null, project: testInfo.project.name, width, reduced_motion: true }, created_at: new Date().toISOString(), output_paths: [`website-generation-${width}.png`] }, agent: { harness: 'Codex', session: '01a113ec-1c95-70a0-84eb-ae2b8aae03a3' }, evaluation: { visual_inspection: 'Pending', schema_validation: 'Not claimed' }, rights: { source: 'Owned synthetic browser fixture', public_release: false } }, null, 2));
+    const selectedPage = testInfo.outputPath(`website-selected-page-${width}.png`);
+    await page.getByTestId('direction-page-sections').locator('..').screenshot({ path: selectedPage });
+    const pageSidecar = JSON.parse(await readFile(`${capture}.vis.provenance.json`, 'utf8'));
+    pageSidecar.asset.id = `website-selected-page-${testInfo.project.name}-${width}`;
+    pageSidecar.asset.sha256 = createHash('sha256').update(await readFile(selectedPage)).digest('hex');
+    pageSidecar.asset.relative_path = `website-selected-page-${width}.png`;
+    pageSidecar.generation.prompt = 'Capture the actual selected-direction page editor after human copy revision, saved choice and canonical export; preserved route/files/constraints. Source-matched synthetic provider fixture, no live API or customer acceptance.';
+    pageSidecar.generation.created_at = new Date().toISOString(); pageSidecar.generation.output_paths = [`website-selected-page-${width}.png`];
+    await writeFile(`${selectedPage}.vis.provenance.json`, JSON.stringify(pageSidecar, null, 2));
+  }
+});
 
 test('website directions preserve edits, record a choice and export a source-backed brief', async ({ page }, testInfo) => {
   const created = await page.request.post('/api/canvases', { data: { title: `Website ${testInfo.project.name} ${Date.now()}`, template: 'blank' } });
@@ -10,12 +75,26 @@ test('website directions preserve edits, record a choice and export a source-bac
   await page.getByRole('button', { name: 'Load authored example' }).click();
   await expect(page.getByRole('status')).toContainText('Authored example');
   await expect(page.getByRole('button', { name: 'Choose The open workshop', exact: true })).toHaveAttribute('aria-disabled', 'true');
+  const studio = page.getByTestId('website-page-preview');
+  await studio.getByRole('button', { name: 'Preview The connected studio', exact: true }).click();
+  await expect(studio.locator('article')).toHaveAttribute('data-layout', 'connected');
+  await expect(studio.locator('article')).toContainText('See the sources behind a direction');
+  await expect(page.getByTestId('selected-website-direction')).toHaveCount(0);
+  await studio.getByRole('button', { name: 'Narrow view', exact: true }).click();
+  await expect(studio.locator('article')).toHaveAttribute('data-size', 'narrow');
+  const pageDirection = page.getByRole('combobox', { name: 'Page direction', exact: true });
+  const heroCopy = page.getByTestId('direction-page-sections').locator('li').first().locator('p').first();
+  await pageDirection.selectOption('constellation');
+  await expect(heroCopy).toHaveText(/See the sources behind a direction/);
+  await pageDirection.selectOption('field-notes');
+  await expect(heroCopy).toHaveText(/Pick up the direction you saved/);
   await page.getByRole('button', { name: 'Edit The open workshop', exact: true }).click();
+  await expect(heroCopy).toHaveText(/Edit a direction with the sources beside it/);
   await page.getByLabel('The open workshop: headline', { exact: true }).fill('Make the next version worth keeping.');
   await expect.poll(async () => page.evaluate((id) => sessionStorage.getItem(`starlight.website.draft.v1:${id}`), canvas.id)).toContain('Make the next version worth keeping.');
   await page.reload();
   await expect(page.getByRole('status')).toContainText('Recovered an unsaved draft');
-  await expect(page.getByRole('heading', { name: 'Make the next version worth keeping.', exact: true })).toBeVisible();
+  await expect(page.getByTestId('direction-options').getByRole('heading', { name: 'Make the next version worth keeping.', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Save website plan', exact: true }).click();
   await expect(page.getByRole('status')).toContainText('Plan saved locally');
   const choose = page.getByRole('button', { name: 'Choose The open workshop', exact: true });
@@ -26,10 +105,27 @@ test('website directions preserve edits, record a choice and export a source-bac
   const packetResponse = await page.request.get(`/api/canvases/${canvas.id}/website/export`); await expect(packetResponse).toBeOK();
   const packet = await packetResponse.json();
   expect(packet.direction.headline).toBe('Make the next version worth keeping.');
+  expect(packet.sections[0].copy).toMatch(/Edit a direction with the sources beside it/);
+  expect(packet.direction.sourceQuotes.length).toBeGreaterThan(0);
+  expect(packet.generation).toBeUndefined();
   expect(packet.selected.checkpointId).toMatch(/^checkpoint-/);
   expect(packet.gaps.join(' ')).toContain('mobile');
   const markdown = await page.request.get(`/api/canvases/${canvas.id}/website/export?format=markdown`);
   expect(await markdown.text()).toContain(packet.selected.checkpointId);
+  await studio.getByRole('button', { name: 'Preview The founder’s field notes', exact: true }).click();
+  await expect(studio.locator('article')).toHaveAttribute('data-layout', 'editorial');
+  await expect(page.getByTestId('selected-website-direction')).toContainText('The open workshop');
+  const studyDownload = page.waitForEvent('download');
+  await studio.getByRole('button', { name: 'Download page study HTML', exact: true }).click();
+  const downloadedStudy = await studyDownload;
+  const html = await readFile((await downloadedStudy.path())!, 'utf8');
+  expect(html).toContain('Pick up the direction you saved.');
+  expect(html).toContain('Keep a reviewed state you can refer to.');
+  expect(html).toContain('default-src'); expect(html).not.toContain('<script');
+  expect(html).toContain(packet.selected.planHash);
+  expect(html).toContain('Viewed direction; not the saved choice.');
+  expect((await (await page.request.get(`/api/canvases/${canvas.id}/website/export`)).json()).selected.optionId).toBe('workshop');
+  await studio.getByRole('button', { name: 'Preview The open workshop', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
   const capture = testInfo.outputPath('website-directions.png');
@@ -46,6 +142,31 @@ test('website directions preserve edits, record a choice and export a source-bac
   await writeFile(`${capture}.vis.provenance.json`, JSON.stringify(sidecar, null, 2));
   await testInfo.attach('website-directions', { path: capture, contentType: 'image/png' });
 
+  const previousViewport = page.viewportSize()!;
+  for (const width of [375, 768, 1440]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const direction of ['workshop', 'constellation', 'field-notes']) {
+      await pageDirection.selectOption(direction);
+      await expect(pageDirection).toHaveValue(direction);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+      await expect(studio.locator('article')).toContainText(direction === 'workshop' ? 'Make the next version worth keeping.' : direction === 'constellation' ? 'See the sources behind a direction.' : 'Pick up the direction you saved.');
+      expect(await studio.locator('.study-headline,.study-copy,.study-action,.study-section h3').evaluateAll((elements) => elements.every((element) => element.scrollWidth <= element.clientWidth + 1))).toBe(true);
+      const name = `website-authored-page-${direction}-${width}.png`;
+      const authoredCapture = testInfo.outputPath(name);
+      await studio.screenshot({ path: authoredCapture });
+      const authoredSidecar = structuredClone(sidecar);
+      authoredSidecar.asset.id = `website-authored-page-${direction}-${width}-${testInfo.project.name}`;
+      authoredSidecar.asset.relative_path = name;
+      authoredSidecar.asset.sha256 = createHash('sha256').update(await readFile(authoredCapture)).digest('hex');
+      authoredSidecar.generation.prompt = `Capture the actual authored ${direction} page inspector at ${width}px under reduced motion. The test edited a headline and checkpointed workshop; this selector changes the viewed direction only, not the fixture choice. No model generation, actual about-page deployment or customer approval.`;
+      authoredSidecar.generation.created_at = new Date().toISOString();
+      authoredSidecar.generation.output_paths = [name];
+      authoredSidecar.generation.settings = { ...authoredSidecar.generation.settings, ...{ width, direction, content_origin: 'edited_authored_example', choice_scope: 'View selector only; existing workshop fixture checkpoint unchanged.' } };
+      await writeFile(`${authoredCapture}.vis.provenance.json`, JSON.stringify(authoredSidecar, null, 2));
+    }
+  }
+  await page.setViewportSize(previousViewport);
+
   await page.reload();
   await expect(page.getByTestId('selected-website-direction')).toContainText(packet.selected.checkpointId);
   await page.getByRole('link', { name: 'Return to canvas' }).click();
@@ -53,6 +174,39 @@ test('website directions preserve edits, record a choice and export a source-bac
   const storedCanvas = await page.request.get(`/api/canvases/${canvas.id}`);
   const stored = (await storedCanvas.json()).canvas;
   expect(stored.nodes.filter((node: { metadata: { entityType?: string } }) => node.metadata.entityType === 'design_option')).toHaveLength(3);
+});
+
+test('page study editing updates the projection and treats imported markup as text', async ({ page }, testInfo) => {
+  const created = await page.request.post('/api/canvases', { data: { title: `Page study ${testInfo.project.name} ${Date.now()}`, template: 'blank' } });
+  const { canvas } = await created.json();
+  await page.goto(`/website/${canvas.id}`);
+  await page.getByRole('button', { name: 'Load authored example', exact: true }).click();
+  const studio = page.getByTestId('website-page-preview');
+  await studio.getByRole('button', { name: 'Edit section: A useful first promise', exact: true }).click();
+  const copy = page.getByLabel('A useful first promise: copy', { exact: true });
+  await expect(copy).toBeFocused();
+  await page.getByRole('button', { name: 'Edit The connected studio', exact: true }).click();
+  await page.getByRole('button', { name: 'Edit The connected studio', exact: true }).click();
+  await expect(studio.locator('article')).toHaveAttribute('data-layout', 'connected');
+  await studio.getByRole('button', { name: 'Preview The open workshop', exact: true }).click();
+  await studio.getByRole('button', { name: 'Edit section: A useful first promise', exact: true }).click();
+  await expect(copy).toBeFocused();
+  const hostile = '<img src="https://untrusted.example/pixel" onerror="window.stolen=true">\n</style><script>window.stolen=true</script>';
+  await copy.fill(hostile);
+  await expect(studio.locator('.study-copy').first()).toHaveText(hostile);
+  expect(await studio.locator('img,script,iframe').count()).toBe(0);
+  await page.reload();
+  await expect(studio.locator('.study-copy').first()).toHaveText(hostile);
+  const raw = JSON.parse((await page.evaluate((id) => sessionStorage.getItem(`starlight.website.draft.v1:${id}`), canvas.id))!);
+  const html = pagePreviewHtml(raw.plan, 'workshop', 'workshop');
+  expect(html).toContain('&lt;img'); expect(html).toContain('&lt;/style&gt;&lt;script&gt;');
+  expect(html).not.toContain('<img'); expect(html).not.toContain('<script');
+  expect(() => pagePreviewHtml(raw.plan, 'workshop', '" onclick="bad' as PageLayout)).toThrow('supported');
+  expect(() => pagePreviewHtml(raw.plan, 'removed', 'workshop')).toThrow('no longer');
+  await page.setContent(html);
+  await expect(page.locator('.study-copy').first()).toHaveText(hostile);
+  expect(await page.locator('img,script,iframe,a').count()).toBe(0);
+  expect(await page.evaluate(() => 'stolen' in window)).toBe(false);
 });
 
 async function mediaFixture(page: Page, testInfo: TestInfo) {

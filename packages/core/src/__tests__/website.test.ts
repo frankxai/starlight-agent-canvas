@@ -18,7 +18,8 @@ it('makes an editable source-backed artifact, preserves unrelated work and expor
   await expect(store.exportWebsiteImplementation(canvas.id)).rejects.toThrow('Choose a saved');
   const chosen = await store.selectWebsiteDirection(canvas.id, 'constellation', saved.record!.planHash);
   const packet = await store.exportWebsiteImplementation(canvas.id);
-  expect(packet.direction.headline).toBe('Give your ideas a place to become real.');
+  expect(packet.direction.id).toBe('constellation');
+  expect(packet.direction.headline).toBe(saved.record!.plan.options.find((option) => option.id === 'constellation')!.headline);
   expect(packet.selected.authority).toBe('user_assertion');
   expect(packet.gaps.join(' ')).toContain('desktop');
   expect(packet.gaps.join(' ')).toContain('mobile');
