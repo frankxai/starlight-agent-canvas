@@ -13,19 +13,19 @@
   "dependencies": {
     "@starlight-agent-canvas/core": "workspace:*",
     "@xyflow/react": "^12.12.0",
-    "ai": "^7.0.138",
-    "lucide-react": "^1.55.0",
-    "next": "^16.4.0",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0"
+    "ai": "^7.0.145",
+    "lucide-react": "^1.59.0",
+    "next": "^16.4.2",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.0",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "autoprefixer": "^10.6.1",
-    "postcss": "^8.5.30",
+    "postcss": "^8.5.31",
     "tailwindcss": "^4.3.3",
     "typescript": "npm:@typescript/typescript6@6.0.2"
   }
