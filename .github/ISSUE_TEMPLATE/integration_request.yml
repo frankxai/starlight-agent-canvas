@@ -1,4 +1,4 @@
-name: Integration Request
+name: Integration request
 description: Request an MCP client, model provider, ingestion source, or deployment integration.
 title: "integration: "
 labels: ["integration", "mcp"]
@@ -6,7 +6,7 @@ body:
   - type: dropdown
     id: integration_type
     attributes:
-      label: Integration Type
+      label: Integration type
       options:
         - MCP client
         - Model provider
@@ -20,19 +20,19 @@ body:
   - type: textarea
     id: use_case
     attributes:
-      label: Use Case
+      label: Use case
       description: What workflow should this unlock?
     validations:
       required: true
   - type: textarea
     id: interface
     attributes:
-      label: Proposed Interface
+      label: Proposed interface
       description: Config shape, command, API route, MCP tool, env var names, or UI entry point.
   - type: checkboxes
     id: safety
     attributes:
-      label: Safety Review
+      label: Safety review
       options:
         - label: Does not require broad credentials.
         - label: Can run with least-privilege or local-only defaults.
