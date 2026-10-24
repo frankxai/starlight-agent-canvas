@@ -20,7 +20,7 @@ function run(command, args, { cwd = root, env = process.env, timeout = 180000 } 
   return result.stdout.trim();
 }
 const pnpmCli = process.env.npm_execpath;
-if (!pnpmCli || !/\.(c?js|mjs)$/.test(pnpmCli)) throw new Error('Run through the pinned pnpm package script.');
+if (!pnpmCli || (!/\.(c?js|mjs)$/.test(pnpmCli) && !/[/\\]pnpm(-cli)?$/.test(pnpmCli))) throw new Error('Run through the pinned pnpm package script.');
 const pnpm = args => run(process.execPath, [pnpmCli, ...args]);
 if (pnpm(['--version']) !== '11.7.0') throw new Error('This runtime rail requires the source-pinned pnpm 11.7.0.');
 if (run('git', ['status', '--porcelain', '--untracked-files=normal'])) throw new Error('Package from a clean, committed source checkout.');

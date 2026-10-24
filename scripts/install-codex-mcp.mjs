@@ -6,7 +6,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { ConfigHold, planCodexConfig, configLimit } from './codex-config.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const cliPath = path.join(repoRoot, 'packages', 'mcp', 'dist', 'cli.js');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 
 async function snapshot(configPath, ownedPublicationLink) {
@@ -99,7 +98,7 @@ export async function installConfig(configPath, options, { expectedSha, beforePu
 async function main() {
   const args = process.argv.slice(2).filter(arg => arg !== '--');
   if (args.includes('--help') || args.includes('-h')) {
-    console.log('Usage: pnpm mcp:install:codex [-- --write] [--config <path>] [--expected-sha <dry-run hash>]\nNew registrations are disabled. Activate only the chosen Codex task with -c mcp_servers.starlight-agent-canvas.enabled=true.');
+    console.log('Usage: pnpm mcp:install:codex [-- --write] [--config <path>] [--expected-sha <dry-run hash>] [--cli-path <path>]\nNew registrations are disabled. Activate only the chosen Codex task with -c mcp_servers.starlight-agent-canvas.enabled=true.');
     return;
   }
   function value(flag) {
@@ -108,7 +107,7 @@ async function main() {
     if (!args[i + 1] || args[i + 1].startsWith('--')) throw new ConfigHold(`Missing value after ${flag}.`);
     return args[i + 1];
   }
-  const allowedFlags = new Set(['--write', '--config', '--expected-sha']);
+  const allowedFlags = new Set(['--write', '--config', '--expected-sha', '--cli-path']);
   const seen = new Set();
   for (let i = 0; i < args.length; i++) {
     if (!allowedFlags.has(args[i]) || seen.has(args[i])) throw new ConfigHold('Unknown or duplicate installer option.');
@@ -117,6 +116,7 @@ async function main() {
   }
   const configPath = path.resolve(value('--config') ?? path.join(os.homedir(), '.codex', 'config.toml'));
   const expectedSha = value('--expected-sha');
+  const cliPath = value('--cli-path') ? path.resolve(value('--cli-path')) : path.join(repoRoot, 'packages', 'mcp', 'dist', 'cli.js');
   const options = { command: process.execPath, cliPath, home: process.env.AGENT_CANVAS_HOME || path.join(os.homedir(), '.starlight', 'agent-canvas') };
   if (!args.includes('--write')) {
     const original = await snapshot(configPath);
