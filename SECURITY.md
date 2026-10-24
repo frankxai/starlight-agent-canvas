@@ -36,9 +36,9 @@ URL ingestion rejects private, localhost, link-local, and credentialed URLs; app
 
 Do not open a public issue for vulnerabilities, exploit details, secrets, private transcripts, private canvas exports, or credential material.
 
-Preferred public-repo route: use GitHub private vulnerability reporting / Security Advisories once the repository is public and that feature is enabled.
+Report vulnerabilities privately via [GitHub Security Advisories](https://github.com/frankxai/starlight-agent-canvas/security/advisories/new). This form requires a GitHub account.
 
-Until a public private-reporting route is enabled, contact the maintainer privately through the existing Starlight maintainer channel and include:
+When reporting, please include:
 
 - affected version or commit
 - affected tool, route, ingestion path, or MCP action
