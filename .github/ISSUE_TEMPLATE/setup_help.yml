@@ -1,4 +1,4 @@
-name: Setup / MCP Help
+name: Setup / MCP help
 description: Get help with install, doctor, Codex, Claude, Gemini, or MCP wiring.
 title: "setup: "
 labels: ["setup", "mcp"]
