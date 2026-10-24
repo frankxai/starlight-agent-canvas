@@ -1,0 +1,13 @@
+--- packages/core/src/__tests__/chunks.test.ts
++++ packages/core/src/__tests__/chunks.test.ts
+@@ -124,9 +124,4 @@
+         expect(chunks[0].text).toBe('Hello world');
+       });
+   });
+-
+-  it('fails if one expected value is flipped', () => {
+-    const text = 'abcdefghijklmnopqrstuvwxyz';
+-    const chunks = buildSourceChunks('test-art', text, 10, 2);
+-    // expect(chunks[1].startOffset).toBe(1000); // intentional failure
+-  });
+ });
